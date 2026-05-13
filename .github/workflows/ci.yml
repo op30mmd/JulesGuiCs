@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v4
@@ -17,11 +17,14 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
     - name: Restore dependencies
-      run: dotnet restore
+      run: msbuild JulesClient.sln /t:Restore /p:Configuration=Release
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: msbuild JulesClient.sln /p:Configuration=Release
 
     - name: Check formatting
       run: dotnet format --verify-no-changes --no-restore
