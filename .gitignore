@@ -1,6 +1,6 @@
-```
 # CI/CD
-.github/
+# .github/ is ignored by default in some environments, but it was explicitly ignored here.
+# Removing it to allow CI workflows.
 
 # Dependencies
 node_modules/
@@ -13,6 +13,8 @@ dist/
 build/
 target/
 .gradle/
+bin/
+obj/
 
 # Logs and temp files
 *.log
@@ -60,4 +62,3 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-```
