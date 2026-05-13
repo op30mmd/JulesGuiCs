@@ -1,0 +1,17 @@
+<Page x:Class="JulesClient.Views.SessionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="LightGreen">
+
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+            <TextBlock Text="💬 SESSIONS PAGE" 
+                       FontSize="32" 
+                       FontWeight="Bold"
+                       Foreground="DarkGreen"/>
+            <TextBlock Text="Navigation is working!" 
+                       FontSize="18"
+                       Foreground="DarkGreen"/>
+        </StackPanel>
+    </Grid>
+</Page>
