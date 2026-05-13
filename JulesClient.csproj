@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+		<RootNamespace>JulesClient</RootNamespace>
+		<Platforms>x64</Platforms>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<UseWinUI>true</UseWinUI>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- CRITICAL: DISABLE PACKAGING & RESOURCE INDEXING (PRI) -->
+		<!-- This stops MSBuild from looking for the missing VS tasks -->
+		<WindowsPackageType>None</WindowsPackageType>
+		<EnableMsixTooling>false</EnableMsixTooling>
+		<EnableMrtCore>false</EnableMrtCore>
+		<MrtCorePriGenTargets></MrtCorePriGenTargets>
+		<EnableXamlDiagnostics>false</EnableXamlDiagnostics>
+		<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+
+		<!-- Ensure MSBuild knows we are not in VS to prevent path fallbacks -->
+		<BuildingInsideVisualStudio>false</BuildingInsideVisualStudio>
+		<WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- WinUI 3 SDK (1.6 is required for .NET 9) -->
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.240923002" />
+
+		<!-- Updated SDK BuildTools for better compatibility -->
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
+
+		<!-- Libraries -->
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="System.Reactive" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Update="**\*.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+	</ItemGroup>
+</Project>
