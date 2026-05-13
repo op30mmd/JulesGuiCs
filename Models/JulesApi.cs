@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 namespace JulesClient.Models;
 
 public record SourceListResponse([property: JsonPropertyName("sources")] List<Source> Sources, [property: JsonPropertyName("nextPageToken")] string? NextPageToken);

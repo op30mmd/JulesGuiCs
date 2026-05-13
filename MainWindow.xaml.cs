@@ -1,4 +1,3 @@
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace JulesClient;
@@ -9,7 +8,6 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Wire up navigation - THIS IS CRITICAL
         Nav.ItemInvoked += (s, e) =>
         {
             var tag = e.InvokedItemContainer?.Tag?.ToString();
@@ -30,7 +28,6 @@ public sealed partial class MainWindow : Window
             }
         };
 
-        // Load default page on startup
         ContentFrame.Navigate(typeof(Views.SourcesPage));
         System.Diagnostics.Debug.WriteLine("[NAV] Loaded default: SourcesPage");
     }
