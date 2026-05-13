@@ -27,4 +27,4 @@ jobs:
       run: msbuild JulesClient.sln /p:Configuration=Release
 
     - name: Check formatting
-      run: dotnet format --verify-no-changes --no-restore
+      run: dotnet format JulesClient.sln --verify-no-changes --no-restore
