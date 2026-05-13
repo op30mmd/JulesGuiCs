@@ -1,0 +1,17 @@
+<Page x:Class="JulesClient.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="LightCoral">
+
+	<Grid>
+		<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+			<TextBlock Text="⚙️ SETTINGS PAGE"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="DarkRed"/>
+			<TextBlock Text="You navigated here!"
+                       FontSize="18"
+                       Foreground="DarkRed"/>
+		</StackPanel>
+	</Grid>
+</Page>
