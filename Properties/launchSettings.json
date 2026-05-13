@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "JulesClient (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "JulesClient (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
