@@ -52,7 +52,7 @@
         <DataTemplate x:Key="SessionFailedTemplate" x:DataType="models:SessionFailed">
              <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}" BorderBrush="{ThemeResource SystemFillColorCriticalBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <SymbolIcon Symbol="Error" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                    <SymbolIcon Symbol="Important" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                     <StackPanel>
                         <TextBlock Text="Session Failed" FontWeight="Bold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="14"/>
                         <TextBlock Text="{x:Bind Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9"/>
