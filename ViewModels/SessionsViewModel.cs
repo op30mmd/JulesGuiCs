@@ -71,7 +71,7 @@ public partial class SessionsViewModel : ObservableObject
                 {
                     if (resp.Activities != null)
                     {
-                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime))
+                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
                         {
                             if (!Activities.Any(a => a.Name == activity.Name))
                                 Activities.Add(activity);
@@ -91,7 +91,7 @@ public partial class SessionsViewModel : ObservableObject
             {
                 if (response.Activities != null)
                 {
-                    foreach (var activity in response.Activities.OrderBy(a => a.CreateTime))
+                    foreach (var activity in response.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
                     {
                         if (!Activities.Any(a => a.Name == activity.Name))
                             Activities.Add(activity);

@@ -18,8 +18,11 @@ public class Base64ToImageSourceConverter : IValueConverter
                 byte[] bytes = System.Convert.FromBase64String(base64);
                 var image = new BitmapImage();
                 var ms = new InMemoryRandomAccessStream();
-                // We use GetAwaiter().GetResult() as a workaround for synchronous IValueConverter
-                ms.WriteAsync(bytes.AsBuffer()).AsTask().GetAwaiter().GetResult();
+                using (var stream = ms.AsStreamForWrite())
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush();
+                }
                 ms.Seek(0);
                 image.SetSource(ms);
                 return image;
@@ -35,7 +38,7 @@ public class Base64ToImageSourceConverter : IValueConverter
 public class OriginatorToAlignmentConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        (value as string) == "user" ? Microsoft.UI.Xaml.HorizontalAlignment.Right : Microsoft.UI.Xaml.HorizontalAlignment.Left;
+        (value as string) == "user" ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
