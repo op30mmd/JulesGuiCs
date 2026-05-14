@@ -23,7 +23,18 @@ public partial class App : Application
         {
             Debug.WriteLine($"[CRASH] Unhandled Exception: {e.Message}");
             Debug.WriteLine(e.Exception.ToString());
-            e.Handled = true; // Attempt to keep app alive
+            e.Handled = true;
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            Debug.WriteLine($"[CRASH] AppDomain Unhandled Exception: {e.ExceptionObject}");
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            Debug.WriteLine($"[CRASH] Unobserved Task Exception: {e.Exception}");
+            e.SetObserved();
         };
     }
 
