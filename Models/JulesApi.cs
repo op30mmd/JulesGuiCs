@@ -100,8 +100,18 @@ public record Activity(
     [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated,
     [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved,
     [property: JsonPropertyName("sessionCompleted")] object? SessionCompleted,
-    [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts
-);
+    [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts,
+    [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
+    [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
+    [property: JsonPropertyName("text")] string? Text,
+    [property: JsonPropertyName("prompt")] string? Prompt
+)
+{
+    public string? DisplayText => !string.IsNullOrEmpty(Text) ? Text : (!string.IsNullOrEmpty(Prompt) ? Prompt : (!string.IsNullOrEmpty(UserMessage?.Prompt) ? UserMessage.Prompt : AgentMessage?.Message));
+}
+
+public record UserMessage([property: JsonPropertyName("prompt")] string? Prompt);
+public record AgentMessage([property: JsonPropertyName("message")] string? Message);
 
 public record ProgressUpdated(
     [property: JsonPropertyName("title")] string? Title,
@@ -114,7 +124,8 @@ public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId
 public record Artifact(
     [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
     [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
-    [property: JsonPropertyName("media")] Media? Media
+    [property: JsonPropertyName("media")] Media? Media,
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest
 );
 
 public record BashOutput(
