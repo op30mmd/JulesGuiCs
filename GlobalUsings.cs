@@ -5,5 +5,3 @@ global using CommunityToolkit.Mvvm.Input;
 global using Microsoft.UI.Xaml;
 global using Microsoft.UI.Xaml.Controls;
 global using Microsoft.UI.Xaml.Data;
-global using Microsoft.Extensions.DependencyInjection;
-global using System.Linq;
