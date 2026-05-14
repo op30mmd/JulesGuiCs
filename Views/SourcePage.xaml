@@ -13,10 +13,11 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="20" Margin="0,0,0,20">
             <TextBlock Text="Sources" Style="{StaticResource TitleTextBlockStyle}"/>
-            <Button Content="Refresh" Command="{x:Bind ViewModel.LoadSourcesCommand}">
-                <Button.Icon>
+            <Button Command="{x:Bind ViewModel.LoadSourcesCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
                     <SymbolIcon Symbol="Refresh"/>
-                </Button.Icon>
+                    <TextBlock Text="Refresh"/>
+                </StackPanel>
             </Button>
         </StackPanel>
 

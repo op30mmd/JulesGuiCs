@@ -21,9 +21,7 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Padding="12" Spacing="10">
                 <TextBlock Text="Sessions" Style="{StaticResource TitleTextBlockStyle}"/>
                 <Button Command="{x:Bind ViewModel.LoadSessionsCommand}">
-                    <Button.Icon>
-                        <SymbolIcon Symbol="Refresh"/>
-                    </Button.Icon>
+                    <SymbolIcon Symbol="Refresh"/>
                 </Button>
             </StackPanel>
 
