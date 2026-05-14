@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml;
 
 namespace JulesClient.Services;
 
@@ -30,6 +31,14 @@ public class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
         !string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        null!;
+}
+
+public class InvertedStringToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
 }

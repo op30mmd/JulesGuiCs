@@ -1,4 +1,9 @@
 using Microsoft.UI.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using JulesClient.Services;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
 
 namespace JulesClient;
 
@@ -18,9 +23,44 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
 
-        services.AddSingleton<Services.ISettingsService, Services.SettingsService>();
-        services.AddSingleton<Services.IJulesApiClient, Services.JulesApiClient>();
-        services.AddSingleton<Services.IPollingService, Services.PollingService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IPollingService, PollingService>();
+
+        services.AddSingleton<IJulesApiClient>(sp =>
+        {
+            var settings = sp.GetRequiredService<ISettingsService>();
+
+            HttpMessageHandler handler;
+
+            if (settings.ProxyEnabled && !string.IsNullOrEmpty(settings.ProxyHost))
+            {
+                handler = new SocketsHttpHandler
+                {
+                    ConnectCallback = async (context, ct) =>
+                    {
+                        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+                        try
+                        {
+                            await socket.ConnectAsync(settings.ProxyHost, settings.ProxyPort, ct);
+                            var stream = new NetworkStream(socket, true);
+                            await Socks5Handshaker.HandshakeAsync(stream, context.DnsEndPoint.Host, context.DnsEndPoint.Port, settings.ProxyUsername, settings.ProxyPassword, ct);
+                            return stream;
+                        }
+                        catch
+                        {
+                            socket.Dispose();
+                            throw;
+                        }
+                    }
+                };
+            }
+            else
+            {
+                handler = new HttpClientHandler();
+            }
+
+            return new JulesApiClient(settings, handler);
+        });
 
         return services.BuildServiceProvider();
     }

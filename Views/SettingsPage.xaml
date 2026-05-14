@@ -2,25 +2,62 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:JulesClient.ViewModels"
+    xmlns:converters="using:JulesClient.Services"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Margin="40">
-        <StackPanel Spacing="20" MaxWidth="500" HorizontalAlignment="Left">
-            <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
+    <Page.Resources>
+        <converters:InvertedStringToVisibilityConverter x:Key="InvertedStringToVisibilityConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Page.Resources>
 
-            <StackPanel Spacing="8">
-                <TextBlock Text="Jules API Key" Style="{StaticResource BodyTextBlockStyle}"/>
-                <PasswordBox x:Name="ApiKeyPasswordBox"
-                            PlaceholderText="Enter your API key here"
-                            PasswordRevealMode="Peek"/>
-                <TextBlock Text="The API key is stored locally in application settings."
-                           Style="{StaticResource CaptionTextBlockStyle}"
-                           Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+    <ScrollViewer>
+        <Grid Margin="40">
+            <StackPanel Spacing="20" MaxWidth="500" HorizontalAlignment="Left">
+                <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
+
+                <InfoBar Title="API Key Required"
+                         Message="Please enter your Jules API key to start using the client."
+                         IsOpen="True"
+                         Severity="Informational"
+                         Visibility="{x:Bind ViewModel.ApiKey, Converter={StaticResource InvertedStringToVisibilityConverter}, Mode=OneWay}"
+                         Margin="0,0,0,10" />
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Jules API Key" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <PasswordBox x:Name="ApiKeyPasswordBox"
+                                PlaceholderText="Enter your API key here"
+                                PasswordRevealMode="Peek"/>
+                    <TextBlock Text="The API key is stored locally in application settings."
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+                </StackPanel>
+
+                <Rectangle Height="1" Fill="{ThemeResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
+
+                <TextBlock Text="Proxy Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                <ToggleSwitch x:Name="ProxyEnabledToggle" Header="Enable SOCKS5 Proxy"
+                              IsOn="{x:Bind ViewModel.ProxyEnabled, Mode=TwoWay}"/>
+
+                <StackPanel Spacing="8" Visibility="{x:Bind ProxyEnabledToggle.IsOn, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                    <TextBlock Text="Proxy Host" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <TextBox x:Name="ProxyHostTextBox" Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay}" PlaceholderText="e.g. 127.0.0.1"/>
+
+                    <TextBlock Text="Proxy Port" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <NumberBox x:Name="ProxyPortNumberBox" Value="{x:Bind ViewModel.ProxyPort, Mode=TwoWay}" SpinButtonPlacementMode="Compact" Minimum="1" Maximum="65535"/>
+
+                    <TextBlock Text="Proxy Username (Optional)" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <TextBox x:Name="ProxyUsernameTextBox" Text="{x:Bind ViewModel.ProxyUsername, Mode=TwoWay}"/>
+
+                    <TextBlock Text="Proxy Password (Optional)" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <PasswordBox x:Name="ProxyPasswordBox" PasswordRevealMode="Peek"/>
+                </StackPanel>
+
+                <Button Content="Save Settings"
+                        Click="OnSaveClick"
+                        Margin="0,20,0,0"
+                        Style="{StaticResource AccentButtonStyle}"/>
             </StackPanel>
-
-            <Button Content="Save Settings"
-                    Click="OnSaveClick"
-                    Style="{StaticResource AccentButtonStyle}"/>
-        </StackPanel>
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </Page>

@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using JulesClient.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JulesClient;
 
@@ -16,6 +18,15 @@ public sealed partial class MainWindow : Window
         // Wire up navigation - THIS IS CRITICAL
         Nav.ItemInvoked += (s, e) =>
         {
+            if (e.IsSettingsInvoked)
+            {
+                if (ContentFrame.Content?.GetType() != typeof(Views.SettingsPage))
+                {
+                    ContentFrame.Navigate(typeof(Views.SettingsPage));
+                }
+                return;
+            }
+
             var tag = e.InvokedItemContainer?.Tag?.ToString();
             System.Diagnostics.Debug.WriteLine($"[NAV] Clicked: {tag}");
 
@@ -23,7 +34,6 @@ public sealed partial class MainWindow : Window
             {
                 "Sources" => typeof(Views.SourcesPage),
                 "Sessions" => typeof(Views.SessionsPage),
-                "Settings" => typeof(Views.SettingsPage),
                 _ => null
             };
 
@@ -35,7 +45,16 @@ public sealed partial class MainWindow : Window
         };
 
         // Load default page on startup
-        ContentFrame.Navigate(typeof(Views.SourcesPage));
-        System.Diagnostics.Debug.WriteLine("[NAV] Loaded default: SourcesPage");
+        var settings = ((App)Application.Current).Services.GetRequiredService<ISettingsService>();
+        if (string.IsNullOrEmpty(settings.ApiKey))
+        {
+            ContentFrame.Navigate(typeof(Views.SettingsPage));
+            System.Diagnostics.Debug.WriteLine("[NAV] No API key, navigating to SettingsPage");
+        }
+        else
+        {
+            ContentFrame.Navigate(typeof(Views.SourcesPage));
+            System.Diagnostics.Debug.WriteLine("[NAV] Loaded default: SourcesPage");
+        }
     }
 }
