@@ -14,6 +14,18 @@ public partial class SourcesViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private string _newSessionPrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _newSessionTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _newSessionBranch = "main";
+
+    [ObservableProperty]
+    private bool _requirePlanApproval = true;
+
     public ObservableCollection<Source> Sources { get; } = new();
 
     public SourcesViewModel()
@@ -50,10 +62,30 @@ public partial class SourcesViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public async Task CreateSessionAsync(Source source)
+    public async Task<bool> CreateSessionAsync(Source source)
     {
-        // For now, we'll just navigate to sessions after creating one or handle it in a dialog
-        // This will be expanded when we have the session creation UI
+        if (string.IsNullOrWhiteSpace(NewSessionPrompt)) return false;
+
+        IsLoading = true;
+        try
+        {
+            var req = new CreateSessionRequest(
+                new SourceContext(source.Name, new GitHubRepoContext(NewSessionBranch)),
+                NewSessionPrompt,
+                RequirePlanApproval,
+                Title: string.IsNullOrWhiteSpace(NewSessionTitle) ? null : NewSessionTitle
+            );
+            await _api.CreateSessionAsync(req);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to create session: {ex.Message}";
+            return false;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }

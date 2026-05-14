@@ -22,7 +22,13 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     private readonly HttpClient _http;
     private readonly ISettingsService _settings;
     private const string Base = "https://jules.googleapis.com/v1alpha/";
-    private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _json = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
+
     public JulesApiClient(ISettingsService settings, HttpMessageHandler? handler = null)
     {
         _settings = settings;
