@@ -104,14 +104,41 @@ public record Activity(
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
     [property: JsonPropertyName("text")] string? Text,
-    [property: JsonPropertyName("prompt")] string? Prompt
+    [property: JsonPropertyName("prompt")] string? Prompt,
+    [property: JsonPropertyName("description")] string? Description
 )
 {
-    public string? DisplayText => !string.IsNullOrEmpty(Text) ? Text : (!string.IsNullOrEmpty(Prompt) ? Prompt : (!string.IsNullOrEmpty(UserMessage?.Prompt) ? UserMessage.Prompt : AgentMessage?.Message));
+    public string? DisplayText =>
+        !string.IsNullOrEmpty(Text) ? Text :
+        (!string.IsNullOrEmpty(Prompt) ? Prompt :
+        (!string.IsNullOrEmpty(UserMessage?.Prompt) ? UserMessage.Prompt :
+        (!string.IsNullOrEmpty(UserMessage?.Text) ? UserMessage.Text :
+        (!string.IsNullOrEmpty(AgentMessage?.Message) ? AgentMessage.Message :
+        (!string.IsNullOrEmpty(AgentMessage?.Text) ? AgentMessage.Text :
+        (!string.IsNullOrEmpty(Description) && ProgressUpdated == null && PlanGenerated == null ? Description : null))))));
+
+    public bool HasContent
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(DisplayText)) return true;
+            if (ProgressUpdated != null && (!string.IsNullOrEmpty(ProgressUpdated.Title) || !string.IsNullOrEmpty(ProgressUpdated.Description))) return true;
+            if (PlanGenerated?.Plan != null && (!string.IsNullOrEmpty(PlanGenerated.Plan.Title) || !string.IsNullOrEmpty(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
+            if (Artifacts?.Any() == true) return true;
+            if (PlanApproved != null || SessionCompleted != null) return true;
+            return false;
+        }
+    }
 }
 
-public record UserMessage([property: JsonPropertyName("prompt")] string? Prompt);
-public record AgentMessage([property: JsonPropertyName("message")] string? Message);
+public record UserMessage(
+    [property: JsonPropertyName("prompt")] string? Prompt,
+    [property: JsonPropertyName("text")] string? Text
+);
+public record AgentMessage(
+    [property: JsonPropertyName("message")] string? Message,
+    [property: JsonPropertyName("text")] string? Text
+);
 
 public record ProgressUpdated(
     [property: JsonPropertyName("title")] string? Title,

@@ -15,10 +15,12 @@
         <converters:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"/>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <DataTemplate x:Key="ProgressUpdatedTemplate" x:DataType="models:ProgressUpdated">
             <StackPanel Margin="0,1">
-                <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"/>
+                <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"
+                           Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                 <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}"
                            TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
                            Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
@@ -27,7 +29,7 @@
 
         <DataTemplate x:Key="PlanGeneratedTemplate" x:DataType="models:Plan">
             <StackPanel Margin="0,1" Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
-                <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="14"/>
+                <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="13" Opacity="0.8"/>
                 <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14"/>
                 <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
                            Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
@@ -51,8 +53,10 @@
             <StackPanel Margin="0,4,0,0" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
                 <StackPanel Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}">
                     <TextBlock Text="{x:Bind BashOutput.Command, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Opacity="0.7" Visibility="{x:Bind BashOutput.Command, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                    <TextBlock Text="{x:Bind BashOutput.Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
-                    <TextBlock Text="{x:Bind BashOutput.ExitCode, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{x:Bind BashOutput.Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"
+                               Visibility="{x:Bind BashOutput.Output, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock Text="{x:Bind BashOutput.ExitCode, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"
+                               Visibility="{x:Bind BashOutput.ExitCode, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
                 </StackPanel>
 
                 <StackPanel Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}">
@@ -148,12 +152,14 @@
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             <Setter Property="MinHeight" Value="0"/>
                             <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0,1"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="IsHitTestVisible" Value="False"/>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:Activity">
-                            <Grid Margin="12,2" HorizontalAlignment="{x:Bind Originator, Converter={StaticResource OriginatorToAlignmentConverter}}">
+                            <Grid Margin="12,2" HorizontalAlignment="{x:Bind Originator, Converter={StaticResource OriginatorToAlignmentConverter}}"
+                                  Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                                 <Border CornerRadius="8" Padding="12,8" MaxWidth="650"
                                         Background="{x:Bind Originator, Converter={StaticResource OriginatorToColorConverter}}">
                                     <StackPanel Spacing="2">

@@ -42,8 +42,12 @@ public class Base64ToImageSourceConverter : IValueConverter
 
 public class OriginatorToAlignmentConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, string language) =>
-        (value as string) == "user" ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        string? originator = value as string;
+        bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
+        return isUser ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+    }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
@@ -54,7 +58,8 @@ public class OriginatorToColorConverter : IValueConverter
     {
         try
         {
-            bool isUser = (value as string) == "user";
+            string? originator = value as string;
+            bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
             string resourceKey = isUser ? "SystemAccentColor" : "SystemControlBackgroundChromeMediumLowBrush";
 
             if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
