@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace JulesClient.ViewModels;
 
@@ -26,6 +28,9 @@ public partial class SourcesViewModel : ObservableObject
     [ObservableProperty]
     private bool _requirePlanApproval = true;
 
+    [ObservableProperty]
+    private bool _autoCreatePR = false;
+
     public ObservableCollection<Source> Sources { get; } = new();
 
     public SourcesViewModel()
@@ -46,9 +51,12 @@ public partial class SourcesViewModel : ObservableObject
             _syncContext?.Post(_ =>
             {
                 Sources.Clear();
-                foreach (var source in response.Sources)
+                if (response.Sources != null)
                 {
-                    Sources.Add(source);
+                    foreach (var source in response.Sources)
+                    {
+                        Sources.Add(source);
+                    }
                 }
             }, null);
         }
@@ -70,9 +78,10 @@ public partial class SourcesViewModel : ObservableObject
         try
         {
             var req = new CreateSessionRequest(
-                new SourceContext(source.Name, new GitHubRepoContext(NewSessionBranch)),
+                new SourceContext(source.Name, NewSessionBranch),
                 NewSessionPrompt,
                 RequirePlanApproval,
+                AutomationMode: AutoCreatePR ? AutomationModes.AutoCreatePR : null,
                 Title: string.IsNullOrWhiteSpace(NewSessionTitle) ? null : NewSessionTitle
             );
             await _api.CreateSessionAsync(req);
@@ -82,6 +91,7 @@ public partial class SourcesViewModel : ObservableObject
             NewSessionTitle = string.Empty;
             NewSessionBranch = "main";
             RequirePlanApproval = true;
+            AutoCreatePR = false;
 
             return true;
         }

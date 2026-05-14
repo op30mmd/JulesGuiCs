@@ -44,10 +44,6 @@ public record Session(
 
 public record SourceContext(
     [property: JsonPropertyName("source")] string? Source,
-    [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext
-);
-
-public record GitHubRepoContext(
     [property: JsonPropertyName("startingBranch")] string? StartingBranch
 );
 
@@ -100,6 +96,11 @@ public record Activity(
     [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated,
     [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved,
     [property: JsonPropertyName("sessionCompleted")] object? SessionCompleted,
+    [property: JsonPropertyName("sessionFailed")] SessionFailed? SessionFailed,
+    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
+    [property: JsonPropertyName("media")] Media? Media,
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest,
     [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts,
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
@@ -109,23 +110,27 @@ public record Activity(
 )
 {
     public string? DisplayText =>
-        !string.IsNullOrEmpty(Text) ? Text :
-        (!string.IsNullOrEmpty(Prompt) ? Prompt :
-        (!string.IsNullOrEmpty(UserMessage?.Prompt) ? UserMessage.Prompt :
-        (!string.IsNullOrEmpty(UserMessage?.Text) ? UserMessage.Text :
-        (!string.IsNullOrEmpty(AgentMessage?.Message) ? AgentMessage.Message :
-        (!string.IsNullOrEmpty(AgentMessage?.Text) ? AgentMessage.Text :
-        (!string.IsNullOrEmpty(Description) && ProgressUpdated == null && PlanGenerated == null ? Description : null))))));
+        !string.IsNullOrWhiteSpace(Text) ? Text :
+        (!string.IsNullOrWhiteSpace(Prompt) ? Prompt :
+        (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
+        (!string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
+        (!string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
+        (!string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
+        (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
+        (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
+        (PlanApproved != null ? "Plan Approved" :
+        (SessionCompleted != null ? "Session Completed" : null)))))))));
 
     public bool HasContent
     {
         get
         {
-            if (!string.IsNullOrEmpty(DisplayText)) return true;
-            if (ProgressUpdated != null && (!string.IsNullOrEmpty(ProgressUpdated.Title) || !string.IsNullOrEmpty(ProgressUpdated.Description))) return true;
-            if (PlanGenerated?.Plan != null && (!string.IsNullOrEmpty(PlanGenerated.Plan.Title) || !string.IsNullOrEmpty(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
-            if (Artifacts?.Any() == true) return true;
-            if (PlanApproved != null || SessionCompleted != null) return true;
+            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
+            if (ProgressUpdated != null && (!string.IsNullOrWhiteSpace(ProgressUpdated.Title) || !string.IsNullOrWhiteSpace(ProgressUpdated.Description))) return true;
+            if (PlanGenerated?.Plan != null && (!string.IsNullOrWhiteSpace(PlanGenerated.Plan.Title) || !string.IsNullOrWhiteSpace(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
+            if (Artifacts?.Any(a => a.BashOutput != null || a.ChangeSet != null || a.Media != null || a.PullRequest != null) == true) return true;
+            if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
+            if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
             return false;
         }
     }
@@ -147,6 +152,7 @@ public record ProgressUpdated(
 
 public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan);
 public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId);
+public record SessionFailed([property: JsonPropertyName("reason")] string? Reason);
 
 public record Artifact(
     [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
@@ -180,4 +186,9 @@ public record Media(
 public record SendMessageResponse
 {
     [property: JsonPropertyName("success")] public bool Success { get; init; }
+}
+
+public static class AutomationModes
+{
+    public const string AutoCreatePR = "AUTO_CREATE_PR";
 }
