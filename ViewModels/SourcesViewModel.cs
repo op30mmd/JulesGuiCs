@@ -76,6 +76,13 @@ public partial class SourcesViewModel : ObservableObject
                 Title: string.IsNullOrWhiteSpace(NewSessionTitle) ? null : NewSessionTitle
             );
             await _api.CreateSessionAsync(req);
+
+            // Reset fields
+            NewSessionPrompt = string.Empty;
+            NewSessionTitle = string.Empty;
+            NewSessionBranch = "main";
+            RequirePlanApproval = true;
+
             return true;
         }
         catch (Exception ex)

@@ -18,7 +18,8 @@ public class Base64ToImageSourceConverter : IValueConverter
                 byte[] bytes = System.Convert.FromBase64String(base64);
                 var image = new BitmapImage();
                 var ms = new InMemoryRandomAccessStream();
-                ms.WriteAsync(bytes.AsBuffer()).AsTask().GetAwaiter().GetResult();
+                var task = ms.WriteAsync(bytes.AsBuffer()).AsTask();
+                task.GetAwaiter().GetResult();
                 ms.Seek(0);
                 image.SetSource(ms);
                 return image;
@@ -45,9 +46,20 @@ public class OriginatorToColorConverter : IValueConverter
     {
         if ((value as string) == "user")
         {
-            return (Brush)Application.Current.Resources["SystemAccentColor"];
+            if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var accent))
+            {
+                if (accent is Windows.UI.Color color) return new SolidColorBrush(color);
+                if (accent is Brush brush) return brush;
+            }
+            return new SolidColorBrush(Microsoft.UI.Colors.Blue); // Fallback
         }
-        return (Brush)Application.Current.Resources["SystemControlBackgroundChromeMediumLowBrush"];
+
+        if (Application.Current.Resources.TryGetValue("SystemControlBackgroundChromeMediumLowBrush", out var chrome))
+        {
+            if (chrome is Brush brush) return brush;
+        }
+
+        return new SolidColorBrush(Microsoft.UI.Colors.Gray); // Fallback
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

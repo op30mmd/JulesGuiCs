@@ -120,6 +120,17 @@
                                             <TextBlock Text="New Plan Proposed" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}"/>
                                             <TextBlock Text="{x:Bind PlanGenerated.Plan.Title}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                                             <TextBlock converters:MarkdownHelper.Text="{x:Bind PlanGenerated.Plan.Description}" TextWrapping="WrapWholeWords" Opacity="0.9"/>
+
+                                            <ItemsControl ItemsSource="{x:Bind PlanGenerated.Plan.Steps}" Margin="0,10,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:PlanStep">
+                                                        <StackPanel Margin="0,4" Spacing="2">
+                                                            <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" FontSize="13"/>
+                                                            <TextBlock converters:MarkdownHelper.Text="{x:Bind Description}" FontSize="12" Opacity="0.8" Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}}"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
 
                                         <!-- Artifacts -->
