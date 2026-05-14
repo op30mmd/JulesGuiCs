@@ -9,6 +9,10 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+
         // Wire up navigation - THIS IS CRITICAL
         Nav.ItemInvoked += (s, e) =>
         {
