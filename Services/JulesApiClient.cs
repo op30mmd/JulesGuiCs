@@ -99,14 +99,14 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     public async Task<Session> GetSessionAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.GetAsync($"sessions/{id}", ct);
+        var r = await _http.GetAsync(id, ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<Session>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
     public async Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.PostAsync($"sessions/{id}:approvePlan", null, ct);
+        var r = await _http.PostAsync($"{id}:approvePlan", null, ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<ApprovePlanResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? new ApprovePlanResponse();
     }
@@ -114,7 +114,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var q = new List<string> { $"pageSize={ps}" }; if (pt != null) q.Add($"pageToken={Uri.EscapeDataString(pt)}");
-        var r = await _http.GetAsync($"sessions/{sid}/activities?{string.Join("&", q)}", ct);
+        var r = await _http.GetAsync($"{sid}/activities?{string.Join("&", q)}", ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<ActivityListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
@@ -122,7 +122,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var req = new { prompt }; var c = new StringContent(JsonSerializer.Serialize(req, _json), System.Text.Encoding.UTF8, "application/json");
-        var r = await _http.PostAsync($"sessions/{sid}:sendMessage", c, ct);
+        var r = await _http.PostAsync($"{sid}:sendMessage", c, ct);
         await HandleErrorResponse(r, ct);
         return new SendMessageResponse { Success = true };
     }

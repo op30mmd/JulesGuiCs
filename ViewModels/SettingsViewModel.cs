@@ -16,7 +16,7 @@ public partial class SettingsViewModel : ObservableObject
     private string _proxyHost = string.Empty;
 
     [ObservableProperty]
-    private int _proxyPort;
+    private double _proxyPort;
 
     [ObservableProperty]
     private string _proxyUsername = string.Empty;
@@ -40,7 +40,7 @@ public partial class SettingsViewModel : ObservableObject
         _settings.ApiKey = ApiKey;
         _settings.ProxyEnabled = ProxyEnabled;
         _settings.ProxyHost = ProxyHost;
-        _settings.ProxyPort = ProxyPort;
+        _settings.ProxyPort = (int)ProxyPort;
         _settings.ProxyUsername = ProxyUsername;
         _settings.ProxyPassword = ProxyPassword;
     }
