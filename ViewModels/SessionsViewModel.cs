@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
+using System.Diagnostics;
 
 namespace JulesClient.ViewModels;
 
@@ -35,6 +36,7 @@ public partial class SessionsViewModel : ObservableObject
         IsLoading = true;
         try
         {
+            Debug.WriteLine("[VM] Loading sessions...");
             var response = await _api.ListSessionsAsync();
             _syncContext?.Post(_ =>
             {
@@ -50,7 +52,7 @@ public partial class SessionsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load sessions: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to load sessions: {ex.Message}");
         }
         finally
         {
@@ -64,6 +66,7 @@ public partial class SessionsViewModel : ObservableObject
         Activities.Clear();
         if (value != null)
         {
+            Debug.WriteLine($"[VM] Session selected: {value.Name}");
             _ = LoadActivitiesAsync(value.Name);
             _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
@@ -74,7 +77,10 @@ public partial class SessionsViewModel : ObservableObject
                         foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
                         {
                             if (!Activities.Any(a => a.Name == activity.Name))
+                            {
+                                Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
                                 Activities.Add(activity);
+                            }
                         }
                     }
                 }, null);
@@ -86,6 +92,7 @@ public partial class SessionsViewModel : ObservableObject
     {
         try
         {
+            Debug.WriteLine($"[VM] Loading activities for {sessionId}...");
             var response = await _api.ListActivitiesAsync(sessionId);
             _syncContext?.Post(_ =>
             {
@@ -101,7 +108,7 @@ public partial class SessionsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load activities: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to load activities: {ex.Message}");
         }
     }
 
@@ -117,7 +124,7 @@ public partial class SessionsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to send message: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to send message: {ex.Message}");
         }
     }
 
@@ -133,7 +140,7 @@ public partial class SessionsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to approve plan: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
         }
     }
 

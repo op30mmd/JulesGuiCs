@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI.Xaml;
+using System.Diagnostics;
 
 namespace JulesClient.Services;
 
@@ -27,7 +28,11 @@ public class Base64ToImageSourceConverter : IValueConverter
                 image.SetSource(ms);
                 return image;
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[CONVERTER] Base64ToImageSource failed: {ex.Message}");
+                return null;
+            }
         }
         return null;
     }
@@ -47,16 +52,24 @@ public class OriginatorToColorConverter : IValueConverter
 {
     public object? Convert(object value, Type targetType, object parameter, string language)
     {
-        bool isUser = (value as string) == "user";
-        string resourceKey = isUser ? "SystemAccentColor" : "SystemControlBackgroundChromeMediumLowBrush";
-
-        if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
+        try
         {
-            if (res is Brush brush) return brush;
-            if (res is Windows.UI.Color color) return new SolidColorBrush(color);
-        }
+            bool isUser = (value as string) == "user";
+            string resourceKey = isUser ? "SystemAccentColor" : "SystemControlBackgroundChromeMediumLowBrush";
 
-        return isUser ? new SolidColorBrush(Microsoft.UI.Colors.Blue) : new SolidColorBrush(Microsoft.UI.Colors.Gray);
+            if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
+            {
+                if (res is Brush brush) return brush;
+                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+            }
+
+            return isUser ? new SolidColorBrush(Microsoft.UI.Colors.Blue) : new SolidColorBrush(Microsoft.UI.Colors.Gray);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[CONVERTER] OriginatorToColor failed: {ex.Message}");
+            return new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

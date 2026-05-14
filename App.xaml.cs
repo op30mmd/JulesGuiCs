@@ -4,6 +4,7 @@ using JulesClient.Services;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace JulesClient;
 
@@ -17,6 +18,13 @@ public partial class App : Application
     {
         Services = ConfigureServices();
         this.InitializeComponent();
+
+        this.UnhandledException += (s, e) =>
+        {
+            Debug.WriteLine($"[CRASH] Unhandled Exception: {e.Message}");
+            Debug.WriteLine(e.Exception.ToString());
+            e.Handled = true; // Attempt to keep app alive
+        };
     }
 
     private static IServiceProvider ConfigureServices()
@@ -46,8 +54,9 @@ public partial class App : Application
                             await Socks5Handshaker.HandshakeAsync(stream, context.DnsEndPoint.Host, context.DnsEndPoint.Port, settings.ProxyUsername, settings.ProxyPassword, ct);
                             return stream;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            Debug.WriteLine($"[PROXY] Connection failed: {ex.Message}");
                             socket.Dispose();
                             throw;
                         }

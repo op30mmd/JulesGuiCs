@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace JulesClient.Services;
 
@@ -10,45 +11,60 @@ public static class MarkdownParser
 {
     private static Brush GetAccentBrush()
     {
-        if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var res))
+        try
         {
-            if (res is Windows.UI.Color color) return new SolidColorBrush(color);
-            if (res is Brush brush) return brush;
+            if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var res))
+            {
+                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+                if (res is Brush brush) return brush;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MARKDOWN] Failed to get accent color: {ex.Message}");
         }
         return new SolidColorBrush(Microsoft.UI.Colors.Blue);
     }
 
     public static void ParseInto(TextBlock textBlock, string text)
     {
-        textBlock.Inlines.Clear();
-        if (string.IsNullOrEmpty(text)) return;
-
-        var accent = GetAccentBrush();
-        var segments = Regex.Split(text, @"(\*\*.*?\*\*|\*.*?\*|`.*?`)").Where(s => !string.IsNullOrEmpty(s));
-
-        foreach (var segment in segments)
+        try
         {
-            if (segment.StartsWith("**") && segment.EndsWith("**"))
+            textBlock.Inlines.Clear();
+            if (string.IsNullOrEmpty(text)) return;
+
+            var accent = GetAccentBrush();
+            var segments = Regex.Split(text, @"(\*\*.*?\*\*|\*.*?\*|`.*?`)").Where(s => !string.IsNullOrEmpty(s));
+
+            foreach (var segment in segments)
             {
-                textBlock.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Trim('*') } } });
-            }
-            else if (segment.StartsWith("*") && segment.EndsWith("*"))
-            {
-                textBlock.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Trim('*') } } });
-            }
-            else if (segment.StartsWith("`") && segment.EndsWith("`"))
-            {
-                textBlock.Inlines.Add(new Run
+                if (segment.StartsWith("**") && segment.EndsWith("**"))
                 {
-                    Text = segment.Trim('`'),
-                    FontFamily = new FontFamily("Consolas"),
-                    Foreground = accent
-                });
+                    textBlock.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Trim('*') } } });
+                }
+                else if (segment.StartsWith("*") && segment.EndsWith("*"))
+                {
+                    textBlock.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Trim('*') } } });
+                }
+                else if (segment.StartsWith("`") && segment.EndsWith("`"))
+                {
+                    textBlock.Inlines.Add(new Run
+                    {
+                        Text = segment.Trim('`'),
+                        FontFamily = new FontFamily("Consolas"),
+                        Foreground = accent
+                    });
+                }
+                else
+                {
+                    textBlock.Inlines.Add(new Run { Text = segment });
+                }
             }
-            else
-            {
-                textBlock.Inlines.Add(new Run { Text = segment });
-            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MARKDOWN] Parse failed: {ex.Message}");
+            textBlock.Text = text; // Fallback to raw text
         }
     }
 }
