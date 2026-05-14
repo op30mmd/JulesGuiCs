@@ -34,7 +34,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                     string? filter = null;
                     if (_lastTimestamps.TryGetValue(sid, out var last))
                     {
-                        filter = $"createTime > {last}";
+                        filter = $"createTime > \"{last}\"";
                     }
 
                     var resp = await _api.ListActivitiesAsync(sid, 30, filter: filter, ct: ct);
