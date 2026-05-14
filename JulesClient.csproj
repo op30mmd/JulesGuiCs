@@ -12,6 +12,13 @@
 
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
+
+		<!--
+		  To sign the MSIX package, you can uncomment these properties and provide the path to your .pfx file.
+		  Alternatively, you can pass them as MSBuild properties during build:
+		  msbuild /p:PackageCertificateKeyFile=MyCertificate.pfx /p:PackageCertificatePassword=MyPassword
+		-->
+		<!-- <PackageCertificateKeyFile>JulesClient_TemporaryKey.pfx</PackageCertificateKeyFile> -->
 	</PropertyGroup>
 
 	<ItemGroup>
