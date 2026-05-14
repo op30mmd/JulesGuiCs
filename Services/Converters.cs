@@ -43,6 +43,14 @@ public class InvertedStringToVisibilityConverter : IValueConverter
         null!;
 }
 
+public class StringToBooleanConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        !string.IsNullOrEmpty(value as string);
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        null!;
+}
+
 public class NullToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>

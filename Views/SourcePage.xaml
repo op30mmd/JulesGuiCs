@@ -6,6 +6,11 @@
     xmlns:converters="using:JulesClient.Services"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.Resources>
+        <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
+        <converters:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
+    </Page.Resources>
+
     <Grid Margin="40">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -17,7 +22,7 @@
             <TextBlock Text="Connected GitHub Repositories" Style="{StaticResource BodyTextBlockStyle}" Opacity="0.6"/>
 
             <InfoBar Title="Error" Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                     IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"
+                     IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBooleanConverter}}"
                      Severity="Error" Margin="0,10"/>
         </StackPanel>
 
@@ -43,7 +48,7 @@
                       HorizontalAlignment="Center" VerticalAlignment="Center"
                       Grid.Row="1"/>
 
-        <!-- Create Session Dialog Content (defined here for convenience) -->
+        <!-- Create Session Dialog Content -->
         <ContentDialog x:Name="CreateSessionDialog"
                        Title="Create New Session"
                        PrimaryButtonText="Create"

@@ -61,12 +61,12 @@ public partial class SessionsViewModel : ObservableObject
         Activities.Clear();
         if (value != null)
         {
-            _ = LoadActivitiesAsync(value.Id);
-            _pollingSubscription = _polling.StartPolling(value.Id, resp =>
+            _ = LoadActivitiesAsync(value.Name);
+            _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
                 _syncContext?.Post(_ =>
                 {
-                    foreach (var activity in resp.Activities)
+                    foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime))
                     {
                         if (!Activities.Any(a => a.Name == activity.Name))
                             Activities.Add(activity);
@@ -83,7 +83,7 @@ public partial class SessionsViewModel : ObservableObject
             var response = await _api.ListActivitiesAsync(sessionId);
             _syncContext?.Post(_ =>
             {
-                foreach (var activity in response.Activities)
+                foreach (var activity in response.Activities.OrderBy(a => a.CreateTime))
                 {
                     if (!Activities.Any(a => a.Name == activity.Name))
                         Activities.Add(activity);
@@ -104,7 +104,7 @@ public partial class SessionsViewModel : ObservableObject
         ChatInput = string.Empty;
         try
         {
-            await _api.SendMessageAsync(SelectedSession.Id, msg);
+            await _api.SendMessageAsync(SelectedSession.Name, msg);
         }
         catch (Exception ex)
         {
@@ -118,8 +118,8 @@ public partial class SessionsViewModel : ObservableObject
         if (SelectedSession == null) return;
         try
         {
-            await _api.ApprovePlanAsync(SelectedSession.Id);
-            var updated = await _api.GetSessionAsync(SelectedSession.Id);
+            await _api.ApprovePlanAsync(SelectedSession.Name);
+            var updated = await _api.GetSessionAsync(SelectedSession.Name);
             _syncContext?.Post(_ => SelectedSession = updated, null);
         }
         catch (Exception ex)
