@@ -1,22 +1,29 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using System.Text.RegularExpressions;
 
 namespace JulesClient.Services;
 
 public static class MarkdownParser
 {
+    private static Brush GetAccentBrush()
+    {
+        if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var res))
+        {
+            if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+            if (res is Brush brush) return brush;
+        }
+        return new SolidColorBrush(Microsoft.UI.Colors.Blue);
+    }
+
     public static void ParseInto(TextBlock textBlock, string text)
     {
         textBlock.Inlines.Clear();
         if (string.IsNullOrEmpty(text)) return;
 
-        // Simple regex-based parsing for:
-        // `code` -> Inline Code
-        // **bold** -> Bold
-        // *italic* -> Italic
-
+        var accent = GetAccentBrush();
         var segments = Regex.Split(text, @"(\*\*.*?\*\*|\*.*?\*|`.*?`)").Where(s => !string.IsNullOrEmpty(s));
 
         foreach (var segment in segments)
@@ -34,8 +41,8 @@ public static class MarkdownParser
                 textBlock.Inlines.Add(new Run
                 {
                     Text = segment.Trim('`'),
-                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
-                    Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemAccentColor"]
+                    FontFamily = new FontFamily("Consolas"),
+                    Foreground = accent
                 });
             }
             else

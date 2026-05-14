@@ -18,8 +18,8 @@ public class Base64ToImageSourceConverter : IValueConverter
                 byte[] bytes = System.Convert.FromBase64String(base64);
                 var image = new BitmapImage();
                 var ms = new InMemoryRandomAccessStream();
-                var task = ms.WriteAsync(bytes.AsBuffer()).AsTask();
-                task.GetAwaiter().GetResult();
+                // We use GetAwaiter().GetResult() as a workaround for synchronous IValueConverter
+                ms.WriteAsync(bytes.AsBuffer()).AsTask().GetAwaiter().GetResult();
                 ms.Seek(0);
                 image.SetSource(ms);
                 return image;
@@ -42,24 +42,18 @@ public class OriginatorToAlignmentConverter : IValueConverter
 
 public class OriginatorToColorConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, string language)
+    public object? Convert(object value, Type targetType, object parameter, string language)
     {
-        if ((value as string) == "user")
+        bool isUser = (value as string) == "user";
+        string resourceKey = isUser ? "SystemAccentColor" : "SystemControlBackgroundChromeMediumLowBrush";
+
+        if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
         {
-            if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var accent))
-            {
-                if (accent is Windows.UI.Color color) return new SolidColorBrush(color);
-                if (accent is Brush brush) return brush;
-            }
-            return new SolidColorBrush(Microsoft.UI.Colors.Blue); // Fallback
+            if (res is Brush brush) return brush;
+            if (res is Windows.UI.Color color) return new SolidColorBrush(color);
         }
 
-        if (Application.Current.Resources.TryGetValue("SystemControlBackgroundChromeMediumLowBrush", out var chrome))
-        {
-            if (chrome is Brush brush) return brush;
-        }
-
-        return new SolidColorBrush(Microsoft.UI.Colors.Gray); // Fallback
+        return isUser ? new SolidColorBrush(Microsoft.UI.Colors.Blue) : new SolidColorBrush(Microsoft.UI.Colors.Gray);
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

@@ -1,26 +1,35 @@
 using System.Text.Json.Serialization;
 namespace JulesClient.Models;
 
-public record SourceListResponse([property: JsonPropertyName("sources")] List<Source> Sources, [property: JsonPropertyName("nextPageToken")] string? NextPageToken);
+public record SourceListResponse(
+    [property: JsonPropertyName("sources")] List<Source>? Sources,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+);
+
 public record Source(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("name")] string? Name,
+    [property: JsonPropertyName("id")] string? Id,
     [property: JsonPropertyName("githubRepo")] GitHubRepo? GitHubRepo,
     [property: JsonPropertyName("createTime")] string? CreateTime,
     [property: JsonPropertyName("updateTime")] string? UpdateTime
 );
+
 public record GitHubRepo(
-    [property: JsonPropertyName("owner")] string Owner,
-    [property: JsonPropertyName("repo")] string Repo
+    [property: JsonPropertyName("owner")] string? Owner,
+    [property: JsonPropertyName("repo")] string? Repo
 );
 
-public record SessionListResponse([property: JsonPropertyName("sessions")] List<Session> Sessions, [property: JsonPropertyName("nextPageToken")] string? NextPageToken);
+public record SessionListResponse(
+    [property: JsonPropertyName("sessions")] List<Session>? Sessions,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+);
+
 public record Session(
     [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("id")] string? Id,
     [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext,
-    [property: JsonPropertyName("prompt")] string Prompt,
+    [property: JsonPropertyName("prompt")] string? Prompt,
     [property: JsonPropertyName("createTime")] string? CreateTime,
     [property: JsonPropertyName("updateTime")] string? UpdateTime,
     [property: JsonPropertyName("state")] string? State,
@@ -29,10 +38,12 @@ public record Session(
     [property: JsonPropertyName("outputs")] List<SessionOutput>? Outputs,
     [property: JsonPropertyName("requirePlanApproval")] bool? RequirePlanApproval
 )
-{ public string ShortId => Name.Replace("sessions/", ""); }
+{
+    public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
+}
 
 public record SourceContext(
-    [property: JsonPropertyName("source")] string Source,
+    [property: JsonPropertyName("source")] string? Source,
     [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext
 );
 
@@ -45,8 +56,8 @@ public record SessionOutput(
 );
 
 public record PullRequest(
-    [property: JsonPropertyName("url")] string Url,
-    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("url")] string? Url,
+    [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("description")] string? Description
 );
 
@@ -62,12 +73,12 @@ public record Plan(
     [property: JsonPropertyName("id")] string? Id,
     [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("description")] string? Description,
-    [property: JsonPropertyName("steps")] List<PlanStep> Steps
+    [property: JsonPropertyName("steps")] List<PlanStep>? Steps
 );
 
 public record PlanStep(
     [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("description")] string? Description,
     [property: JsonPropertyName("status")] string? Status,
     [property: JsonPropertyName("index")] int? Index
@@ -75,12 +86,16 @@ public record PlanStep(
 
 public record ApprovePlanResponse();
 
-public record ActivityListResponse([property: JsonPropertyName("activities")] List<Activity> Activities, [property: JsonPropertyName("nextPageToken")] string? NextPageToken);
+public record ActivityListResponse(
+    [property: JsonPropertyName("activities")] List<Activity>? Activities,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+);
+
 public record Activity(
     [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("createTime")] string CreateTime,
-    [property: JsonPropertyName("originator")] string Originator,
+    [property: JsonPropertyName("id")] string? Id,
+    [property: JsonPropertyName("createTime")] string? CreateTime,
+    [property: JsonPropertyName("originator")] string? Originator,
     [property: JsonPropertyName("progressUpdated")] ProgressUpdated? ProgressUpdated,
     [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated,
     [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved,
@@ -89,12 +104,12 @@ public record Activity(
 );
 
 public record ProgressUpdated(
-    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("description")] string? Description
 );
 
-public record PlanGenerated([property: JsonPropertyName("plan")] Plan Plan);
-public record PlanApproved([property: JsonPropertyName("planId")] string PlanId);
+public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan);
+public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId);
 
 public record Artifact(
     [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
@@ -104,7 +119,7 @@ public record Artifact(
 
 public record BashOutput(
     [property: JsonPropertyName("command")] string? Command,
-    [property: JsonPropertyName("output")] string Output,
+    [property: JsonPropertyName("output")] string? Output,
     [property: JsonPropertyName("exitCode")] int? ExitCode
 );
 
@@ -120,8 +135,11 @@ public record GitPatch(
 );
 
 public record Media(
-    [property: JsonPropertyName("mimeType")] string MimeType,
-    [property: JsonPropertyName("data")] string Data
+    [property: JsonPropertyName("mimeType")] string? MimeType,
+    [property: JsonPropertyName("data")] string? Data
 );
 
-public record SendMessageResponse { [property: JsonPropertyName("success")] public bool Success { get; init; } }
+public record SendMessageResponse
+{
+    [property: JsonPropertyName("success")] public bool Success { get; init; }
+}

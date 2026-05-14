@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml.Controls;
 using JulesClient.ViewModels;
 using JulesClient.Models;
+using Microsoft.UI.Xaml;
 
 namespace JulesClient.Views;
 
@@ -23,16 +24,16 @@ public sealed partial class SourcesPage : Page
     {
         if (e.ClickedItem is Source source)
         {
-            ViewModel.NewSessionTitle = $"Session with {source.GitHubRepo?.Repo}";
+            ViewModel.NewSessionTitle = $"Session with {source.GitHubRepo?.Repo ?? "Repository"}";
             ViewModel.NewSessionPrompt = "";
 
+            CreateSessionDialog.XamlRoot = this.XamlRoot;
             var result = await CreateSessionDialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
                 bool success = await ViewModel.CreateSessionAsync(source);
                 if (success)
                 {
-                    // Navigate to Sessions
                     Frame.Navigate(typeof(SessionsPage));
                 }
             }

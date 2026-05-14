@@ -39,9 +39,12 @@ public partial class SessionsViewModel : ObservableObject
             _syncContext?.Post(_ =>
             {
                 Sessions.Clear();
-                foreach (var session in response.Sessions)
+                if (response.Sessions != null)
                 {
-                    Sessions.Add(session);
+                    foreach (var session in response.Sessions)
+                    {
+                        Sessions.Add(session);
+                    }
                 }
             }, null);
         }
@@ -66,10 +69,13 @@ public partial class SessionsViewModel : ObservableObject
             {
                 _syncContext?.Post(_ =>
                 {
-                    foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime))
+                    if (resp.Activities != null)
                     {
-                        if (!Activities.Any(a => a.Name == activity.Name))
-                            Activities.Add(activity);
+                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime))
+                        {
+                            if (!Activities.Any(a => a.Name == activity.Name))
+                                Activities.Add(activity);
+                        }
                     }
                 }, null);
             });
@@ -83,10 +89,13 @@ public partial class SessionsViewModel : ObservableObject
             var response = await _api.ListActivitiesAsync(sessionId);
             _syncContext?.Post(_ =>
             {
-                foreach (var activity in response.Activities.OrderBy(a => a.CreateTime))
+                if (response.Activities != null)
                 {
-                    if (!Activities.Any(a => a.Name == activity.Name))
-                        Activities.Add(activity);
+                    foreach (var activity in response.Activities.OrderBy(a => a.CreateTime))
+                    {
+                        if (!Activities.Any(a => a.Name == activity.Name))
+                            Activities.Add(activity);
+                    }
                 }
             }, null);
         }
