@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace JulesClient.ViewModels;
 
@@ -13,6 +15,21 @@ public partial class SourcesViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _errorMessage;
+
+    [ObservableProperty]
+    private string _newSessionPrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _newSessionTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _newSessionBranch = "main";
+
+    [ObservableProperty]
+    private bool _requirePlanApproval = true;
+
+    [ObservableProperty]
+    private bool _autoCreatePR = false;
 
     public ObservableCollection<Source> Sources { get; } = new();
 
@@ -34,9 +51,12 @@ public partial class SourcesViewModel : ObservableObject
             _syncContext?.Post(_ =>
             {
                 Sources.Clear();
-                foreach (var source in response.Sources)
+                if (response.Sources != null)
                 {
-                    Sources.Add(source);
+                    foreach (var source in response.Sources)
+                    {
+                        Sources.Add(source);
+                    }
                 }
             }, null);
         }
@@ -50,10 +70,39 @@ public partial class SourcesViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public async Task CreateSessionAsync(Source source)
+    public async Task<bool> CreateSessionAsync(Source source)
     {
-        // For now, we'll just navigate to sessions after creating one or handle it in a dialog
-        // This will be expanded when we have the session creation UI
+        if (string.IsNullOrWhiteSpace(NewSessionPrompt)) return false;
+
+        IsLoading = true;
+        try
+        {
+            var req = new CreateSessionRequest(
+                new SourceContext(source.Name, NewSessionBranch),
+                NewSessionPrompt,
+                RequirePlanApproval,
+                AutomationMode: AutoCreatePR ? AutomationModes.AutoCreatePR : null,
+                Title: string.IsNullOrWhiteSpace(NewSessionTitle) ? null : NewSessionTitle
+            );
+            await _api.CreateSessionAsync(req);
+
+            // Reset fields
+            NewSessionPrompt = string.Empty;
+            NewSessionTitle = string.Empty;
+            NewSessionBranch = "main";
+            RequirePlanApproval = true;
+            AutoCreatePR = false;
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to create session: {ex.Message}";
+            return false;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }

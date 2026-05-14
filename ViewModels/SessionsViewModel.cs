@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
+using System.Diagnostics;
 
 namespace JulesClient.ViewModels;
 
@@ -21,7 +22,7 @@ public partial class SessionsViewModel : ObservableObject
     private string _chatInput = string.Empty;
 
     public ObservableCollection<Session> Sessions { get; } = new();
-    public ObservableCollection<Activity> Activities { get; } = new();
+    public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
 
     public SessionsViewModel()
     {
@@ -35,19 +36,23 @@ public partial class SessionsViewModel : ObservableObject
         IsLoading = true;
         try
         {
+            Debug.WriteLine("[VM] Loading sessions...");
             var response = await _api.ListSessionsAsync();
             _syncContext?.Post(_ =>
             {
                 Sessions.Clear();
-                foreach (var session in response.Sessions)
+                if (response.Sessions != null)
                 {
-                    Sessions.Add(session);
+                    foreach (var session in response.Sessions)
+                    {
+                        Sessions.Add(session);
+                    }
                 }
             }, null);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load sessions: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to load sessions: {ex.Message}");
         }
         finally
         {
@@ -61,15 +66,22 @@ public partial class SessionsViewModel : ObservableObject
         Activities.Clear();
         if (value != null)
         {
-            _ = LoadActivitiesAsync(value.Id);
-            _pollingSubscription = _polling.StartPolling(value.Id, resp =>
+            Debug.WriteLine($"[VM] Session selected: {value.Name}");
+            _ = LoadActivitiesAsync(value.Name);
+            _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
                 _syncContext?.Post(_ =>
                 {
-                    foreach (var activity in resp.Activities)
+                    if (resp.Activities != null)
                     {
-                        if (!Activities.Any(a => a.Name == activity.Name))
-                            Activities.Add(activity);
+                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
+                        {
+                            if (!Activities.Any(a => a.Name == activity.Name))
+                            {
+                                Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
+                                Activities.Add(activity);
+                            }
+                        }
                     }
                 }, null);
             });
@@ -80,19 +92,23 @@ public partial class SessionsViewModel : ObservableObject
     {
         try
         {
+            Debug.WriteLine($"[VM] Loading activities for {sessionId}...");
             var response = await _api.ListActivitiesAsync(sessionId);
             _syncContext?.Post(_ =>
             {
-                foreach (var activity in response.Activities)
+                if (response.Activities != null)
                 {
-                    if (!Activities.Any(a => a.Name == activity.Name))
-                        Activities.Add(activity);
+                    foreach (var activity in response.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
+                    {
+                        if (!Activities.Any(a => a.Name == activity.Name))
+                            Activities.Add(activity);
+                    }
                 }
             }, null);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load activities: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to load activities: {ex.Message}");
         }
     }
 
@@ -104,11 +120,11 @@ public partial class SessionsViewModel : ObservableObject
         ChatInput = string.Empty;
         try
         {
-            await _api.SendMessageAsync(SelectedSession.Id, msg);
+            await _api.SendMessageAsync(SelectedSession.Name, msg);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to send message: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to send message: {ex.Message}");
         }
     }
 
@@ -118,13 +134,13 @@ public partial class SessionsViewModel : ObservableObject
         if (SelectedSession == null) return;
         try
         {
-            await _api.ApprovePlanAsync(SelectedSession.Id);
-            var updated = await _api.GetSessionAsync(SelectedSession.Id);
+            await _api.ApprovePlanAsync(SelectedSession.Name);
+            var updated = await _api.GetSessionAsync(SelectedSession.Name);
             _syncContext?.Post(_ => SelectedSession = updated, null);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to approve plan: {ex.Message}");
+            Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
         }
     }
 

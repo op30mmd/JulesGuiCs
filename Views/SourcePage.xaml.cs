@@ -1,7 +1,7 @@
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using JulesClient.ViewModels;
 using JulesClient.Models;
+using Microsoft.UI.Xaml;
 
 namespace JulesClient.Views;
 
@@ -12,37 +12,29 @@ public sealed partial class SourcesPage : Page
     public SourcesPage()
     {
         this.InitializeComponent();
-        this.Loaded += (s, e) => { if (ViewModel.Sources.Count == 0) ViewModel.LoadSourcesCommand.Execute(null); };
+        this.Loaded += (s, e) => _ = ViewModel.LoadSourcesAsync();
     }
 
-    private async void OnNewSessionClick(object sender, RoutedEventArgs e)
+    private void OnRefreshRequested(RefreshContainer sender, RefreshRequestedEventArgs args)
     {
-        var source = (Source)((Button)sender).Tag;
-        PromptTextBox.Text = string.Empty;
-        CreateSessionDialog.XamlRoot = this.XamlRoot;
-        var result = await CreateSessionDialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        _ = ViewModel.LoadSourcesAsync();
+    }
+
+    private async void OnSourceClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is Source source)
         {
-            var prompt = PromptTextBox.Text;
-            if (!string.IsNullOrWhiteSpace(prompt))
+            ViewModel.NewSessionTitle = $"Session with {source.GitHubRepo?.Repo ?? "Repository"}";
+            ViewModel.NewSessionPrompt = "";
+
+            CreateSessionDialog.XamlRoot = this.XamlRoot;
+            var result = await CreateSessionDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
             {
-                try
+                bool success = await ViewModel.CreateSessionAsync(source);
+                if (success)
                 {
-                    var api = App.Current.Services.GetRequiredService<Services.IJulesApiClient>();
-                    await api.CreateSessionAsync(new CreateSessionRequest(source.Name, prompt));
-                    // Success, maybe navigate to sessions
                     Frame.Navigate(typeof(SessionsPage));
-                }
-                catch (Exception ex)
-                {
-                    var dialog = new ContentDialog
-                    {
-                        Title = "Error",
-                        Content = $"Failed to create session: {ex.Message}",
-                        CloseButtonText = "OK",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
                 }
             }
         }

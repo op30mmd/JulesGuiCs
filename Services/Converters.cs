@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml;
 
 namespace JulesClient.Services;
 
@@ -29,7 +30,23 @@ public class InvertedNullToVisibilityConverter : IValueConverter
 public class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        !string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+        !string.IsNullOrWhiteSpace(value as string) ? Visibility.Visible : Visibility.Collapsed;
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        null!;
+}
+
+public class InvertedStringToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        string.IsNullOrWhiteSpace(value as string) ? Visibility.Visible : Visibility.Collapsed;
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        null!;
+}
+
+public class StringToBooleanConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        !string.IsNullOrWhiteSpace(value as string);
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
 }
@@ -40,4 +57,18 @@ public class NullToVisibilityConverter : IValueConverter
         value != null ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
+}
+
+public class CollectionToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is System.Collections.IEnumerable enumerable)
+        {
+            var enumerator = enumerable.GetEnumerator();
+            return enumerator.MoveNext() ? Visibility.Visible : Visibility.Collapsed;
+        }
+        return Visibility.Collapsed;
+    }
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }

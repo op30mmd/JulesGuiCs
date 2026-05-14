@@ -3,7 +3,110 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:JulesClient.Models"
     xmlns:vm="using:JulesClient.ViewModels"
+    xmlns:converters="using:JulesClient.Services"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:OriginatorToAlignmentConverter x:Key="OriginatorToAlignmentConverter"/>
+        <converters:OriginatorToColorConverter x:Key="OriginatorToColorConverter"/>
+        <converters:Base64ToImageSourceConverter x:Key="Base64ToImageSourceConverter"/>
+        <converters:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <DataTemplate x:Key="ProgressUpdatedTemplate" x:DataType="models:ProgressUpdated">
+            <StackPanel Margin="0,1">
+                <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"
+                           Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}"
+                           TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
+                           Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PlanGeneratedTemplate" x:DataType="models:Plan">
+            <StackPanel Margin="0,1" Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="13" Opacity="0.8"/>
+                <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14"/>
+                <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
+                           Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+
+                <ItemsControl ItemsSource="{x:Bind Steps, Mode=OneWay}" Margin="0,4,0,0"
+                              Visibility="{x:Bind Steps, Converter={StaticResource CollectionToVisibilityConverter}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:PlanStep">
+                            <StackPanel Margin="0,2" Spacing="0">
+                                <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" FontSize="12" Opacity="0.8"
+                                           Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SessionFailedTemplate" x:DataType="models:SessionFailed">
+             <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}" BorderBrush="{ThemeResource SystemFillColorCriticalBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <SymbolIcon Symbol="Important" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                    <StackPanel>
+                        <TextBlock Text="Session Failed" FontWeight="Bold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="14"/>
+                        <TextBlock Text="{x:Bind Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9"
+                                   Visibility="{x:Bind Reason, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="BashOutputTemplate" x:DataType="models:BashOutput">
+            <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
+                <TextBlock Text="{x:Bind Command, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Opacity="0.7" Visibility="{x:Bind Command, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                <TextBlock Text="{x:Bind Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"
+                            Visibility="{x:Bind Output, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                <TextBlock Text="{x:Bind ExitCode, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"
+                            Visibility="{x:Bind ExitCode, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ChangeSetTemplate" x:DataType="models:ChangeSet">
+            <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
+                        Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13"/>
+                <TextBlock converters:MarkdownHelper.Text="{x:Bind GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PullRequestTemplate" x:DataType="models:PullRequest">
+             <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource AccentFillColorDefaultBrush}">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <SymbolIcon Symbol="Link" Foreground="White"/>
+                    <StackPanel>
+                        <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" Foreground="White" FontSize="14"/>
+                        <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind Url, Mode=OneWay}" Padding="0" Foreground="White" Opacity="0.8" FontSize="13"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="MediaTemplate" x:DataType="models:Media">
+            <Image Source="{x:Bind Data, Converter={StaticResource Base64ToImageSourceConverter}, Mode=OneWay}"
+                    MaxHeight="400" Stretch="Uniform" Margin="0,4"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ArtifactsTemplate" x:DataType="models:Artifact">
+            <StackPanel Margin="0,4,0,0">
+                <ContentControl Content="{x:Bind BashOutput}" ContentTemplate="{StaticResource BashOutputTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <ContentControl Content="{x:Bind ChangeSet}" ContentTemplate="{StaticResource ChangeSetTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <ContentControl Content="{x:Bind PullRequest}" ContentTemplate="{StaticResource PullRequestTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PullRequest, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <ContentControl Content="{x:Bind Media}" ContentTemplate="{StaticResource MediaTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Media, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+        </DataTemplate>
+
+    </Page.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -30,8 +133,8 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Session">
                         <StackPanel Padding="12">
-                            <TextBlock Text="{x:Bind Prompt}" Style="{StaticResource BodyStrongTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{x:Bind State}" Style="{StaticResource CaptionTextBlockStyle}"/>
+                            <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{x:Bind Prompt, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" Opacity="0.7"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -56,54 +159,58 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Spacing="10">
-                    <TextBlock Text="{x:Bind ViewModel.SelectedSession.Prompt, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" MaxLines="2"/>
+                <StackPanel Grid.Row="0" Padding="16,12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Spacing="8">
+                    <TextBlock Text="{x:Bind ViewModel.SelectedSession.Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
                     <StackPanel Orientation="Horizontal" Spacing="10">
-                         <TextBlock Text="State:" Style="{StaticResource CaptionTextBlockStyle}"/>
-                         <TextBlock Text="{x:Bind ViewModel.SelectedSession.State, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold"/>
                          <Button Content="Approve Plan"
                                  Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
                                  Command="{x:Bind ViewModel.ApprovePlanCommand}"
-                                 Style="{StaticResource AccentButtonStyle}"
-                                 Padding="12,4"/>
+                                 Style="{StaticResource AccentButtonStyle}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Activities}">
+                <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Activities}" SelectionMode="None">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="MinHeight" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="IsHitTestVisible" Value="False"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:Activity">
-                            <Grid Padding="12">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="{x:Bind Originator}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+                            <Grid Margin="12,2" HorizontalAlignment="{x:Bind Originator, Converter={StaticResource OriginatorToAlignmentConverter}}"
+                                  Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                                <Border CornerRadius="8" Padding="12,8" MaxWidth="650"
+                                        Background="{x:Bind Originator, Converter={StaticResource OriginatorToColorConverter}}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{x:Bind Originator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.6" Margin="0,0,0,2"/>
 
-                                    <!-- Progress Updated -->
-                                    <StackPanel Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}}">
-                                        <TextBlock Text="{x:Bind ProgressUpdated.Title}" FontWeight="Bold"/>
-                                        <TextBlock Text="{x:Bind ProgressUpdated.Description}" TextWrapping="WrapWholeWords"/>
+                                        <!-- Unified Message Display -->
+                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
+                                                   TextWrapping="WrapWholeWords" FontSize="14"
+                                                   Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <!-- Detailed Activity Components -->
+                                        <ContentControl Content="{x:Bind ProgressUpdated, Mode=OneWay}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <ContentControl Content="{x:Bind PlanGenerated.Plan, Mode=OneWay}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PlanGenerated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <ContentControl Content="{x:Bind SessionFailed, Mode=OneWay}" ContentTemplate="{StaticResource SessionFailedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind SessionFailed, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <ContentControl Content="{x:Bind BashOutput}" ContentTemplate="{StaticResource BashOutputTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind ChangeSet}" ContentTemplate="{StaticResource ChangeSetTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind Media}" ContentTemplate="{StaticResource MediaTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Media, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind PullRequest}" ContentTemplate="{StaticResource PullRequestTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PullRequest, Converter={StaticResource NullToVisibilityConverter}}"/>
+
+                                        <ItemsControl ItemsSource="{x:Bind Artifacts}" ItemTemplate="{StaticResource ArtifactsTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Artifacts, Converter={StaticResource CollectionToVisibilityConverter}}"/>
+
+                                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
                                     </StackPanel>
-
-                                    <!-- Plan Generated -->
-                                    <StackPanel Visibility="{x:Bind PlanGenerated, Converter={StaticResource NullToVisibilityConverter}}">
-                                        <TextBlock Text="Plan Generated" FontWeight="Bold"/>
-                                        <TextBlock Text="{x:Bind PlanGenerated.Plan.Title}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-                                        <TextBlock Text="{x:Bind PlanGenerated.Plan.Description}" TextWrapping="WrapWholeWords"/>
-                                    </StackPanel>
-
-                                    <!-- Artifacts (Simplified) -->
-                                    <ItemsControl ItemsSource="{x:Bind Artifacts}" Visibility="{x:Bind Artifacts, Converter={StaticResource NullToVisibilityConverter}}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Artifact">
-                                                <StackPanel Margin="0,4">
-                                                    <TextBlock Text="[Artifact]" FontStyle="Italic" Style="{StaticResource CaptionTextBlockStyle}"/>
-                                                    <TextBlock Text="{x:Bind BashOutput.Output}" Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}"
-                                                               FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"/>
-                                                    <TextBlock Text="Change Set Applied" Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}"
-                                                               FontWeight="Bold"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                                </Border>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -111,17 +218,25 @@
             </Grid>
 
             <!-- Chat Input -->
-            <Grid Grid.Row="1" Padding="20" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
+            <Grid Grid.Row="1" Padding="16" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
                   Visibility="{x:Bind ViewModel.SelectedSession, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" PlaceholderText="Type a message..."
+                <TextBox Grid.Column="0" PlaceholderText="Message Jules..."
                          Text="{x:Bind ViewModel.ChatInput, Mode=TwoWay}"
-                         AcceptsReturn="True" MaxHeight="100"/>
-                <Button Grid.Column="1" Content="Send" Margin="12,0,0,0" VerticalAlignment="Bottom"
-                        Command="{x:Bind ViewModel.SendMessageCommand}"/>
+                         AcceptsReturn="True" MaxHeight="120"
+                         CornerRadius="8"/>
+                <Button Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Bottom"
+                        Command="{x:Bind ViewModel.SendMessageCommand}"
+                        Style="{StaticResource AccentButtonStyle}"
+                        CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <SymbolIcon Symbol="Send"/>
+                        <TextBlock Text="Send"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </Grid>
