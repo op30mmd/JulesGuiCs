@@ -1,0 +1,5 @@
+# Enforce CRLF for C# and XAML files
+*.cs text eol=crlf
+*.xaml text eol=crlf
+*.sln text eol=crlf
+*.csproj text eol=crlf
