@@ -195,11 +195,11 @@
                                                    Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
                                         <!-- Detailed Activity Components -->
-                                        <ContentControl Content="{x:Bind ProgressUpdated}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind ProgressUpdated, Mode=OneWay}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
 
-                                        <ContentControl Content="{x:Bind PlanGenerated.Plan}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PlanGenerated.Plan, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind PlanGenerated.Plan, Mode=OneWay}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PlanGenerated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
 
-                                        <ContentControl Content="{x:Bind SessionFailed}" ContentTemplate="{StaticResource SessionFailedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind SessionFailed, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <ContentControl Content="{x:Bind SessionFailed, Mode=OneWay}" ContentTemplate="{StaticResource SessionFailedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind SessionFailed, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
 
                                         <ContentControl Content="{x:Bind BashOutput}" ContentTemplate="{StaticResource BashOutputTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}"/>
                                         <ContentControl Content="{x:Bind ChangeSet}" ContentTemplate="{StaticResource ChangeSetTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}"/>
