@@ -10,18 +10,8 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 
-		<!-- CRITICAL: DISABLE PACKAGING & RESOURCE INDEXING (PRI) -->
-		<!-- This stops MSBuild from looking for the missing VS tasks -->
-		<WindowsPackageType>None</WindowsPackageType>
-		<EnableMsixTooling>false</EnableMsixTooling>
-		<EnableMrtCore>false</EnableMrtCore>
-		<MrtCorePriGenTargets></MrtCorePriGenTargets>
-		<EnableXamlDiagnostics>false</EnableXamlDiagnostics>
-		<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
-
-		<!-- Ensure MSBuild knows we are not in VS to prevent path fallbacks -->
-		<BuildingInsideVisualStudio>false</BuildingInsideVisualStudio>
-		<WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>
+		<EnableMsixTooling>true</EnableMsixTooling>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -34,6 +24,7 @@
 		<!-- Libraries -->
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
 		<PackageReference Include="System.Reactive" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
