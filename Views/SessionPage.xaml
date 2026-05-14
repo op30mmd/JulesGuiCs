@@ -124,7 +124,7 @@
                                   Visibility="{x:Bind ViewModel.SelectedSession.Outputs, Mode=OneWay, Converter={StaticResource CollectionToVisibilityConverter}}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:SessionOutput">
-                                <Border Margin="0,4" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundAccentRevealBrush}">
+                                <Border Margin="0,4" Padding="12" CornerRadius="8" Background="{ThemeResource AccentFillColorDefaultBrush}">
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <SymbolIcon Symbol="Link" Foreground="White"/>
                                         <StackPanel>
