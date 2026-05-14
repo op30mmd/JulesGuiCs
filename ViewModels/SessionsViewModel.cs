@@ -22,7 +22,7 @@ public partial class SessionsViewModel : ObservableObject
     private string _chatInput = string.Empty;
 
     public ObservableCollection<Session> Sessions { get; } = new();
-    public ObservableCollection<Activity> Activities { get; } = new();
+    public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
 
     public SessionsViewModel()
     {
