@@ -1,15 +1,7 @@
-global using System;
-global using System.Collections.Generic;
-global using System.Linq;
-global using System.Net.Http;
 global using System.Net.Http.Json;
 global using System.Reactive.Linq;
-global using System.Threading;
-global using System.Threading.Tasks;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 global using Microsoft.UI.Xaml;
 global using Microsoft.UI.Xaml.Controls;
 global using Microsoft.UI.Xaml.Data;
-global using Windows.Storage;
-global using Windows.Storage.Streams;

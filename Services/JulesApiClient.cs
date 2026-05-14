@@ -17,14 +17,13 @@ public interface IJulesApiClient
 
 public class JulesApiClient : IJulesApiClient, IDisposable
 {
-    private readonly HttpClient _http; private readonly string _key;
+    private readonly HttpClient _http;
     private const string Base = "https://jules.googleapis.com/v1alpha";
     private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     public JulesApiClient(string key, HttpMessageHandler? proxy = null)
     {
-        _key = key ?? throw new ArgumentNullException(nameof(key));
         _http = new HttpClient(proxy ?? new HttpClientHandler()) { BaseAddress = new Uri(Base), Timeout = TimeSpan.FromMinutes(5) };
-        _http.DefaultRequestHeaders.Add("X-Goog-Api-Key", _key);
+        _http.DefaultRequestHeaders.Add("X-Goog-Api-Key", key ?? throw new ArgumentNullException(nameof(key)));
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
     public async Task<SourceListResponse> ListSourcesAsync(string? pt = null, CancellationToken ct = default)
