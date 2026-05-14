@@ -140,7 +140,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             using var lcts = CancellationTokenSource.CreateLinkedTokenSource(ct, token); string? npt = null;
             while (!lcts.IsCancellationRequested)
             {
-                try { var a = await ListActivitiesAsync(sid, 30, npt, lcts.Token); obs.OnNext(a); npt = a.NextPageToken; }
+                try { var a = await ListActivitiesAsync(sid, 30, npt, null, lcts.Token); obs.OnNext(a); npt = a.NextPageToken; }
                 catch (Exception e) when (e is not OperationCanceledException) { obs.OnError(e); return; }
                 await Task.Delay(interval, lcts.Token);
             }
