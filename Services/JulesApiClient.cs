@@ -44,22 +44,33 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         if (response.IsSuccessStatusCode) return;
 
         string content = await response.Content.ReadAsStringAsync(ct);
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            throw new Exception($"API Request failed with status {response.StatusCode} (Empty response body).");
-        }
+        string message = $"API Request failed with status {response.StatusCode} for {response.RequestMessage?.RequestUri}.";
 
-        try
+        if (!string.IsNullOrWhiteSpace(content))
         {
-            var errorObj = JsonSerializer.Deserialize<GoogleErrorResponse>(content, _json);
-            if (errorObj?.Error != null)
+            try
             {
-                throw new Exception($"API Error ({errorObj.Error.Code}): {errorObj.Error.Message}");
+                var errorObj = JsonSerializer.Deserialize<GoogleErrorResponse>(content, _json);
+                if (errorObj?.Error != null)
+                {
+                    message = $"API Error ({errorObj.Error.Code}): {errorObj.Error.Message} (Status: {errorObj.Error.Status})";
+                }
+                else
+                {
+                    message += $" Response: {content}";
+                }
+            }
+            catch
+            {
+                message += $" Response: {content}";
             }
         }
-        catch (JsonException) { }
+        else
+        {
+            message += " (Empty response body)";
+        }
 
-        throw new Exception($"API Request failed with status {response.StatusCode}: {content}");
+        throw new Exception(message);
     }
 
     public async Task<SourceListResponse> ListSourcesAsync(string? pt = null, CancellationToken ct = default)
