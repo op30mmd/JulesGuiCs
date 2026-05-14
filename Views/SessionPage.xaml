@@ -55,7 +55,8 @@
                     <SymbolIcon Symbol="Important" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                     <StackPanel>
                         <TextBlock Text="Session Failed" FontWeight="Bold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="14"/>
-                        <TextBlock Text="{x:Bind Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9"/>
+                        <TextBlock Text="{x:Bind Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9"
+                                   Visibility="{x:Bind Reason, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -72,7 +73,8 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ChangeSetTemplate" x:DataType="models:ChangeSet">
-            <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
+            <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
+                        Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
                 <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13"/>
                 <TextBlock converters:MarkdownHelper.Text="{x:Bind GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
             </StackPanel>
@@ -193,9 +195,9 @@
                                                    Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
                                         <!-- Detailed Activity Components -->
-                                        <ContentControl Content="{x:Bind ProgressUpdated}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch"/>
+                                        <ContentControl Content="{x:Bind ProgressUpdated}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}}"/>
 
-                                        <ContentControl Content="{x:Bind PlanGenerated.Plan}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch"/>
+                                        <ContentControl Content="{x:Bind PlanGenerated.Plan}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PlanGenerated.Plan, Converter={StaticResource NullToVisibilityConverter}}"/>
 
                                         <ContentControl Content="{x:Bind SessionFailed}" ContentTemplate="{StaticResource SessionFailedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind SessionFailed, Converter={StaticResource NullToVisibilityConverter}}"/>
 
@@ -204,7 +206,7 @@
                                         <ContentControl Content="{x:Bind Media}" ContentTemplate="{StaticResource MediaTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Media, Converter={StaticResource NullToVisibilityConverter}}"/>
                                         <ContentControl Content="{x:Bind PullRequest}" ContentTemplate="{StaticResource PullRequestTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PullRequest, Converter={StaticResource NullToVisibilityConverter}}"/>
 
-                                        <ItemsControl ItemsSource="{x:Bind Artifacts}" ItemTemplate="{StaticResource ArtifactsTemplate}" HorizontalContentAlignment="Stretch"/>
+                                        <ItemsControl ItemsSource="{x:Bind Artifacts}" ItemTemplate="{StaticResource ArtifactsTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Artifacts, Converter={StaticResource CollectionToVisibilityConverter}}"/>
 
                                         <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
                                     </StackPanel>

@@ -30,7 +30,7 @@ public class InvertedNullToVisibilityConverter : IValueConverter
 public class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        !string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+        !string.IsNullOrWhiteSpace(value as string) ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
 }
@@ -38,7 +38,7 @@ public class StringToVisibilityConverter : IValueConverter
 public class InvertedStringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+        string.IsNullOrWhiteSpace(value as string) ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
 }
@@ -46,7 +46,7 @@ public class InvertedStringToVisibilityConverter : IValueConverter
 public class StringToBooleanConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        !string.IsNullOrEmpty(value as string);
+        !string.IsNullOrWhiteSpace(value as string);
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         null!;
 }
