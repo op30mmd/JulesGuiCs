@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using JulesClient.Models;
 using System.Diagnostics;
+using System.Reactive.Linq;
 
 namespace JulesClient.Services;
 
@@ -15,6 +16,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 {
     private readonly IJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
+    private readonly Dictionary<string, string> _lastTimestamps = new();
     private readonly TimeSpan _def = TimeSpan.FromSeconds(3);
 
     public PollingService(IJulesApiClient api) => _api = api;
@@ -29,7 +31,24 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
             {
                 try
                 {
-                    return await _api.ListActivitiesAsync(sid, 30, ct: ct);
+                    string? filter = null;
+                    if (_lastTimestamps.TryGetValue(sid, out var last))
+                    {
+                        filter = $"createTime > {last}";
+                    }
+
+                    var resp = await _api.ListActivitiesAsync(sid, 30, filter: filter, ct: ct);
+
+                    if (resp?.Activities?.Any() == true)
+                    {
+                        var maxTime = resp.Activities.Max(a => a.CreateTime ?? string.Empty);
+                        if (!string.IsNullOrEmpty(maxTime))
+                        {
+                            _lastTimestamps[sid] = maxTime;
+                        }
+                    }
+
+                    return resp;
                 }
                 catch (Exception ex)
                 {
@@ -51,6 +70,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 
     public void StopPolling(string sid)
     {
+        _lastTimestamps.Remove(sid);
         if (_pollers.Remove(sid, out var p))
         {
             p.Dispose();
@@ -64,6 +84,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
     {
         foreach (var p in _pollers.Values) p.Dispose();
         _pollers.Clear();
+        _lastTimestamps.Clear();
         OnPropertyChanged(nameof(IsPolling));
     }
 

@@ -67,6 +67,9 @@
 
                 <CheckBox Content="Require Plan Approval"
                           IsChecked="{x:Bind ViewModel.RequirePlanApproval, Mode=TwoWay}"/>
+
+                <CheckBox Content="Auto-Create Pull Request"
+                          IsChecked="{x:Bind ViewModel.AutoCreatePR, Mode=TwoWay}"/>
             </StackPanel>
         </ContentDialog>
     </Grid>

@@ -44,10 +44,6 @@ public record Session(
 
 public record SourceContext(
     [property: JsonPropertyName("source")] string? Source,
-    [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext
-);
-
-public record GitHubRepoContext(
     [property: JsonPropertyName("startingBranch")] string? StartingBranch
 );
 
@@ -100,6 +96,11 @@ public record Activity(
     [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated,
     [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved,
     [property: JsonPropertyName("sessionCompleted")] object? SessionCompleted,
+    [property: JsonPropertyName("sessionFailed")] SessionFailed? SessionFailed,
+    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
+    [property: JsonPropertyName("media")] Media? Media,
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest,
     [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts,
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
@@ -115,7 +116,8 @@ public record Activity(
         (!string.IsNullOrEmpty(UserMessage?.Text) ? UserMessage.Text :
         (!string.IsNullOrEmpty(AgentMessage?.Message) ? AgentMessage.Message :
         (!string.IsNullOrEmpty(AgentMessage?.Text) ? AgentMessage.Text :
-        (!string.IsNullOrEmpty(Description) && ProgressUpdated == null && PlanGenerated == null ? Description : null))))));
+        (!string.IsNullOrEmpty(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
+        (!string.IsNullOrEmpty(SessionFailed?.Reason) ? SessionFailed.Reason : null)))))));
 
     public bool HasContent
     {
@@ -125,7 +127,8 @@ public record Activity(
             if (ProgressUpdated != null && (!string.IsNullOrEmpty(ProgressUpdated.Title) || !string.IsNullOrEmpty(ProgressUpdated.Description))) return true;
             if (PlanGenerated?.Plan != null && (!string.IsNullOrEmpty(PlanGenerated.Plan.Title) || !string.IsNullOrEmpty(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
             if (Artifacts?.Any() == true) return true;
-            if (PlanApproved != null || SessionCompleted != null) return true;
+            if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
+            if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
             return false;
         }
     }
@@ -147,6 +150,7 @@ public record ProgressUpdated(
 
 public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan);
 public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId);
+public record SessionFailed([property: JsonPropertyName("reason")] string? Reason);
 
 public record Artifact(
     [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
@@ -180,4 +184,9 @@ public record Media(
 public record SendMessageResponse
 {
     [property: JsonPropertyName("success")] public bool Success { get; init; }
+}
+
+public static class AutomationModes
+{
+    public const string AutoCreatePR = "AUTO_CREATE_PR";
 }
