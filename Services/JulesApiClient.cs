@@ -21,7 +21,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
 {
     private readonly HttpClient _http;
     private readonly ISettingsService _settings;
-    private const string Base = "https://jules.googleapis.com/v1alpha";
+    private const string Base = "https://jules.googleapis.com/v1alpha/";
     private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     public JulesApiClient(ISettingsService settings, HttpMessageHandler? handler = null)
     {
@@ -44,6 +44,11 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         if (response.IsSuccessStatusCode) return;
 
         string content = await response.Content.ReadAsStringAsync(ct);
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new Exception($"API Request failed with status {response.StatusCode} (Empty response body).");
+        }
+
         try
         {
             var errorObj = JsonSerializer.Deserialize<GoogleErrorResponse>(content, _json);
@@ -60,7 +65,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     public async Task<SourceListResponse> ListSourcesAsync(string? pt = null, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.GetAsync("/sources" + (pt != null ? $"?pageToken={Uri.EscapeDataString(pt)}" : ""), ct);
+        var r = await _http.GetAsync("sources" + (pt != null ? $"?pageToken={Uri.EscapeDataString(pt)}" : ""), ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<SourceListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
@@ -68,7 +73,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var c = new StringContent(JsonSerializer.Serialize(req, _json), System.Text.Encoding.UTF8, "application/json");
-        var r = await _http.PostAsync("/sessions", c, ct);
+        var r = await _http.PostAsync("sessions", c, ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<Session>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
@@ -76,21 +81,21 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var q = new List<string> { $"pageSize={ps}" }; if (pt != null) q.Add($"pageToken={Uri.EscapeDataString(pt)}");
-        var r = await _http.GetAsync($"/sessions?{string.Join("&", q)}", ct);
+        var r = await _http.GetAsync($"sessions?{string.Join("&", q)}", ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<SessionListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
     public async Task<Session> GetSessionAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.GetAsync($"/sessions/{id}", ct);
+        var r = await _http.GetAsync($"sessions/{id}", ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<Session>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
     public async Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.PostAsync($"/sessions/{id}:approvePlan", null, ct);
+        var r = await _http.PostAsync($"sessions/{id}:approvePlan", null, ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<ApprovePlanResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? new ApprovePlanResponse();
     }
@@ -98,7 +103,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var q = new List<string> { $"pageSize={ps}" }; if (pt != null) q.Add($"pageToken={Uri.EscapeDataString(pt)}");
-        var r = await _http.GetAsync($"/sessions/{sid}/activities?{string.Join("&", q)}", ct);
+        var r = await _http.GetAsync($"sessions/{sid}/activities?{string.Join("&", q)}", ct);
         await HandleErrorResponse(r, ct);
         return JsonSerializer.Deserialize<ActivityListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
     }
@@ -106,7 +111,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     {
         ApplyKey();
         var req = new { prompt }; var c = new StringContent(JsonSerializer.Serialize(req, _json), System.Text.Encoding.UTF8, "application/json");
-        var r = await _http.PostAsync($"/sessions/{sid}:sendMessage", c, ct);
+        var r = await _http.PostAsync($"sessions/{sid}:sendMessage", c, ct);
         await HandleErrorResponse(r, ct);
         return new SendMessageResponse { Success = true };
     }
