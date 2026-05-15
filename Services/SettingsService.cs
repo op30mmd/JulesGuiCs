@@ -1,5 +1,3 @@
-using Windows.Storage;
-
 namespace JulesClient.Services;
 
 public interface ISettingsService
@@ -14,6 +12,7 @@ public interface ISettingsService
 
 public class SettingsService : ISettingsService
 {
+#if WINDOWS
     private const string ApiKeySetting = "ApiKey";
     private const string ProxyEnabledSetting = "ProxyEnabled";
     private const string ProxyHostSetting = "ProxyHost";
@@ -21,7 +20,7 @@ public class SettingsService : ISettingsService
     private const string ProxyUsernameSetting = "ProxyUsername";
     private const string ProxyPasswordSetting = "ProxyPassword";
 
-    private readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
+    private readonly Windows.Storage.ApplicationDataContainer _localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
     public string ApiKey
     {
@@ -58,4 +57,12 @@ public class SettingsService : ISettingsService
         get => _localSettings.Values[ProxyPasswordSetting] as string ?? string.Empty;
         set => _localSettings.Values[ProxyPasswordSetting] = value;
     }
+#else
+    public string ApiKey { get; set; } = string.Empty;
+    public bool ProxyEnabled { get; set; }
+    public string ProxyHost { get; set; } = string.Empty;
+    public int ProxyPort { get; set; } = 1080;
+    public string ProxyUsername { get; set; } = string.Empty;
+    public string ProxyPassword { get; set; } = string.Empty;
+#endif
 }

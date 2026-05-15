@@ -26,5 +26,8 @@ jobs:
     - name: Build
       run: msbuild JulesClient.sln /p:Configuration=Release
 
+    - name: Run tests
+      run: dotnet test JulesClient.Tests/JulesClient.Tests.csproj --configuration Release
+
     - name: Check formatting
       run: dotnet format JulesClient.sln --verify-no-changes --no-restore

@@ -31,13 +31,10 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
             {
                 try
                 {
-                    string? filter = null;
-                    if (_lastTimestamps.TryGetValue(sid, out var last))
-                    {
-                        filter = $"createTime > {last}";
-                    }
+                    string? last = null;
+                    _lastTimestamps.TryGetValue(sid, out last);
 
-                    var resp = await _api.ListActivitiesAsync(sid, 30, filter: filter, ct: ct);
+                    var resp = await _api.ListActivitiesAsync(sid, 30, createTime: last, ct: ct);
 
                     if (resp?.Activities?.Any() == true)
                     {
