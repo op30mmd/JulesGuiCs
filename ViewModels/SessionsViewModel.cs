@@ -33,7 +33,7 @@ public partial class SessionsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task RefreshAllCommand()
+    public async Task RefreshAllDataAsync()
     {
         _sessionsCache = null;
         _activitiesCache.Clear();
