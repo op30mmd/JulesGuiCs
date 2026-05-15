@@ -193,6 +193,7 @@ public partial class SessionsViewModel : ObservableObject
             UserMessage: new UserMessage(Prompt: msg, Text: null),
             AgentMessage: null,
             UserMessaged: null,
+            Review: null,
             Text: null,
             Prompt: null,
             Description: null

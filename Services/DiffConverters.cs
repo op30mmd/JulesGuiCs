@@ -35,11 +35,19 @@ public class DiffLineTypeToForegroundConverter : IValueConverter
                 DiffLineType.Added => new SolidColorBrush(Colors.LightGreen),
                 DiffLineType.Removed => new SolidColorBrush(Colors.LightPink),
                 DiffLineType.Metadata => new SolidColorBrush(Colors.LightBlue),
-                _ => null
+                _ => GetDefaultForeground()
             };
         }
-        return null;
+        return GetDefaultForeground();
     }
+
+    private static Brush GetDefaultForeground()
+    {
+        if (Application.Current.Resources.TryGetValue("TextControlForeground", out var brush) && brush is Brush b)
+            return b;
+        return new SolidColorBrush(Colors.White);
+    }
+
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
 
