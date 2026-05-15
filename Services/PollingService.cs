@@ -26,49 +26,61 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
         StopPolling(sid);
         var i = iv ?? _def;
 
-        var p = Observable.Interval(i)
-            .SelectMany(_ => Observable.FromAsync(async ct =>
+        var p = Observable.Create<ActivityListResponse>(async (observer, ct) =>
             {
-                try
+                while (!ct.IsCancellationRequested)
                 {
-                    string? last = null;
-                    _lastTimestamps.TryGetValue(sid, out last);
-
-                    ActivityListResponse? firstResp = null;
-                    string? pageToken = null;
-                    var allActivities = new List<JulesClient.Models.Activity>();
-
-                    do
+                    try
                     {
-                        var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, createTime: last, ct: ct);
-                        if (firstResp == null) firstResp = resp;
+                        string? last = null;
+                        _lastTimestamps.TryGetValue(sid, out last);
 
-                        if (resp?.Activities != null)
+                        ActivityListResponse? firstResp = null;
+                        string? pageToken = null;
+                        var allActivities = new List<JulesClient.Models.Activity>();
+
+                        do
                         {
-                            allActivities.AddRange(resp.Activities);
+                            var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, createTime: last, ct: ct);
+                            if (firstResp == null) firstResp = resp;
+
+                            if (resp?.Activities != null)
+                            {
+                                allActivities.AddRange(resp.Activities);
+                            }
+                            pageToken = resp?.NextPageToken;
+                        } while (pageToken != null && !ct.IsCancellationRequested);
+
+                        if (allActivities.Any())
+                        {
+                            var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
+                            if (!string.IsNullOrEmpty(maxTime))
+                            {
+                                _lastTimestamps[sid] = maxTime;
+                            }
                         }
-                        pageToken = resp?.NextPageToken;
-                    } while (pageToken != null && !ct.IsCancellationRequested);
 
-                    if (allActivities.Any())
-                    {
-                        var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
-                        if (!string.IsNullOrEmpty(maxTime))
+                        if (firstResp != null)
                         {
-                            _lastTimestamps[sid] = maxTime;
+                            observer.OnNext(firstResp with { Activities = allActivities });
                         }
                     }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        Debug.WriteLine($"[POLLING] Error for {sid}: {ex}");
+                    }
 
-                    return firstResp != null ? firstResp with { Activities = allActivities } : null;
+                    try
+                    {
+                        await Task.Delay(i, ct);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[POLLING] Error for {sid}: {ex.Message}");
-                    return null;
-                }
-            }))
-            .Where(resp => resp != null)
-            .ObserveOn(SynchronizationContext.Current ?? SynchronizationContext.Current!)
+            })
+            .ObserveOn(SynchronizationContext.Current!)
             .Subscribe(
                 onNext: onRecv!,
                 onError: e => Debug.WriteLine($"[POLLING] Fatal error: {e}")
