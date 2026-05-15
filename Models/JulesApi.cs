@@ -110,12 +110,12 @@ public record Activity(
 )
 {
     public string? DisplayText =>
-        !string.IsNullOrWhiteSpace(Text) ? Text :
-        (!string.IsNullOrWhiteSpace(Prompt) ? Prompt :
-        (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
+        !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
         (!string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
         (!string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
         (!string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
+        (!string.IsNullOrWhiteSpace(Text) ? Text :
+        (!string.IsNullOrWhiteSpace(Prompt) ? Prompt :
         (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
         (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
         (PlanApproved != null ? "Plan Approved" :

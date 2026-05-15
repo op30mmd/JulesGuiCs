@@ -37,16 +37,21 @@ public partial class SessionsViewModel : ObservableObject
         try
         {
             Debug.WriteLine("[VM] Loading sessions...");
-            var response = await _api.ListSessionsAsync();
+            var sessions = new List<Session>();
+            string? pageToken = null;
+            do
+            {
+                var response = await _api.ListSessionsAsync(pageToken: pageToken);
+                if (response.Sessions != null) sessions.AddRange(response.Sessions);
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
+
             _syncContext?.Post(_ =>
             {
                 Sessions.Clear();
-                if (response.Sessions != null)
+                foreach (var session in sessions)
                 {
-                    foreach (var session in response.Sessions)
-                    {
-                        Sessions.Add(session);
-                    }
+                    Sessions.Add(session);
                 }
             }, null);
         }
@@ -93,16 +98,21 @@ public partial class SessionsViewModel : ObservableObject
         try
         {
             Debug.WriteLine($"[VM] Loading activities for {sessionId}...");
-            var response = await _api.ListActivitiesAsync(sessionId);
+            var allActivities = new List<JulesClient.Models.Activity>();
+            string? pageToken = null;
+            do
+            {
+                var response = await _api.ListActivitiesAsync(sessionId, pageToken: pageToken);
+                if (response.Activities != null) allActivities.AddRange(response.Activities);
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
+
             _syncContext?.Post(_ =>
             {
-                if (response.Activities != null)
+                foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? string.Empty))
                 {
-                    foreach (var activity in response.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
-                    {
-                        if (!Activities.Any(a => a.Name == activity.Name))
-                            Activities.Add(activity);
-                    }
+                    if (!Activities.Any(a => a.Name == activity.Name))
+                        Activities.Add(activity);
                 }
             }, null);
         }
