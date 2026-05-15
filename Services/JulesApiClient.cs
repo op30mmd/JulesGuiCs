@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using JulesClient.Models;
 using System.Reactive.Linq;
@@ -28,6 +29,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
+    private static readonly JsonSerializerOptions _debugJson = new(_json);
 
     public JulesApiClient(ISettingsService settings, HttpMessageHandler? handler = null)
     {
@@ -79,58 +81,71 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         throw new Exception(message);
     }
 
-    public async Task<SourceListResponse> ListSourcesAsync(string? pt = null, CancellationToken ct = default)
+    public async Task<SourceListResponse> ListSourcesAsync(string? pageToken = null, CancellationToken ct = default)
     {
         ApplyKey();
-        var r = await _http.GetAsync("sources" + (pt != null ? $"?pageToken={Uri.EscapeDataString(pt)}" : ""), ct);
+        var r = await _http.GetAsync("sources" + (pageToken != null ? $"?pageToken={Uri.EscapeDataString(pageToken)}" : ""), ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<SourceListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
+        return await r.Content.ReadFromJsonAsync<SourceListResponse>(_json, ct) ?? throw new Exception("Parse failed");
     }
     public async Task<Session> CreateSessionAsync(CreateSessionRequest req, CancellationToken ct = default)
     {
         ApplyKey();
-        var c = new StringContent(JsonSerializer.Serialize(req, _json), System.Text.Encoding.UTF8, "application/json");
-        var r = await _http.PostAsync("sessions", c, ct);
+        var r = await _http.PostAsJsonAsync("sessions", req, _json, ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<Session>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
+        return await r.Content.ReadFromJsonAsync<Session>(_json, ct) ?? throw new Exception("Parse failed");
     }
-    public async Task<SessionListResponse> ListSessionsAsync(int ps = 10, string? pt = null, CancellationToken ct = default)
+    public async Task<SessionListResponse> ListSessionsAsync(int pageSize = 10, string? pageToken = null, CancellationToken ct = default)
     {
         ApplyKey();
-        var q = new List<string> { $"pageSize={ps}" }; if (pt != null) q.Add($"pageToken={Uri.EscapeDataString(pt)}");
+        var q = new List<string> { $"pageSize={pageSize}" }; if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
         var r = await _http.GetAsync($"sessions?{string.Join("&", q)}", ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<SessionListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
+        return await r.Content.ReadFromJsonAsync<SessionListResponse>(_json, ct) ?? throw new Exception("Parse failed");
     }
     public async Task<Session> GetSessionAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
         var r = await _http.GetAsync(id, ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<Session>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
+        return await r.Content.ReadFromJsonAsync<Session>(_json, ct) ?? throw new Exception("Parse failed");
     }
     public async Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default)
     {
         ApplyKey();
         var r = await _http.PostAsync($"{id}:approvePlan", null, ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<ApprovePlanResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? new ApprovePlanResponse();
+        return await r.Content.ReadFromJsonAsync<ApprovePlanResponse>(_json, ct) ?? new ApprovePlanResponse();
     }
-    public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int ps = 30, string? pt = null, string? createTime = null, CancellationToken ct = default)
+    public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 30, string? pageToken = null, string? createTime = null, CancellationToken ct = default)
     {
         ApplyKey();
-        var q = new List<string> { $"pageSize={ps}" };
-        if (pt != null) q.Add($"pageToken={Uri.EscapeDataString(pt)}");
+        var q = new List<string> { $"pageSize={pageSize}" };
+        if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
         if (createTime != null) q.Add($"createTime={Uri.EscapeDataString(createTime)}");
         var r = await _http.GetAsync($"{sid}/activities?{string.Join("&", q)}", ct);
         await HandleErrorResponse(r, ct);
-        return JsonSerializer.Deserialize<ActivityListResponse>(await r.Content.ReadAsStringAsync(ct), _json) ?? throw new Exception("Parse failed");
+
+        var content = await r.Content.ReadAsStringAsync(ct);
+        var resp = JsonSerializer.Deserialize<ActivityListResponse>(content, _json) ?? throw new Exception("Parse failed");
+
+        // Debug: Capture raw JSON for each activity
+        if (resp.Activities != null)
+        {
+            var nodes = System.Text.Json.Nodes.JsonNode.Parse(content)?["activities"]?.AsArray();
+            for (int i = 0; i < resp.Activities.Count; i++)
+            {
+                if (nodes != null && i < nodes.Count)
+                    resp.Activities[i].RawInfo = nodes[i]?.ToJsonString(_debugJson);
+            }
+        }
+        return resp;
     }
     public async Task<SendMessageResponse> SendMessageAsync(string sid, string prompt, CancellationToken ct = default)
     {
         ApplyKey();
-        var req = new { prompt }; var c = new StringContent(JsonSerializer.Serialize(req, _json), System.Text.Encoding.UTF8, "application/json");
-        var r = await _http.PostAsync($"{sid}:sendMessage", c, ct);
+        var req = new { prompt };
+        var r = await _http.PostAsJsonAsync($"{sid}:sendMessage", req, _json, ct);
         await HandleErrorResponse(r, ct);
         return new SendMessageResponse { Success = true };
     }

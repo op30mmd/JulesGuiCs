@@ -34,18 +34,32 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                     string? last = null;
                     _lastTimestamps.TryGetValue(sid, out last);
 
-                    var resp = await _api.ListActivitiesAsync(sid, 30, createTime: last, ct: ct);
+                    ActivityListResponse? firstResp = null;
+                    string? pageToken = null;
+                    var allActivities = new List<JulesClient.Models.Activity>();
 
-                    if (resp?.Activities?.Any() == true)
+                    do
                     {
-                        var maxTime = resp.Activities.Max(a => a.CreateTime ?? string.Empty);
+                        var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, createTime: last, ct: ct);
+                        if (firstResp == null) firstResp = resp;
+
+                        if (resp?.Activities != null)
+                        {
+                            allActivities.AddRange(resp.Activities);
+                        }
+                        pageToken = resp?.NextPageToken;
+                    } while (pageToken != null && !ct.IsCancellationRequested);
+
+                    if (allActivities.Any())
+                    {
+                        var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
                         if (!string.IsNullOrEmpty(maxTime))
                         {
                             _lastTimestamps[sid] = maxTime;
                         }
                     }
 
-                    return resp;
+                    return firstResp != null ? firstResp with { Activities = allActivities } : null;
                 }
                 catch (Exception ex)
                 {

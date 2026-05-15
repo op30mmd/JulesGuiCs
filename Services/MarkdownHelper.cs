@@ -34,26 +34,52 @@ public static class MarkdownParser
             if (string.IsNullOrEmpty(text)) return;
 
             var accent = GetAccentBrush();
-            var segments = Regex.Split(text, @"(\*\*.*?\*\*|\*.*?\*|`.*?`)").Where(s => !string.IsNullOrEmpty(s));
+            // Regex to match Bold (**), Italic (*), Inline Code (`), and Links ([text](url))
+            var segments = Regex.Split(text, @"(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))").Where(s => !string.IsNullOrEmpty(s));
 
             foreach (var segment in segments)
             {
                 if (segment.StartsWith("**") && segment.EndsWith("**"))
                 {
-                    textBlock.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Trim('*') } } });
+                    textBlock.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Substring(2, segment.Length - 4) } } });
                 }
                 else if (segment.StartsWith("*") && segment.EndsWith("*"))
                 {
-                    textBlock.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Trim('*') } } });
+                    textBlock.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Substring(1, segment.Length - 2) } } });
                 }
                 else if (segment.StartsWith("`") && segment.EndsWith("`"))
                 {
                     textBlock.Inlines.Add(new Run
                     {
-                        Text = segment.Trim('`'),
+                        Text = segment.Substring(1, segment.Length - 2),
                         FontFamily = new FontFamily("Consolas"),
-                        Foreground = accent
+                        Foreground = accent,
+                        FontSize = textBlock.FontSize - 1
                     });
+                }
+                else if (segment.StartsWith("[") && segment.Contains("]("))
+                {
+                    var match = Regex.Match(segment, @"\[(.*?)\]\((.*?)\)");
+                    if (match.Success)
+                    {
+                        var linkText = match.Groups[1].Value;
+                        var url = match.Groups[2].Value;
+                        try
+                        {
+                            var hyperlink = new Hyperlink { NavigateUri = new Uri(url) };
+                            hyperlink.Inlines.Add(new Run { Text = linkText });
+                            ToolTipService.SetToolTip(hyperlink, url);
+                            textBlock.Inlines.Add(hyperlink);
+                        }
+                        catch
+                        {
+                            textBlock.Inlines.Add(new Run { Text = segment });
+                        }
+                    }
+                    else
+                    {
+                        textBlock.Inlines.Add(new Run { Text = segment });
+                    }
                 }
                 else
                 {
