@@ -219,6 +219,15 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void CopyToClipboard(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dataPackage.SetText(text);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+    }
+
     public void Cleanup()
     {
         _pollingSubscription?.Dispose();
