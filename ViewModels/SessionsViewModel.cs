@@ -89,10 +89,11 @@ public partial class SessionsViewModel : ObservableObject
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        _syncContext?.Post(_ => {
-             Activities.Clear();
-             FlattenedDiff.Clear();
-             AggregatePatch = null;
+        _syncContext?.Post(_ =>
+        {
+            Activities.Clear();
+            FlattenedDiff.Clear();
+            AggregatePatch = null;
         }, null);
 
         if (value != null)
@@ -248,10 +249,14 @@ public partial class SessionsViewModel : ObservableObject
             var merged = DiffParser.Merge(patches);
             var flattened = DiffParser.Flatten(merged);
 
-            _syncContext?.Post(_ => {
+            _syncContext?.Post(_ =>
+            {
                 AggregatePatch = merged;
                 FlattenedDiff.Clear();
-                foreach (var item in flattened) FlattenedDiff.Add(item);
+                foreach (var item in flattened)
+                {
+                    FlattenedDiff.Add(item);
+                }
             }, null);
         }
     }
