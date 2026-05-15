@@ -16,6 +16,8 @@ public class DiffLineTypeToColorConverter : IValueConverter
                 DiffLineType.Added => new SolidColorBrush(ColorHelper.FromArgb(40, 0, 255, 0)),
                 DiffLineType.Removed => new SolidColorBrush(ColorHelper.FromArgb(40, 255, 0, 0)),
                 DiffLineType.Metadata => new SolidColorBrush(ColorHelper.FromArgb(20, 0, 0, 255)),
+                DiffLineType.FileHeader => new SolidColorBrush(ColorHelper.FromArgb(60, 100, 100, 100)),
+                DiffLineType.HunkHeader => new SolidColorBrush(ColorHelper.FromArgb(30, 100, 100, 100)),
                 _ => new SolidColorBrush(Colors.Transparent)
             };
         }
@@ -61,6 +63,8 @@ public class DiffPrefixConverter : IValueConverter
             {
                 DiffLineType.Added => "+",
                 DiffLineType.Removed => "-",
+                DiffLineType.FileHeader => "F",
+                DiffLineType.HunkHeader => "H",
                 _ => " "
             };
         }

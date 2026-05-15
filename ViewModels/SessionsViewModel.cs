@@ -28,6 +28,7 @@ public partial class SessionsViewModel : ObservableObject
 
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
+    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
 
     public SessionsViewModel()
     {
@@ -88,7 +89,12 @@ public partial class SessionsViewModel : ObservableObject
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        _syncContext?.Post(_ => Activities.Clear(), null);
+        _syncContext?.Post(_ => {
+             Activities.Clear();
+             FlattenedDiff.Clear();
+             AggregatePatch = null;
+        }, null);
+
         if (value != null)
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
@@ -103,6 +109,7 @@ public partial class SessionsViewModel : ObservableObject
             {
                 _syncContext?.Post(_ =>
                 {
+                    bool changed = false;
                     if (resp.Activities != null)
                     {
                         foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
@@ -118,9 +125,10 @@ public partial class SessionsViewModel : ObservableObject
 
                                 Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
                                 Activities.Add(activity);
+                                changed = true;
                             }
                         }
-                        UpdateAggregatePatch();
+                        if (changed) UpdateAggregatePatch();
                     }
                 }, null);
             });
@@ -235,7 +243,17 @@ public partial class SessionsViewModel : ObservableObject
             .Cast<string>()
             .ToList();
 
-        _syncContext?.Post(_ => AggregatePatch = DiffParser.Merge(patches), null);
+        if (patches.Any())
+        {
+            var merged = DiffParser.Merge(patches);
+            var flattened = DiffParser.Flatten(merged);
+
+            _syncContext?.Post(_ => {
+                AggregatePatch = merged;
+                FlattenedDiff.Clear();
+                foreach (var item in flattened) FlattenedDiff.Add(item);
+            }, null);
+        }
     }
 
     [RelayCommand]

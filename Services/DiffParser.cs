@@ -49,9 +49,34 @@ public partial class DiffParser
         }
         return result;
     }
+
+    public static List<DiffDisplayItem> Flatten(ParsedPatch patch)
+    {
+        var result = new List<DiffDisplayItem>();
+        foreach (var file in patch.Files)
+        {
+            result.Add(new DiffDisplayItem { Type = DiffLineType.FileHeader, Content = file.NewPath });
+            foreach (var hunk in file.Hunks)
+            {
+                result.Add(new DiffDisplayItem { Type = DiffLineType.HunkHeader, Content = hunk.Header });
+                foreach (var line in hunk.Lines)
+                {
+                    result.Add(new DiffDisplayItem { Type = line.Type, Content = line.Content, LineNumber = line.NewLineNumber ?? line.OldLineNumber });
+                }
+            }
+        }
+        return result;
+    }
 }
 public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new(); }
 public record ParsedFile { public string OldPath { get; init; } = ""; public string NewPath { get; init; } = ""; public List<ParsedHunk> Hunks { get; init; } = new(); }
 public record ParsedHunk { public string Header { get; init; } = ""; public List<ParsedLine> Lines { get; init; } = new(); }
 public record ParsedLine { public DiffLineType Type { get; init; } public string Content { get; init; } = ""; public int? OldLineNumber { get; init; } public int? NewLineNumber { get; init; } }
-public enum DiffLineType { Added, Removed, Context, Metadata, Unknown }
+public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeader, HunkHeader }
+
+public class DiffDisplayItem
+{
+    public DiffLineType Type { get; init; }
+    public string Content { get; init; } = "";
+    public int? LineNumber { get; init; }
+}
