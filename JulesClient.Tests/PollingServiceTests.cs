@@ -17,7 +17,7 @@ public class PollingServiceTests
         var initialResponse = new ActivityListResponse(
             new List<Activity>
             {
-                new Activity("act1", "act1", timestamp, "system", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+                new Activity("act1", "act1", timestamp, "system", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
             },
             null
         );

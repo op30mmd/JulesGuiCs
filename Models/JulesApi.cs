@@ -104,6 +104,7 @@ public record Activity(
     [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts,
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
+    [property: JsonPropertyName("userMessaged")] UserMessaged? UserMessaged,
     [property: JsonPropertyName("text")] string? Text,
     [property: JsonPropertyName("prompt")] string? Prompt,
     [property: JsonPropertyName("description")] string? Description
@@ -113,38 +114,44 @@ public record Activity(
 
     public string? DisplayText =>
         !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
-        (!string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
-        (!string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
-        (!string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
-        (!string.IsNullOrWhiteSpace(Text) ? Text :
-        (!string.IsNullOrWhiteSpace(Prompt) ? Prompt :
-        (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
-        (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
-        (PlanApproved != null ? "Plan Approved" :
-        (SessionCompleted != null ? "Session Completed" : null)))))))));
+        !string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
+        !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage) ? UserMessaged.UserMessage :
+        !string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
+        !string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
+        !string.IsNullOrWhiteSpace(Text) ? Text :
+        !string.IsNullOrWhiteSpace(Prompt) ? Prompt :
+        !string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
+        !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
+        PlanApproved != null ? "Plan Approved" :
+        SessionCompleted != null ? "Session Completed" :
+        null;
 
     public bool HasContent
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(DisplayText) && !DisplayText.StartsWith("[DEBUG]")) return true;
-            if (ProgressUpdated != null && (!string.IsNullOrWhiteSpace(ProgressUpdated.Title) || !string.IsNullOrWhiteSpace(ProgressUpdated.Description))) return true;
-            if (PlanGenerated?.Plan != null && (!string.IsNullOrWhiteSpace(PlanGenerated.Plan.Title) || !string.IsNullOrWhiteSpace(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
-            if (Artifacts?.Any(a => a.BashOutput != null || a.ChangeSet != null || a.Media != null || a.PullRequest != null) == true) return true;
+            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
+            if (ProgressUpdated?.HasData == true) return true;
+            if (PlanGenerated?.HasData == true) return true;
+            if (Artifacts?.Any(a => a.HasData) == true) return true;
             if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
             if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
-            if (HasDebugInfo) return true; // Show bubbles that only have debug info
+            if (HasDebugInfo) return true;
             return false;
         }
     }
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
+
+    [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
+    [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
 
 public record UserMessage(
     [property: JsonPropertyName("prompt")] string? Prompt,
     [property: JsonPropertyName("text")] string? Text
 );
+public record UserMessaged([property: JsonPropertyName("userMessage")] string? UserMessage);
 public record AgentMessage(
     [property: JsonPropertyName("message")] string? Message,
     [property: JsonPropertyName("text")] string? Text
@@ -153,9 +160,16 @@ public record AgentMessage(
 public record ProgressUpdated(
     [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("description")] string? Description
-);
+)
+{
+    public bool HasData => !string.IsNullOrWhiteSpace(Title) || !string.IsNullOrWhiteSpace(Description);
+}
 
-public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan);
+public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan)
+{
+    public bool HasData => Plan != null && (!string.IsNullOrWhiteSpace(Plan.Title) || !string.IsNullOrWhiteSpace(Plan.Description) || Plan.Steps?.Any() == true);
+}
+
 public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId);
 public record SessionFailed([property: JsonPropertyName("reason")] string? Reason);
 
@@ -164,7 +178,10 @@ public record Artifact(
     [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
     [property: JsonPropertyName("media")] Media? Media,
     [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest
-);
+)
+{
+    public bool HasData => BashOutput != null || ChangeSet != null || Media != null || PullRequest != null;
+}
 
 public record BashOutput(
     [property: JsonPropertyName("command")] string? Command,

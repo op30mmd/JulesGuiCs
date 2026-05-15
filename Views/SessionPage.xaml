@@ -292,9 +292,9 @@
                                         </Expander>
 
                                         <!-- Detailed Activity Components -->
-                                        <ContentControl Content="{x:Bind ProgressUpdated, Mode=OneWay}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+                                        <ContentControl Content="{x:Bind ProgressUpdated, Mode=OneWay}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ShowProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
 
-                                        <ContentControl Content="{x:Bind PlanGenerated.Plan, Mode=OneWay}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind PlanGenerated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+                                        <ContentControl Content="{x:Bind PlanGenerated.Plan, Mode=OneWay}" ContentTemplate="{StaticResource PlanGeneratedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ShowPlan, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
 
                                         <ContentControl Content="{x:Bind SessionFailed, Mode=OneWay}" ContentTemplate="{StaticResource SessionFailedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind SessionFailed, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
 

@@ -187,6 +187,7 @@ public partial class SessionsViewModel : ObservableObject
             Artifacts: null,
             UserMessage: new UserMessage(Prompt: msg, Text: null),
             AgentMessage: null,
+            UserMessaged: null,
             Text: null,
             Prompt: null,
             Description: null
