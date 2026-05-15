@@ -284,7 +284,7 @@
                                                             Padding="4" Margin="8,0,0,0" ToolTipService.ToolTip="Copy JSON"
                                                             Command="{Binding ElementName=RootPage, Path=ViewModel.CopyToClipboardCommand}"
                                                             CommandParameter="{x:Bind RawInfo}">
-                                                        <SymbolIcon Symbol="Copy" FontSize="12"/>
+                                                        <SymbolIcon Symbol="Copy"/>
                                                     </Button>
                                                 </Grid>
                                             </Expander.Header>
