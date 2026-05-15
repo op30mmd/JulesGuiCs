@@ -35,6 +35,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Remove="JulesClient.Tests\**" />
+		<EmbeddedResource Remove="JulesClient.Tests\**" />
+		<None Remove="JulesClient.Tests\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Page Update="**\*.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
