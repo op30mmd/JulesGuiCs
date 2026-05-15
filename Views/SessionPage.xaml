@@ -141,7 +141,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Sessions List -->
-        <Grid Grid.Column="0" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0" Background="{ThemeResource SystemControlBackgroundChromeLowBrush}">
+        <Grid Grid.Column="0" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
