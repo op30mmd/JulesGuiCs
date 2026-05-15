@@ -27,6 +27,28 @@ public partial class DiffParser
         }
         return res;
     }
+
+    public static ParsedPatch Merge(IEnumerable<string> patches)
+    {
+        var result = new ParsedPatch();
+        var filesMap = new Dictionary<string, ParsedFile>();
+
+        foreach (var patchStr in patches)
+        {
+            var patch = Parse(patchStr);
+            foreach (var file in patch.Files)
+            {
+                if (!filesMap.TryGetValue(file.NewPath, out var existing))
+                {
+                    existing = new ParsedFile { OldPath = file.OldPath, NewPath = file.NewPath, Hunks = new() };
+                    filesMap[file.NewPath] = existing;
+                    result.Files.Add(existing);
+                }
+                existing.Hunks.AddRange(file.Hunks);
+            }
+        }
+        return result;
+    }
 }
 public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new(); }
 public record ParsedFile { public string OldPath { get; init; } = ""; public string NewPath { get; init; } = ""; public List<ParsedHunk> Hunks { get; init; } = new(); }

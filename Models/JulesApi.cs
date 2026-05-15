@@ -105,6 +105,7 @@ public record Activity(
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
     [property: JsonPropertyName("userMessaged")] UserMessaged? UserMessaged,
+    [property: JsonPropertyName("review")] Review? Review,
     [property: JsonPropertyName("text")] string? Text,
     [property: JsonPropertyName("prompt")] string? Prompt,
     [property: JsonPropertyName("description")] string? Description
@@ -143,6 +144,7 @@ public record Activity(
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
+    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
@@ -209,6 +211,17 @@ public record SendMessageResponse
 {
     [property: JsonPropertyName("success")] public bool Success { get; init; }
 }
+
+public record Review(
+    [property: JsonPropertyName("comments")] List<ReviewComment>? Comments,
+    [property: JsonPropertyName("summary")] string? Summary
+);
+
+public record ReviewComment(
+    [property: JsonPropertyName("filePath")] string? FilePath,
+    [property: JsonPropertyName("lineNumber")] int? LineNumber,
+    [property: JsonPropertyName("comment")] string? Comment
+);
 
 public static class AutomationModes
 {

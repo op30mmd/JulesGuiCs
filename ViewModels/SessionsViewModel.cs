@@ -23,6 +23,9 @@ public partial class SessionsViewModel : ObservableObject
     [ObservableProperty]
     private string _chatInput = string.Empty;
 
+    [ObservableProperty]
+    private ParsedPatch? _aggregatePatch;
+
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
 
@@ -117,6 +120,7 @@ public partial class SessionsViewModel : ObservableObject
                                 Activities.Add(activity);
                             }
                         }
+                        UpdateAggregatePatch();
                     }
                 }, null);
             });
@@ -154,6 +158,7 @@ public partial class SessionsViewModel : ObservableObject
                         Activities.Add(activity);
                     }
                 }
+                UpdateAggregatePatch();
             }, null);
         }
         catch (Exception ex)
@@ -218,6 +223,18 @@ public partial class SessionsViewModel : ObservableObject
         {
             Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
         }
+    }
+
+    private void UpdateAggregatePatch()
+    {
+        var patches = Activities
+            .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
+            .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .Cast<string>()
+            .ToList();
+
+        _syncContext?.Post(_ => AggregatePatch = DiffParser.Merge(patches), null);
     }
 
     [RelayCommand]

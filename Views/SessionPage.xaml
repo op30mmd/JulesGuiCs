@@ -43,7 +43,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:DiffToParsedPatchConverter x:Key="DiffToParsedPatchConverter"/>
+        <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
         <converters:DiffLineTypeToColorConverter x:Key="DiffLineTypeToColorConverter"/>
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
@@ -141,11 +141,7 @@
         <DataTemplate x:Key="ChangeSetTemplate" x:DataType="models:ChangeSet">
             <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
                 <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
-                <TextBlock converters:MarkdownHelper.Text="{x:Bind GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" Margin="0,0,0,8"/>
-
-                <Expander Header="View Diff" HorizontalAlignment="Stretch" Padding="8">
-                    <ContentControl Content="{x:Bind GitPatch.UnidiffPatch, Converter={StaticResource DiffToParsedPatchConverter}}" ContentTemplate="{StaticResource ParsedPatchTemplate}"/>
-                </Expander>
+                <TextBlock converters:MarkdownHelper.Text="{x:Bind GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
             </StackPanel>
         </DataTemplate>
 
@@ -245,6 +241,12 @@
                                  Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
                                  Command="{x:Bind ViewModel.ApprovePlanCommand}"
                                  Style="{StaticResource AccentButtonStyle}"/>
+
+                        <Expander Header="Session Changes" Visibility="{x:Bind ViewModel.AggregatePatch, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                            <ScrollViewer MaxHeight="400">
+                                <ContentControl Content="{x:Bind ViewModel.AggregatePatch, Mode=OneWay}" ContentTemplate="{StaticResource ParsedPatchTemplate}"/>
+                            </ScrollViewer>
+                        </Expander>
                     </StackPanel>
                 </StackPanel>
 
@@ -269,7 +271,28 @@
                                         <!-- Unified Message Display -->
                                         <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
                                                    TextWrapping="WrapWholeWords" FontSize="14"
-                                                   Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                                                   Visibility="{x:Bind IsReview, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <Expander Header="Code Review" Visibility="{x:Bind IsReview, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                                                  HorizontalAlignment="Stretch">
+                                            <StackPanel Spacing="8" Padding="4">
+                                                <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14"/>
+                                                <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:ReviewComment">
+                                                            <StackPanel Margin="0,4" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
+                                                                <TextBlock FontWeight="Bold" FontSize="12" Opacity="0.7">
+                                                                    <Run Text="{x:Bind FilePath}"/>
+                                                                    <Run Text=" : "/>
+                                                                    <Run Text="{x:Bind LineNumber}"/>
+                                                                </TextBlock>
+                                                                <TextBlock Text="{x:Bind Comment}" TextWrapping="Wrap" FontSize="13" Margin="0,2,0,0"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Expander>
 
                                         <Expander Visibility="{x:Bind HasDebugInfo, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                                                   HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
