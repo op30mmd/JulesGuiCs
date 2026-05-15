@@ -11,7 +11,7 @@ public partial class SessionsViewModel : ObservableObject
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
     private readonly SynchronizationContext? _syncContext = SynchronizationContext.Current;
-    private static readonly Dictionary<string, List<JulesClient.Models.Activity>> _activitiesCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<JulesClient.Models.Activity>> _activitiesCache = new();
     private static List<Session>? _sessionsCache;
 
     [ObservableProperty]
@@ -85,7 +85,7 @@ public partial class SessionsViewModel : ObservableObject
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        Activities.Clear();
+        _syncContext?.Post(_ => Activities.Clear(), null);
         if (value != null)
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
@@ -145,7 +145,7 @@ public partial class SessionsViewModel : ObservableObject
                 {
                     if (!Activities.Any(a => a.Name == activity.Name))
                     {
-                         // Remove optimistic message
+                        // Remove optimistic message
                         if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
                         {
                             var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);

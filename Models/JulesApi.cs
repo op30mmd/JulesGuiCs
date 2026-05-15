@@ -134,7 +134,7 @@ public record Activity(
             if (Artifacts?.Any(a => a.BashOutput != null || a.ChangeSet != null || a.Media != null || a.PullRequest != null) == true) return true;
             if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
             if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
-            // Always show if it has debug info and we are in a mode to see it, but for now let's keep it hidden if no real content
+            if (HasDebugInfo) return true; // Show bubbles that only have debug info
             return false;
         }
     }
