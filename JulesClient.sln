@@ -10,37 +10,17 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		Debug|Any CPU = Debug|Any CPU
-		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
-		Release|Any CPU = Release|Any CPU
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|x64.ActiveCfg = Debug|x64
 		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|x64.Build.0 = Debug|x64
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Debug|x86.Build.0 = Debug|Any CPU
 		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|x64.ActiveCfg = Release|x64
 		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|x64.Build.0 = Release|x64
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|x86.ActiveCfg = Release|Any CPU
-		{8B0FBAEC-7992-3549-F21F-62727CFF584B}.Release|x86.Build.0 = Release|Any CPU
 		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|x64.Build.0 = Debug|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Debug|x86.Build.0 = Debug|Any CPU
 		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|x64.ActiveCfg = Release|Any CPU
 		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|x64.Build.0 = Release|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|x86.ActiveCfg = Release|Any CPU
-		{1600FEC4-27DB-45B5-A397-6765DC7F7438}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
