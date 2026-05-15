@@ -212,7 +212,6 @@
                             <Setter Property="MinHeight" Value="0"/>
                             <Setter Property="Padding" Value="0"/>
                             <Setter Property="Margin" Value="0,1"/>
-                            <Setter Property="IsHitTestVisible" Value="False"/>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
@@ -231,7 +230,7 @@
 
                                         <Expander Header="Debug Info" Visibility="{x:Bind HasDebugInfo, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                                                   HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
-                                            <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7"/>
+                                            <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7" IsTextSelectionEnabled="True"/>
                                         </Expander>
 
                                         <!-- Detailed Activity Components -->

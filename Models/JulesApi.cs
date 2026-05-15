@@ -121,8 +121,7 @@ public record Activity(
         (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
         (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
         (PlanApproved != null ? "Plan Approved" :
-        (SessionCompleted != null ? "Session Completed" :
-        (!string.IsNullOrWhiteSpace(RawInfo) ? $"[DEBUG] {RawInfo}" : null))))))))));
+        (SessionCompleted != null ? "Session Completed" : null)))))))));
 
     public bool HasContent
     {

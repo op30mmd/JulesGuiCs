@@ -24,11 +24,11 @@ public class PollingServiceTests
 
         var secondResponse = new ActivityListResponse(new List<Activity>(), null);
 
-        // Setup first call without createTime, second call with createTime
+        // Setup first call without filter, second call with filter
         mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 30, null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(initialResponse);
 
-        mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 30, null, timestamp, It.IsAny<CancellationToken>()))
+        mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 30, null, $"create_time > \"{timestamp}\"", It.IsAny<CancellationToken>()))
             .ReturnsAsync(secondResponse);
 
         var pollingService = new PollingService(mockApi.Object);
@@ -42,6 +42,6 @@ public class PollingServiceTests
 
         // Assert
         mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 30, null, null, It.IsAny<CancellationToken>()), Times.AtLeastOnce());
-        mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 30, null, timestamp, It.IsAny<CancellationToken>()), Times.AtLeastOnce());
+        mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 30, null, $"create_time > \"{timestamp}\"", It.IsAny<CancellationToken>()), Times.AtLeastOnce());
     }
 }

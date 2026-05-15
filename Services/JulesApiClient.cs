@@ -13,7 +13,7 @@ public interface IJulesApiClient
     Task<SessionListResponse> ListSessionsAsync(int pageSize = 10, string? pageToken = null, CancellationToken ct = default);
     Task<Session> GetSessionAsync(string id, CancellationToken ct = default);
     Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default);
-    Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 30, string? pageToken = null, string? createTime = null, CancellationToken ct = default);
+    Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 30, string? pageToken = null, string? filter = null, CancellationToken ct = default);
     Task<SendMessageResponse> SendMessageAsync(string sid, string prompt, CancellationToken ct = default);
     IObservable<ActivityListResponse> PollActivitiesAsync(string sid, TimeSpan interval, CancellationToken ct = default);
 }
@@ -124,12 +124,12 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         await HandleErrorResponse(r, ct);
         return await r.Content.ReadFromJsonAsync<ApprovePlanResponse>(_json, ct) ?? new ApprovePlanResponse();
     }
-    public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 30, string? pageToken = null, string? createTime = null, CancellationToken ct = default)
+    public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 30, string? pageToken = null, string? filter = null, CancellationToken ct = default)
     {
         ApplyKey();
         var q = new List<string> { $"pageSize={pageSize}" };
         if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
-        if (createTime != null) q.Add($"createTime={Uri.EscapeDataString(createTime)}");
+        if (filter != null) q.Add($"filter={Uri.EscapeDataString(filter)}");
         try
         {
             var r = await _http.GetAsync($"{sid}/activities?{string.Join("&", q)}", ct);

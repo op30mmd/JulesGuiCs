@@ -41,7 +41,8 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 
                         do
                         {
-                            var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, createTime: last, ct: ct);
+                            string? filter = last != null ? $"create_time > \"{last}\"" : null;
+                            var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, filter: filter, ct: ct);
                             if (firstResp == null) firstResp = resp;
 
                             if (resp?.Activities != null)
