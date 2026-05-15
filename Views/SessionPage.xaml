@@ -153,7 +153,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="Sessions" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Command="{x:Bind ViewModel.LoadSessionsCommand}" ToolTipService.ToolTip="Refresh Sessions" Background="Transparent" BorderThickness="0">
+                <Button Grid.Column="1" Command="{x:Bind ViewModel.RefreshAllCommand}" ToolTipService.ToolTip="Refresh All (Clear Cache)" Background="Transparent" BorderThickness="0">
                     <SymbolIcon Symbol="Refresh"/>
                 </Button>
             </Grid>
@@ -228,6 +228,11 @@
                                         <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
                                                    TextWrapping="WrapWholeWords" FontSize="14"
                                                    Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+
+                                        <Expander Header="Debug Info" Visibility="{x:Bind HasDebugInfo, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                                                  HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
+                                            <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7"/>
+                                        </Expander>
 
                                         <!-- Detailed Activity Components -->
                                         <ContentControl Content="{x:Bind ProgressUpdated, Mode=OneWay}" ContentTemplate="{StaticResource ProgressUpdatedTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind ProgressUpdated, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>

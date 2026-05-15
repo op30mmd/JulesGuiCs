@@ -109,6 +109,8 @@ public record Activity(
     [property: JsonPropertyName("description")] string? Description
 )
 {
+    [JsonIgnore] public string? RawInfo { get; set; }
+
     public string? DisplayText =>
         !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
         (!string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
@@ -119,21 +121,25 @@ public record Activity(
         (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
         (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
         (PlanApproved != null ? "Plan Approved" :
-        (SessionCompleted != null ? "Session Completed" : null)))))))));
+        (SessionCompleted != null ? "Session Completed" :
+        (!string.IsNullOrWhiteSpace(RawInfo) ? $"[DEBUG] {RawInfo}" : null))))))))));
 
     public bool HasContent
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
+            if (!string.IsNullOrWhiteSpace(DisplayText) && !DisplayText.StartsWith("[DEBUG]")) return true;
             if (ProgressUpdated != null && (!string.IsNullOrWhiteSpace(ProgressUpdated.Title) || !string.IsNullOrWhiteSpace(ProgressUpdated.Description))) return true;
             if (PlanGenerated?.Plan != null && (!string.IsNullOrWhiteSpace(PlanGenerated.Plan.Title) || !string.IsNullOrWhiteSpace(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
             if (Artifacts?.Any(a => a.BashOutput != null || a.ChangeSet != null || a.Media != null || a.PullRequest != null) == true) return true;
             if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
             if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
+            // Always show if it has debug info and we are in a mode to see it, but for now let's keep it hidden if no real content
             return false;
         }
     }
+
+    public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 }
 
 public record UserMessage(
