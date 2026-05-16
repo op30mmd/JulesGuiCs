@@ -1,0 +1,235 @@
+name: OpenCode Task
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Task prompt for opencode"
+        required: true
+        type: string
+
+      model:
+        description: "Model to use"
+        required: false
+        type: choice
+        default: "opencode/qwen3.6-plus-free"
+        options:
+          - anthropic/claude-opus-4-5
+          - anthropic/claude-sonnet-4-5
+          - anthropic/claude-haiku-4-5
+          - openai/gpt-4o
+          - openai/gpt-4o-mini
+          - google/gemini-2.0-flash
+          - opencode/qwen3.6-plus-free
+          - opencode/big-pickle
+          - opencode/minimax-m2.5-free
+
+      session_branch:
+        description: "Branch to commit sessions to (default: opencode-sessions)"
+        required: false
+        type: string
+        default: "opencode-sessions"
+
+      commit_changes:
+        description: "Commit code changes back to the triggering branch"
+        required: false
+        type: boolean
+        default: true
+
+      working_directory:
+        description: "Working directory inside the repo (default: repo root)"
+        required: false
+        type: string
+        default: "."
+
+permissions:
+  contents: write
+
+jobs:
+  run-opencode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      OPENCODE_SESSION_DIR: ${{ github.workspace }}/.opencode/sessions
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history so we can push back
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Git identity (needed for the commit steps) ─────────────────────────
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ── Runtime ───────────────────────────────────────────────────────────────
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # ── Install opencode ──────────────────────────────────────────────────────
+      - name: Install opencode
+        run: bun install -g opencode-ai
+
+      - name: Verify opencode installation
+        run: opencode --version
+
+      # ── Restore cached sessions (speeds up re-runs) ───────────────────────────
+      - name: Restore session cache
+        id: session-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.OPENCODE_SESSION_DIR }}
+          key: opencode-sessions-${{ github.run_id }}
+          restore-keys: |
+            opencode-sessions-
+
+      # ── Run the task ──────────────────────────────────────────────────────────
+      - name: Run opencode task
+        id: opencode
+        working-directory: ${{ inputs.working_directory }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+          # Tell opencode where to store sessions
+          OPENCODE_SESSION_DIR: ${{ env.OPENCODE_SESSION_DIR }}
+        run: |
+          opencode run \
+            --model   "${{ inputs.model }}" \
+            --print \
+            -- "${{ inputs.prompt }}" \
+          | tee /tmp/opencode-output.txt
+
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      # ── Upload raw output as artifact ─────────────────────────────────────────
+      - name: Upload task output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-output-${{ github.run_id }}
+          path: /tmp/opencode-output.txt
+          retention-days: 90
+
+      # ── Upload full session directory as artifact ─────────────────────────────
+      - name: Upload sessions artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-sessions-${{ github.run_id }}
+          path: ${{ env.OPENCODE_SESSION_DIR }}
+          retention-days: 90
+          if-no-files-found: warn
+
+      # ── Save session cache for future runs ────────────────────────────────────
+      - name: Save session cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.OPENCODE_SESSION_DIR }}
+          key: opencode-sessions-${{ github.run_id }}
+
+      # ── Persist sessions to a dedicated git branch ────────────────────────────
+      - name: Persist sessions to branch
+        if: always()
+        run: |
+          SESSION_BRANCH="${{ inputs.session_branch }}"
+          SESSION_DIR="${{ env.OPENCODE_SESSION_DIR }}"
+
+          # Create or switch to the sessions branch (orphan if new)
+          if git ls-remote --exit-code --heads origin "$SESSION_BRANCH" > /dev/null 2>&1; then
+            git fetch origin "$SESSION_BRANCH"
+            git worktree add /tmp/session-branch "$SESSION_BRANCH"
+          else
+            git worktree add --orphan -b "$SESSION_BRANCH" /tmp/session-branch
+          fi
+
+          # Copy sessions into the worktree
+          mkdir -p /tmp/session-branch/sessions
+          if [ -d "$SESSION_DIR" ] && [ "$(ls -A "$SESSION_DIR")" ]; then
+            cp -r "$SESSION_DIR"/. /tmp/session-branch/sessions/
+          fi
+
+          # Write a run manifest
+          cat > /tmp/session-branch/sessions/.run-${{ github.run_id }}.json <<EOF
+          {
+            "run_id":    "${{ github.run_id }}",
+            "run_number": "${{ github.run_number }}",
+            "triggered_by": "${{ github.actor }}",
+            "ref":       "${{ github.ref_name }}",
+            "model":     "${{ inputs.model }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "prompt":    $(echo '${{ inputs.prompt }}' | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().rstrip()))")
+          }
+          EOF
+
+          cd /tmp/session-branch
+          git add -A
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(opencode): session from run #${{ github.run_number }}
+
+          Model:  ${{ inputs.model }}
+          Ref:    ${{ github.ref_name }}
+          Actor:  ${{ github.actor }}
+          Run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            git push origin "$SESSION_BRANCH"
+          else
+            echo "No new session data to commit."
+          fi
+
+          git worktree remove /tmp/session-branch
+
+      # ── Commit code changes back to the source branch ─────────────────────────
+      - name: Commit code changes
+        if: ${{ inputs.commit_changes }}
+        run: |
+          # Stage everything opencode may have written
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No code changes to commit."
+            exit 0
+          fi
+
+          git commit -m "feat(opencode): apply changes from run #${{ github.run_number }}
+
+          Model:  ${{ inputs.model }}
+          Actor:  ${{ github.actor }}
+          Run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Prompt:
+          ${{ inputs.prompt }}"
+
+          git push origin HEAD:${{ github.ref_name }}
+
+      # ── Summary ───────────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## OpenCode Task Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Model** | \`${{ inputs.model }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Sessions branch** | \`${{ inputs.session_branch }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Commit changes** | \`${{ inputs.commit_changes }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Run** | [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Prompt" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.prompt }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Output" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/opencode-output.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(no output captured)"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
