@@ -94,8 +94,7 @@ public partial class SessionsViewModel : ObservableObject
             Activities.Clear();
             DiffFiles.Clear();
             AggregatePatch = null;
-            _processedPatchKeys.Clear();
-            _lastCombinedPatchHash = string.Empty;
+            _lastPatchSignature = string.Empty;
         }, null);
 
         if (value != null)
@@ -237,8 +236,7 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
-    private readonly HashSet<string> _processedPatchKeys = new();
-    private string _lastCombinedPatchHash = string.Empty;
+    private string _lastPatchSignature = string.Empty;
 
     private void UpdateAggregatePatch()
     {
@@ -246,30 +244,18 @@ public partial class SessionsViewModel : ObservableObject
             .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
             .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
             .Where(p => !string.IsNullOrEmpty(p))
-            .Cast<string>()
             .ToList();
 
-        var uniquePatches = allPatches.Distinct(StringComparer.Ordinal).ToList();
+        if (allPatches.Count == 0) return;
 
-        Debug.WriteLine($"[VM] Found {allPatches.Count} total patches, {uniquePatches.Count} unique");
+        var signature = allPatches.Count + ":" + allPatches[^1].Length;
+        if (signature == _lastPatchSignature) return;
+        _lastPatchSignature = signature;
 
-        if (uniquePatches.Count == 0) return;
-
-        var combinedKey = string.Join("|", uniquePatches.Select((p, i) => $"{i}:{p.Length}"));
-        if (combinedKey == _lastCombinedPatchHash)
-        {
-            Debug.WriteLine("[VM] Patch hash unchanged, skipping re-parse");
-            return;
-        }
-        _lastCombinedPatchHash = combinedKey;
-
-        var newPatches = uniquePatches.Where(p => !_processedPatchKeys.Contains(p)).ToList();
-        foreach (var p in uniquePatches) _processedPatchKeys.Add(p);
-
-        var merged = DiffParser.Merge(uniquePatches);
-        Debug.WriteLine($"[VM] Merged patch contains {merged.Files.Count} files");
-
+        var merged = DiffParser.MergeLatest(allPatches);
         var fileTree = DiffParser.BuildFileTree(merged);
+
+        Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
 
         _syncContext?.Post(_ =>
         {
@@ -279,7 +265,6 @@ public partial class SessionsViewModel : ObservableObject
             {
                 DiffFiles.Add(new DiffFileViewModel(fileNode));
             }
-            Debug.WriteLine($"[VM] UI updated with {DiffFiles.Count} diff files");
         }, null);
     }
 

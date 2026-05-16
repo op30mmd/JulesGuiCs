@@ -103,24 +103,35 @@ public partial class DiffParser
         return res;
     }
 
-    public static ParsedPatch Merge(IEnumerable<string> patches)
+    public static ParsedPatch MergeLatest(IEnumerable<string> patches)
     {
-        var result = new ParsedPatch();
         var filesMap = new Dictionary<string, ParsedFile>();
+        var fileOrder = new List<string>();
 
         foreach (var patchStr in patches)
         {
             var patch = Parse(patchStr);
             foreach (var file in patch.Files)
             {
-                if (!filesMap.TryGetValue(file.NewPath, out var existing))
+                if (!filesMap.ContainsKey(file.NewPath))
                 {
-                    existing = new ParsedFile { OldPath = file.OldPath, NewPath = file.NewPath, Hunks = new() };
-                    filesMap[file.NewPath] = existing;
-                    result.Files.Add(existing);
+                    fileOrder.Add(file.NewPath);
                 }
-                existing.Hunks.AddRange(file.Hunks);
+
+                var latestFile = new ParsedFile
+                {
+                    OldPath = file.OldPath,
+                    NewPath = file.NewPath,
+                    Hunks = new List<ParsedHunk>(file.Hunks)
+                };
+                filesMap[file.NewPath] = latestFile;
             }
+        }
+
+        var result = new ParsedPatch { Files = new() };
+        foreach (var path in fileOrder)
+        {
+            result.Files.Add(filesMap[path]);
         }
         return result;
     }
