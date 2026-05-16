@@ -138,7 +138,7 @@ jobs:
             --model "${{ inputs.model }}"
             --format json                      # machine-readable event stream
             --dangerously-skip-permissions     # required for unattended CI
-            --title "CI #${{ github.run_number }}: $(echo '${{ inputs.prompt }}' | head -c 72)"
+            --title "CI run #${{ github.run_number }} (${{ github.ref_name }}) by ${{ github.actor }}"
           )
 
           # Optional: reasoning variant (e.g. high, max, minimal)
