@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using JulesClient.ViewModels;
@@ -26,5 +27,13 @@ public sealed partial class SessionsPage : Page
     {
         base.OnNavigatedFrom(e);
         ViewModel.Cleanup();
+    }
+
+    private void DiffFileExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
+    {
+        if (sender.DataContext is DiffFileViewModel vm)
+        {
+            vm.LoadHunks();
+        }
     }
 }

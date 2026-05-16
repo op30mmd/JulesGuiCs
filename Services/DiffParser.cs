@@ -1,11 +1,25 @@
 using System.Buffers;
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace JulesClient.Services;
 
 public partial class DiffParser
 {
+    private static void ParseHunkRange(ReadOnlySpan<char> rangePart, ref int ol, ref int nl)
+    {
+        int plusIdx = rangePart.IndexOf('+');
+        if (plusIdx > 1)
+        {
+            var oldRange = rangePart[1..plusIdx].Trim();
+            var newRange = rangePart[(plusIdx + 1)..].Trim();
+
+            int oldComma = oldRange.IndexOf(',');
+            ol = oldComma >= 0 ? int.Parse(oldRange[..oldComma]) : int.Parse(oldRange);
+
+            int newComma = newRange.IndexOf(',');
+            nl = newComma >= 0 ? int.Parse(newRange[..newComma]) : int.Parse(newRange);
+        }
+    }
+
     public static ParsedPatch Parse(string patch)
     {
         var res = new ParsedPatch { Files = new() };
@@ -51,31 +65,26 @@ public partial class DiffParser
 
             if (lineSpan.StartsWith("@@ -"))
             {
-                int plusIdx = lineSpan.IndexOf('+');
-                if (plusIdx > 0)
+                int closeIdx = lineSpan[2..].IndexOf("@@");
+                string headerFull = lineSpan.ToString();
+
+                if (closeIdx >= 0)
                 {
-                    var afterPlus = lineSpan[(plusIdx + 1)..];
-                    int spaceIdx = afterPlus.IndexOf(' ');
-                    int endIdx = spaceIdx >= 0 ? plusIdx + 1 + spaceIdx : lineSpan.Length;
-
-                    var oldPart = lineSpan[3..plusIdx];
-                    var newPart = lineSpan[(plusIdx + 1)..endIdx];
-
-                    int oldComma = oldPart.IndexOf(',');
-                    ol = oldComma >= 0 ? int.Parse(oldPart[..oldComma]) : int.Parse(oldPart);
-
-                    int newComma = newPart.IndexOf(',');
-                    nl = newComma >= 0 ? int.Parse(newPart[..newComma]) : int.Parse(newPart);
+                    var rangePart = lineSpan[3..(closeIdx + 2)].Trim();
+                    ParseHunkRange(rangePart, ref ol, ref nl);
+                }
+                else
+                {
+                    var rangePart = lineSpan[3..].Trim();
+                    ParseHunkRange(rangePart, ref ol, ref nl);
                 }
 
-                ch = new() { Header = lineSpan.ToString(), Lines = new() };
+                ch = new() { Header = headerFull, Lines = new() };
                 cf.Hunks.Add(ch);
                 continue;
             }
 
             if (ch == null) continue;
-
-            if (lineSpan.Length == 0) continue;
 
             char first = lineSpan[0];
             var content = lineSpan.Length > 1 ? lineSpan[1..].ToString() : "";
@@ -137,7 +146,6 @@ public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeade
 public class DiffFileNode
 {
     public ParsedFile File { get; }
-    public bool IsExpanded { get; set; }
     public int TotalLines { get; }
     public int AddedLines { get; }
     public int RemovedLines { get; }
@@ -170,16 +178,4 @@ public class DiffFileNode
     }
 
     public string Stats => $"+{AddedLines} -{RemovedLines}";
-}
-
-public class DiffHunkNode
-{
-    public ParsedHunk Hunk { get; }
-    public string Header { get; }
-
-    public DiffHunkNode(ParsedHunk hunk)
-    {
-        Hunk = hunk;
-        Header = hunk.Header;
-    }
 }

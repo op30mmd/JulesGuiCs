@@ -48,7 +48,6 @@
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
         <converters:DiffLineTypeToFontWeightConverter x:Key="DiffLineTypeToFontWeightConverter"/>
-        <converters:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
 
         <DataTemplate x:Key="ProgressUpdatedTemplate" x:DataType="models:ProgressUpdated">
             <StackPanel Margin="0,1">
@@ -227,20 +226,18 @@
                                                 </ItemsRepeater.Layout>
                                                 <ItemsRepeater.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:DiffFileViewModel">
-                                                        <StackPanel Orientation="Vertical">
-                                                            <Button Command="{x:Bind ToggleExpandCommand}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch" Padding="12,8">
+                                                        <Expander IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Expanding="DiffFileExpander_Expanding">
+                                                            <Expander.Header>
                                                                 <Grid>
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="20"/>
                                                                         <ColumnDefinition Width="*"/>
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
-                                                                    <FontIcon Glyph="{x:Bind IsExpanded, Converter={StaticResource BoolToChevronConverter}}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    <TextBlock Grid.Column="1" Text="{x:Bind DisplayName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                                                    <TextBlock Grid.Column="2" Text="{x:Bind Stats}" FontSize="11" Opacity="0.6" Margin="8,0,0,0"/>
+                                                                    <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                                                    <TextBlock Grid.Column="1" Text="{x:Bind Stats}" FontSize="11" Opacity="0.6" Margin="8,0,0,0"/>
                                                                 </Grid>
-                                                            </Button>
-                                                            <ItemsRepeater ItemsSource="{x:Bind Hunks}" Visibility="{x:Bind IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                            </Expander.Header>
+                                                            <ItemsRepeater ItemsSource="{x:Bind Hunks}">
                                                                 <ItemsRepeater.Layout>
                                                                     <StackLayout Orientation="Vertical"/>
                                                                 </ItemsRepeater.Layout>
@@ -266,7 +263,7 @@
                                                                                             <TextBlock Text="{x:Bind OldLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.4" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,8,0" Foreground="{ThemeResource TextControlForeground}"/>
                                                                                             <TextBlock Grid.Column="1" Text="{x:Bind NewLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.4" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,8,0" Foreground="{ThemeResource TextControlForeground}"/>
                                                                                             <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                                            <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}"/>
+                                                                                            <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
                                                                                         </Grid>
                                                                                     </DataTemplate>
                                                                                 </ItemsRepeater.ItemTemplate>
@@ -275,7 +272,7 @@
                                                                     </DataTemplate>
                                                                 </ItemsRepeater.ItemTemplate>
                                                             </ItemsRepeater>
-                                                        </StackPanel>
+                                                        </Expander>
                                                     </DataTemplate>
                                                 </ItemsRepeater.ItemTemplate>
                                             </ItemsRepeater>

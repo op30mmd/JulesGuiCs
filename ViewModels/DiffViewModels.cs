@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using JulesClient.Services;
 
 namespace JulesClient.ViewModels;
@@ -12,8 +11,7 @@ public partial class DiffFileViewModel : ObservableObject
     [ObservableProperty]
     private bool _isExpanded;
 
-    [ObservableProperty]
-    private ObservableCollection<DiffHunkViewModel> _hunks = new();
+    public ObservableCollection<DiffHunkViewModel> Hunks { get; } = new();
 
     public DiffFileViewModel(DiffFileNode node)
     {
@@ -25,11 +23,9 @@ public partial class DiffFileViewModel : ObservableObject
     public string Stats => Node.Stats;
     public int TotalLines => Node.TotalLines;
 
-    [RelayCommand]
-    private void ToggleExpand()
+    public void LoadHunks()
     {
-        IsExpanded = !IsExpanded;
-        if (IsExpanded && Hunks.Count == 0)
+        if (Hunks.Count == 0)
         {
             foreach (var hunk in Node.File.Hunks)
             {
