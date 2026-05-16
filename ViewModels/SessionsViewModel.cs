@@ -249,16 +249,24 @@ public partial class SessionsViewModel : ObservableObject
             .Cast<string>()
             .ToList();
 
+        Debug.WriteLine($"[VM] Found {patches.Count} non-empty patches");
+
         if (patches.Count == 0) return;
 
         var combinedKey = string.Join("|", patches.Select((p, i) => $"{i}:{p.Length}"));
-        if (combinedKey == _lastCombinedPatchHash) return;
+        if (combinedKey == _lastCombinedPatchHash)
+        {
+            Debug.WriteLine("[VM] Patch hash unchanged, skipping re-parse");
+            return;
+        }
         _lastCombinedPatchHash = combinedKey;
 
         var newPatches = patches.Where(p => !_processedPatchKeys.Contains(p)).ToList();
         foreach (var p in patches) _processedPatchKeys.Add(p);
 
         var merged = DiffParser.Merge(patches);
+        Debug.WriteLine($"[VM] Merged patch contains {merged.Files.Count} files");
+
         var fileTree = DiffParser.BuildFileTree(merged);
 
         _syncContext?.Post(_ =>
@@ -269,6 +277,7 @@ public partial class SessionsViewModel : ObservableObject
             {
                 DiffFiles.Add(new DiffFileViewModel(fileNode));
             }
+            Debug.WriteLine($"[VM] UI updated with {DiffFiles.Count} diff files");
         }, null);
     }
 
