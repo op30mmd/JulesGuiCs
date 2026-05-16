@@ -28,7 +28,7 @@ public partial class SessionsViewModel : ObservableObject
 
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
-    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
+    public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
 
     public SessionsViewModel()
     {
@@ -92,7 +92,7 @@ public partial class SessionsViewModel : ObservableObject
         _syncContext?.Post(_ =>
         {
             Activities.Clear();
-            FlattenedDiff.Clear();
+            DiffFiles.Clear();
             AggregatePatch = null;
             _processedPatchKeys.Clear();
             _lastCombinedPatchHash = string.Empty;
@@ -259,15 +259,15 @@ public partial class SessionsViewModel : ObservableObject
         foreach (var p in patches) _processedPatchKeys.Add(p);
 
         var merged = DiffParser.Merge(patches);
-        var flattened = DiffParser.Flatten(merged);
+        var fileTree = DiffParser.BuildFileTree(merged);
 
         _syncContext?.Post(_ =>
         {
             AggregatePatch = merged;
-            FlattenedDiff.Clear();
-            foreach (var item in flattened)
+            DiffFiles.Clear();
+            foreach (var fileNode in fileTree)
             {
-                FlattenedDiff.Add(item);
+                DiffFiles.Add(new DiffFileViewModel(fileNode));
             }
         }, null);
     }

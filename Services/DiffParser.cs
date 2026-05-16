@@ -1,5 +1,6 @@
 using System.Buffers;
-using System.Text;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace JulesClient.Services;
 
@@ -74,8 +75,10 @@ public partial class DiffParser
 
             if (ch == null) continue;
 
+            if (lineSpan.Length == 0) continue;
+
             char first = lineSpan[0];
-            var content = lineSpan[1..].ToString();
+            var content = lineSpan.Length > 1 ? lineSpan[1..].ToString() : "";
 
             var dl = first switch
             {
@@ -113,26 +116,13 @@ public partial class DiffParser
         return result;
     }
 
-    public static List<DiffDisplayItem> Flatten(ParsedPatch patch)
+    public static List<DiffFileNode> BuildFileTree(ParsedPatch patch)
     {
-        int estimatedCapacity = patch.Files.Count * 2;
-        foreach (var file in patch.Files)
-            foreach (var hunk in file.Hunks)
-                estimatedCapacity += hunk.Lines.Count;
-
-        var result = new List<DiffDisplayItem>(estimatedCapacity);
-
+        var result = new List<DiffFileNode>(patch.Files.Count);
         foreach (var file in patch.Files)
         {
-            result.Add(new DiffDisplayItem { Type = DiffLineType.FileHeader, Content = file.NewPath });
-            foreach (var hunk in file.Hunks)
-            {
-                result.Add(new DiffDisplayItem { Type = DiffLineType.HunkHeader, Content = hunk.Header });
-                foreach (var line in hunk.Lines)
-                {
-                    result.Add(new DiffDisplayItem { Type = line.Type, Content = line.Content, LineNumber = line.NewLineNumber ?? line.OldLineNumber, OldLineNumber = line.OldLineNumber, NewLineNumber = line.NewLineNumber });
-                }
-            }
+            var fileNode = new DiffFileNode(file);
+            result.Add(fileNode);
         }
         return result;
     }
@@ -144,11 +134,52 @@ public record ParsedHunk { public string Header { get; init; } = ""; public List
 public record ParsedLine { public DiffLineType Type { get; init; } public string Content { get; init; } = ""; public int? OldLineNumber { get; init; } public int? NewLineNumber { get; init; } }
 public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeader, HunkHeader }
 
-public class DiffDisplayItem
+public class DiffFileNode
 {
-    public DiffLineType Type { get; init; }
-    public string Content { get; init; } = "";
-    public int? LineNumber { get; init; }
-    public int? OldLineNumber { get; init; }
-    public int? NewLineNumber { get; init; }
+    public ParsedFile File { get; }
+    public bool IsExpanded { get; set; }
+    public int TotalLines { get; }
+    public int AddedLines { get; }
+    public int RemovedLines { get; }
+
+    public DiffFileNode(ParsedFile file)
+    {
+        File = file;
+        int total = 0, added = 0, removed = 0;
+        foreach (var hunk in file.Hunks)
+        {
+            foreach (var line in hunk.Lines)
+            {
+                total++;
+                if (line.Type == DiffLineType.Added) added++;
+                else if (line.Type == DiffLineType.Removed) removed++;
+            }
+        }
+        TotalLines = total;
+        AddedLines = added;
+        RemovedLines = removed;
+    }
+
+    public string DisplayName
+    {
+        get
+        {
+            if (File.OldPath == File.NewPath) return File.NewPath;
+            return $"{File.OldPath} → {File.NewPath}";
+        }
+    }
+
+    public string Stats => $"+{AddedLines} -{RemovedLines}";
+}
+
+public class DiffHunkNode
+{
+    public ParsedHunk Hunk { get; }
+    public string Header { get; }
+
+    public DiffHunkNode(ParsedHunk hunk)
+    {
+        Hunk = hunk;
+        Header = hunk.Header;
+    }
 }
