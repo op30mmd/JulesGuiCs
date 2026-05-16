@@ -8,48 +8,36 @@ namespace JulesClient.Services;
 
 public class DiffLineTypeToColorConverter : IValueConverter
 {
-    private static readonly SolidColorBrush _addedBrush = new(ColorHelper.FromArgb(40, 0, 255, 0));
-    private static readonly SolidColorBrush _removedBrush = new(ColorHelper.FromArgb(40, 255, 0, 0));
-    private static readonly SolidColorBrush _metadataBrush = new(ColorHelper.FromArgb(20, 0, 0, 255));
-    private static readonly SolidColorBrush _fileHeaderBrush = new(ColorHelper.FromArgb(60, 100, 100, 100));
-    private static readonly SolidColorBrush _hunkHeaderBrush = new(ColorHelper.FromArgb(30, 100, 100, 100));
-    private static readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
-
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is DiffLineType type)
         {
             return type switch
             {
-                DiffLineType.Added => _addedBrush,
-                DiffLineType.Removed => _removedBrush,
-                DiffLineType.Metadata => _metadataBrush,
-                DiffLineType.FileHeader => _fileHeaderBrush,
-                DiffLineType.HunkHeader => _hunkHeaderBrush,
-                _ => _transparentBrush
+                DiffLineType.Added => new SolidColorBrush(ColorHelper.FromArgb(0x1A, 0x23, 0x7A, 0x23)),
+                DiffLineType.Removed => new SolidColorBrush(ColorHelper.FromArgb(0x1A, 0x8A, 0x1C, 0x1C)),
+                DiffLineType.Metadata => new SolidColorBrush(ColorHelper.FromArgb(0x0D, 0x00, 0x78, 0xD4)),
+                DiffLineType.FileHeader => new SolidColorBrush(ColorHelper.FromArgb(0x0D, 0x00, 0x00, 0x00)),
+                DiffLineType.HunkHeader => new SolidColorBrush(ColorHelper.FromArgb(0x08, 0x00, 0x00, 0x00)),
+                _ => new SolidColorBrush(Colors.Transparent)
             };
         }
-        return _transparentBrush;
+        return new SolidColorBrush(Colors.Transparent);
     }
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
 
 public class DiffLineTypeToForegroundConverter : IValueConverter
 {
-    private static readonly SolidColorBrush _addedFg = new(Colors.LightGreen);
-    private static readonly SolidColorBrush _removedFg = new(Colors.LightPink);
-    private static readonly SolidColorBrush _metadataFg = new(Colors.LightBlue);
-    private static SolidColorBrush? _defaultFg;
-
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is DiffLineType type)
         {
             return type switch
             {
-                DiffLineType.Added => _addedFg,
-                DiffLineType.Removed => _removedFg,
-                DiffLineType.Metadata => _metadataFg,
+                DiffLineType.Added => new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x6E, 0xC0, 0x6E)),
+                DiffLineType.Removed => new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0xE8, 0x7E, 0x7E)),
+                DiffLineType.Metadata => new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x7E, 0xC8, 0xE8)),
                 _ => GetDefaultForeground()
             };
         }
@@ -58,15 +46,9 @@ public class DiffLineTypeToForegroundConverter : IValueConverter
 
     private static Brush GetDefaultForeground()
     {
-        if (_defaultFg != null) return _defaultFg;
-
-        if (Application.Current.Resources.TryGetValue("TextControlForeground", out var brush) && brush is Brush b)
-        {
-            _defaultFg = new SolidColorBrush(((SolidColorBrush)b).Color);
-            return _defaultFg;
-        }
-        _defaultFg = new SolidColorBrush(Colors.White);
-        return _defaultFg;
+        if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out var brush) && brush is Brush b)
+            return b;
+        return new SolidColorBrush(Colors.White);
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
@@ -119,4 +101,3 @@ public class DiffLineTypeToFontWeightConverter : IValueConverter
     }
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
-

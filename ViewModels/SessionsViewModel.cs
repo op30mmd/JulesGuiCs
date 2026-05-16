@@ -242,18 +242,20 @@ public partial class SessionsViewModel : ObservableObject
 
     private void UpdateAggregatePatch()
     {
-        var patches = Activities
+        var allPatches = Activities
             .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
             .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
             .Where(p => !string.IsNullOrEmpty(p))
             .Cast<string>()
             .ToList();
 
-        Debug.WriteLine($"[VM] Found {patches.Count} non-empty patches");
+        var uniquePatches = allPatches.Distinct(StringComparer.Ordinal).ToList();
 
-        if (patches.Count == 0) return;
+        Debug.WriteLine($"[VM] Found {allPatches.Count} total patches, {uniquePatches.Count} unique");
 
-        var combinedKey = string.Join("|", patches.Select((p, i) => $"{i}:{p.Length}"));
+        if (uniquePatches.Count == 0) return;
+
+        var combinedKey = string.Join("|", uniquePatches.Select((p, i) => $"{i}:{p.Length}"));
         if (combinedKey == _lastCombinedPatchHash)
         {
             Debug.WriteLine("[VM] Patch hash unchanged, skipping re-parse");
@@ -261,10 +263,10 @@ public partial class SessionsViewModel : ObservableObject
         }
         _lastCombinedPatchHash = combinedKey;
 
-        var newPatches = patches.Where(p => !_processedPatchKeys.Contains(p)).ToList();
-        foreach (var p in patches) _processedPatchKeys.Add(p);
+        var newPatches = uniquePatches.Where(p => !_processedPatchKeys.Contains(p)).ToList();
+        foreach (var p in uniquePatches) _processedPatchKeys.Add(p);
 
-        var merged = DiffParser.Merge(patches);
+        var merged = DiffParser.Merge(uniquePatches);
         Debug.WriteLine($"[VM] Merged patch contains {merged.Files.Count} files");
 
         var fileTree = DiffParser.BuildFileTree(merged);
