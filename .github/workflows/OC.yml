@@ -25,7 +25,7 @@ on:
           - opencode/minimax-m2.5-free
           - opencode/nemotron-3-super-free
           - opencode/qwen3.6-plus-free
-  
+
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — provider-specific, leave blank for default)"
         required: false
@@ -165,6 +165,8 @@ jobs:
           fi
 
           # Run — capture the full JSON event stream, extract text in parallel
+          # set +e so jq non-zero (no matching lines) does not abort the step
+          set +e
           opencode run "${ARGS[@]}" -- "${{ inputs.prompt }}" \
             | tee /tmp/opencode-events.jsonl \
             | jq --unbuffered -r '
@@ -172,8 +174,10 @@ jobs:
                 .message.content[]? |
                 select(.type == "text") |
                 .text' \
-            | tee /tmp/opencode-output.txt \
-            || true   # jq exits non-zero on non-matching lines; that is fine
+            | tee /tmp/opencode-output.txt
+          OPENCODE_EXIT=${PIPESTATUS[0]}
+          set -e
+          [ "$OPENCODE_EXIT" -eq 0 ] || { echo "opencode exited with $OPENCODE_EXIT"; exit "$OPENCODE_EXIT"; }
 
           # Extract the session ID from the event stream
           SESSION_ID=$(jq -r 'select(.sessionID != null) | .sessionID' \
@@ -228,6 +232,10 @@ jobs:
           SESSION_BRANCH: ${{ inputs.session_branch }}
           SESSION_ID:     ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:      ${{ steps.opencode.outputs.share_url }}
+          OC_PROMPT:      ${{ inputs.prompt }}
+          OC_MODEL:       ${{ inputs.model }}
+          OC_VARIANT:     ${{ inputs.variant }}
+          OC_RUN_URL:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
@@ -258,16 +266,13 @@ jobs:
               "run_number":  os.environ["GITHUB_RUN_ATTEMPT"],
               "actor":       os.environ["GITHUB_ACTOR"],
               "ref":         os.environ["GITHUB_REF_NAME"],
-              "model":       "${{ inputs.model }}",
-              "variant":     "${{ inputs.variant }}",
+              "model":       os.environ.get("OC_MODEL", ""),
+              "variant":     os.environ.get("OC_VARIANT", ""),
               "session_id":  os.environ.get("SESSION_ID", ""),
               "share_url":   os.environ.get("SHARE_URL", ""),
               "timestamp":   datetime.datetime.utcnow().isoformat() + "Z",
-              "prompt":      "${{ inputs.prompt }}",
-              "run_url":     (
-                  "${{ github.server_url }}/${{ github.repository }}"
-                  f"/actions/runs/{os.environ['GITHUB_RUN_ID']}"
-              ),
+              "prompt":      os.environ.get("OC_PROMPT", ""),
+              "run_url":     os.environ.get("OC_RUN_URL", ""),
           }
 
           out = pathlib.Path("/tmp/session-branch/runs")
@@ -328,7 +333,7 @@ jobs:
         env:
           SESSION_ID: ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
-          VARIANT: ${{ inputs.variant }}
+          VARIANT:    ${{ inputs.variant }}
         run: |
           {
             echo "## OpenCode Task — Run #${{ github.run_number }}"
@@ -358,4 +363,3 @@ jobs:
             cat /tmp/opencode-output.txt 2>/dev/null || echo "(no output captured)"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          
