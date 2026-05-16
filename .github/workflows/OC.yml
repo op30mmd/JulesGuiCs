@@ -1,0 +1,365 @@
+name: OpenCode Task
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Task prompt for opencode"
+        required: true
+        type: string
+
+      model:
+        description: "Model (provider/model format)"
+        required: false
+        type: choice
+        default: "opencode/qwen3.6-plus-free"
+        options:
+          - anthropic/claude-opus-4-5
+          - anthropic/claude-sonnet-4-5
+          - anthropic/claude-haiku-4-5
+          - openai/gpt-4o
+          - openai/gpt-4o-mini
+          - google/gemini-2.0-flash
+          - opencode/big-pickle
+          - opencode/deepseek-v4-flash-free
+          - opencode/minimax-m2.5-free
+          - opencode/nemotron-3-super-free
+          - opencode/qwen3.6-plus-free
+
+      variant:
+        description: "Model variant / reasoning effort (high | max | minimal — provider-specific, leave blank for default)"
+        required: false
+        type: string
+        default: ""
+
+      thinking:
+        description: "Show thinking blocks (where supported)"
+        required: false
+        type: boolean
+        default: false
+
+      session_id:
+        description: "Continue an existing session by ID (leave blank to start fresh)"
+        required: false
+        type: string
+        default: ""
+
+      fork_session:
+        description: "Fork the session before continuing (only applies when session_id is set)"
+        required: false
+        type: boolean
+        default: false
+
+      share_session:
+        description: "Publish the session to opencode.ai/s/… when done"
+        required: false
+        type: boolean
+        default: false
+
+      session_branch:
+        description: "Branch to commit sessions to (created as an orphan branch if missing)"
+        required: false
+        type: string
+        default: "opencode-sessions"
+
+      commit_changes:
+        description: "Commit code changes back to the triggering branch"
+        required: false
+        type: boolean
+        default: true
+
+      working_directory:
+        description: "Working directory inside the repo (default: repo root)"
+        required: false
+        type: string
+        default: "."
+
+permissions:
+  contents: write
+
+jobs:
+  run-opencode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history so we can push back
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Git identity ─────────────────────────────────────────────────────────
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ── Runtime ──────────────────────────────────────────────────────────────
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # ── Install opencode ─────────────────────────────────────────────────────
+      - name: Install opencode
+        run: bun install -g opencode-ai
+
+      - name: Verify opencode installation
+        run: opencode --version
+
+      # ── Restore opencode data dir from cache (warm-start sessions) ───────────
+      # opencode stores sessions under XDG_DATA_HOME/opencode
+      # (defaults to ~/.local/share/opencode on Linux)
+      - name: Restore session cache
+        id: session-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.local/share/opencode
+          key: opencode-data-${{ github.run_id }}
+          restore-keys: |
+            opencode-data-
+
+      # ── Build the opencode command ────────────────────────────────────────────
+      # Flags are assembled conditionally so nothing unintended is passed
+      # (e.g. --fork without --session).
+      - name: Run opencode task
+        id: opencode
+        working-directory: ${{ inputs.working_directory }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          ARGS=(
+            --model "${{ inputs.model }}"
+            --format json                      # machine-readable event stream
+            --dangerously-skip-permissions     # required for unattended CI
+            --title "CI run #${{ github.run_number }} (${{ github.ref_name }}) by ${{ github.actor }}"
+          )
+
+          # Optional: reasoning variant (e.g. high, max, minimal)
+          if [ -n "${{ inputs.variant }}" ]; then
+            ARGS+=(--variant "${{ inputs.variant }}")
+          fi
+
+          # Optional: thinking blocks
+          if [ "${{ inputs.thinking }}" = "true" ]; then
+            ARGS+=(--thinking)
+          fi
+
+          # Optional: continue / fork an existing session
+          if [ -n "${{ inputs.session_id }}" ]; then
+            ARGS+=(--session "${{ inputs.session_id }}")
+            if [ "${{ inputs.fork_session }}" = "true" ]; then
+              ARGS+=(--fork)
+            fi
+          fi
+
+          # Optional: publish session when done
+          if [ "${{ inputs.share_session }}" = "true" ]; then
+            ARGS+=(--share)
+          fi
+
+          # Run — capture the full JSON event stream, extract text in parallel
+          # set +e so jq non-zero (no matching lines) does not abort the step
+          set +e
+          opencode run "${ARGS[@]}" -- "${{ inputs.prompt }}" \
+            | tee /tmp/opencode-events.jsonl \
+            | jq --unbuffered -r '
+                # Real opencode event schema (--format json):
+                # {"type":"text","part":{"type":"text","text":"..."}, "sessionID":"..."}
+                select(.type == "text" and .part.type == "text") |
+                .part.text' \
+            | tee /tmp/opencode-output.txt
+          OPENCODE_EXIT=${PIPESTATUS[0]}
+          set -e
+          [ "$OPENCODE_EXIT" -eq 0 ] || { echo "opencode exited with $OPENCODE_EXIT"; exit "$OPENCODE_EXIT"; }
+
+          # Session ID is present on every event at the root level
+          SESSION_ID=$(jq -r 'select(.sessionID != null) | .sessionID' \
+                         /tmp/opencode-events.jsonl 2>/dev/null | head -1 || true)
+          echo "session_id=${SESSION_ID}" >> "$GITHUB_OUTPUT"
+          echo "Opencode session ID: ${SESSION_ID}"
+
+          # Share URL: emitted as {"type":"share","part":{"url":"..."}}
+          SHARE_URL=$(jq -r 'select(.type == "share") | .part.url // empty' \
+                        /tmp/opencode-events.jsonl 2>/dev/null | head -1 || true)
+          echo "share_url=${SHARE_URL}" >> "$GITHUB_OUTPUT"
+          [ -n "$SHARE_URL" ] && echo "Session shared at: $SHARE_URL" || true
+
+      # ── Upload artifacts ─────────────────────────────────────────────────────
+      - name: Upload human-readable output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-output-${{ github.run_id }}
+          path: /tmp/opencode-output.txt
+          retention-days: 90
+
+      - name: Upload raw JSON event stream
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-events-${{ github.run_id }}
+          path: /tmp/opencode-events.jsonl
+          retention-days: 90
+
+      - name: Upload session data directory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-sessions-${{ github.run_id }}
+          path: ~/.local/share/opencode
+          retention-days: 90
+          if-no-files-found: warn
+
+      # ── Save session cache for future runs ────────────────────────────────────
+      - name: Save session cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.local/share/opencode
+          key: opencode-data-${{ github.run_id }}
+
+      # ── Persist sessions to a permanent git branch ────────────────────────────
+      - name: Persist sessions to git branch
+        if: always()
+        env:
+          SESSION_BRANCH: ${{ inputs.session_branch }}
+          SESSION_ID:     ${{ steps.opencode.outputs.session_id }}
+          SHARE_URL:      ${{ steps.opencode.outputs.share_url }}
+          OC_PROMPT:      ${{ inputs.prompt }}
+          OC_MODEL:       ${{ inputs.model }}
+          OC_VARIANT:     ${{ inputs.variant }}
+          OC_RUN_URL:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          SESSIONS_SRC="$HOME/.local/share/opencode"
+
+          # Create or fetch the sessions branch as a git worktree
+          if git ls-remote --exit-code --heads origin "$SESSION_BRANCH" > /dev/null 2>&1; then
+            git fetch origin "$SESSION_BRANCH"
+            git worktree add /tmp/session-branch "origin/$SESSION_BRANCH"
+            git -C /tmp/session-branch checkout -B "$SESSION_BRANCH"
+          else
+            git worktree add --orphan -b "$SESSION_BRANCH" /tmp/session-branch
+            git -C /tmp/session-branch rm -rf . > /dev/null 2>&1 || true
+          fi
+
+          # Mirror the full opencode data directory into the worktree
+          mkdir -p /tmp/session-branch/data
+          if [ -d "$SESSIONS_SRC" ] && [ "$(ls -A "$SESSIONS_SRC" 2>/dev/null)" ]; then
+            rsync -a --delete "$SESSIONS_SRC/" /tmp/session-branch/data/
+          fi
+
+          # Write a run manifest as JSON (python3 handles escaping safely)
+          python3 - <<'PYEOF'
+          import json, os, pathlib, datetime
+
+          manifest = {
+              "run_id":      os.environ["GITHUB_RUN_ID"],
+              "run_number":  os.environ["GITHUB_RUN_ATTEMPT"],
+              "actor":       os.environ["GITHUB_ACTOR"],
+              "ref":         os.environ["GITHUB_REF_NAME"],
+              "model":       os.environ.get("OC_MODEL", ""),
+              "variant":     os.environ.get("OC_VARIANT", ""),
+              "session_id":  os.environ.get("SESSION_ID", ""),
+              "share_url":   os.environ.get("SHARE_URL", ""),
+              "timestamp":   datetime.datetime.utcnow().isoformat() + "Z",
+              "prompt":      os.environ.get("OC_PROMPT", ""),
+              "run_url":     os.environ.get("OC_RUN_URL", ""),
+          }
+
+          out = pathlib.Path("/tmp/session-branch/runs")
+          out.mkdir(parents=True, exist_ok=True)
+          (out / f"{os.environ['GITHUB_RUN_ID']}.json").write_text(
+              json.dumps(manifest, indent=2, ensure_ascii=False)
+          )
+          print("Manifest written.")
+          PYEOF
+
+          cd /tmp/session-branch
+          git add -A
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(opencode): session from run #${{ github.run_number }}
+
+          model:   ${{ inputs.model }}
+          ref:     ${{ github.ref_name }}
+          actor:   ${{ github.actor }}
+          session: ${SESSION_ID:-<none>}
+          run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+            git push origin "$SESSION_BRANCH"
+          else
+            echo "No new session data to persist."
+          fi
+
+          git worktree remove /tmp/session-branch
+
+      # ── Commit code changes back to the source branch ─────────────────────────
+      - name: Commit code changes
+        if: ${{ inputs.commit_changes }}
+        run: |
+          set -euo pipefail
+
+          git add -A
+          # Do not stage the opencode data dir itself
+          git reset -- .opencode/ 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "No code changes to commit."
+            exit 0
+          fi
+
+          git commit -m "feat(opencode): changes from run #${{ github.run_number }}
+
+          model:  ${{ inputs.model }}
+          actor:  ${{ github.actor }}
+          run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Prompt: ${{ inputs.prompt }}"
+
+          git push origin HEAD:"${{ github.ref_name }}"
+
+      # ── Job summary ───────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        env:
+          SESSION_ID: ${{ steps.opencode.outputs.session_id }}
+          SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
+          VARIANT:    ${{ inputs.variant }}
+        run: |
+          {
+            echo "## OpenCode Task — Run #${{ github.run_number }}"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| **Model** | \`${{ inputs.model }}\` |"
+            echo "| **Variant** | \`${VARIANT:-—}\` |"
+            echo "| **Session ID** | \`${SESSION_ID:-—}\` |"
+            if [ -n "$SHARE_URL" ]; then
+              echo "| **Share URL** | [$SHARE_URL]($SHARE_URL) |"
+            else
+              echo "| **Share URL** | — |"
+            fi
+            echo "| **Branch** | \`${{ github.ref_name }}\` |"
+            echo "| **Sessions branch** | \`${{ inputs.session_branch }}\` |"
+            echo "| **Commit changes** | \`${{ inputs.commit_changes }}\` |"
+            echo "| **Run** | [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |"
+            echo ""
+            echo "### Prompt"
+            echo '```'
+            echo "${{ inputs.prompt }}"
+            echo '```'
+            echo ""
+            echo "### Output"
+            echo '```'
+            cat /tmp/opencode-output.txt 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

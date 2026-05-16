@@ -145,7 +145,7 @@ public record Activity(
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
-    [JsonIgnore] public bool IsReview => Review != null || (string.Equals(Originator, "agent", StringComparison.OrdinalIgnoreCase) && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || (DisplayText?.Length ?? 0) > 500));
+    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
