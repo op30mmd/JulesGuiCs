@@ -1,0 +1,13 @@
+{
+  "run_id": "25969408312",
+  "run_number": "1",
+  "actor": "op30mmd",
+  "ref": "fix-network-stability-and-proxy-handshake-4734855603096148483",
+  "model": "opencode/qwen3.6-plus-free",
+  "variant": "",
+  "session_id": "ses_1ce214e34ffe9XZ7P23Leg1m7B",
+  "share_url": "",
+  "timestamp": "2026-05-16T18:22:06.028151Z",
+  "prompt": "Build started at 9:28 PM... 1>------ Build started: Project: JulesClient, Configuration: Debug x64 ------ 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(102,47,102,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(103,47,103,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(104,47,104,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>Done building project \"JulesClient.csproj\" -- FAILED. ========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ========== ========== Build completed at 9:29 PM and took 08.264 seconds ========== ========== Deploy: 0 succeeded, 0 failed, 0 skipped ========== ========== Deploy completed at 9:29 PM and took 08.264 seconds ==========",
+  "run_url": "https://github.com/op30mmd/JulesGuiCs/actions/runs/25969408312"
+}

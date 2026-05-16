@@ -1,0 +1,199 @@
+INFO  2026-05-16T18:08:51 +347ms service=default version=1.15.3 args=["run","--model","opencode/qwen3.6-plus-free","--format","json","--dangerously-skip-permissions","--title","CI #4: Build started at 9:28 PM... 1>------ Build started: Project: JulesClient","--session","ses_1ce214e34ffe9XZ7P23Leg1m7B","--","Build started at 9:28 PM... 1>------ Build started: Project: JulesClient, Configuration: Debug x64 ------ 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(102,47,102,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(103,47,103,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffConverters.cs(104,47,104,57): error CS0234: The type or namespace name 'FontWeight' does not exist in the namespace 'Microsoft.UI.Text' (are you missing an assembly reference?) 1>Done building project JulesClient.csproj -- FAILED. ========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ========== ========== Build completed at 9:29 PM and took 08.264 seconds ========== ========== Deploy: 0 succeeded, 0 failed, 0 skipped ========== ========== Deploy completed at 9:29 PM and took 08.264 seconds =========="] process_role=main run_id=886954d2-9463-4dfd-8803-cecacb8f8829 opencode
+INFO  2026-05-16T18:08:51 +34ms service=file init
+INFO  2026-05-16T18:08:52 +232ms service=db path=/home/runner/.local/share/opencode/opencode.db opening database
+INFO  2026-05-16T18:08:52 +7ms service=db count=20 mode=bundled applying migrations
+INFO  2026-05-16T18:08:52 +40ms service=default directory=/home/runner/work/JulesGuiCs/JulesGuiCs creating instance
+INFO  2026-05-16T18:08:52 +1ms service=project directory=/home/runner/work/JulesGuiCs/JulesGuiCs fromDirectory
+INFO  2026-05-16T18:08:52 +61ms service=default directory=/home/runner/work/JulesGuiCs/JulesGuiCs bootstrapping
+INFO  2026-05-16T18:08:52 +11ms service=config path=/home/runner/.config/opencode/config.json loading
+INFO  2026-05-16T18:08:52 +0ms service=config path=/home/runner/.config/opencode/opencode.json loading
+INFO  2026-05-16T18:08:52 +1ms service=config path=/home/runner/.config/opencode/opencode.jsonc loading
+INFO  2026-05-16T18:08:52 +138ms service=plugin name=FG loading internal plugin
+INFO  2026-05-16T18:08:52 +1ms service=plugin name=LG loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=EV loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=rQ loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=bV loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=IV loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=SV loading internal plugin
+INFO  2026-05-16T18:08:52 +0ms service=plugin name=hV loading internal plugin
+INFO  2026-05-16T18:08:52 +1ms service=bus type=* subscribing
+INFO  2026-05-16T18:08:52 +1ms service=lsp all LSPs are disabled
+INFO  2026-05-16T18:08:52 +1ms service=bus type=session.updated subscribing
+INFO  2026-05-16T18:08:52 +0ms service=bus type=message.updated subscribing
+INFO  2026-05-16T18:08:52 +0ms service=bus type=message.part.updated subscribing
+INFO  2026-05-16T18:08:52 +0ms service=bus type=session.diff subscribing
+INFO  2026-05-16T18:08:52 +0ms service=bus type=session.deleted subscribing
+INFO  2026-05-16T18:08:52 +1ms service=format all formatters are disabled
+INFO  2026-05-16T18:08:52 +0ms service=format init
+INFO  2026-05-16T18:08:52 +1ms service=file.watcher directory=/home/runner/work/JulesGuiCs/JulesGuiCs init
+INFO  2026-05-16T18:08:52 +2ms service=file.watcher directory=/home/runner/work/JulesGuiCs/JulesGuiCs platform=linux backend=inotify watcher backend
+INFO  2026-05-16T18:08:52 +2ms service=bus type=command.executed subscribing
+INFO  2026-05-16T18:08:52 +89ms service=bus type=* subscribing
+INFO  2026-05-16T18:08:52 +0ms service=server event connected
+INFO  2026-05-16T18:08:52 +32ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:08:52 +7ms service=provider status=started state
+INFO  2026-05-16T18:08:52 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:08:52 +5ms service=bus type=session.updated publishing
+INFO  2026-05-16T18:08:52 +103ms service=provider init
+INFO  2026-05-16T18:08:52 +22ms service=bus type=session.status publishing
+INFO  2026-05-16T18:08:52 +1ms service=session.prompt session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B step=0 loop
+INFO  2026-05-16T18:08:52 +58ms service=provider providerID=opencode found
+INFO  2026-05-16T18:08:52 +0ms service=provider status=completed duration=193 state
+INFO  2026-05-16T18:08:52 +3ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:08:52 +3ms service=ripgrep url=https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz downloading ripgrep
+INFO  2026-05-16T18:08:52 +14ms service=vcs branch=fix-network-stability-and-proxy-handshake-4734855603096148483 initialized
+INFO  2026-05-16T18:08:52 +0ms service=bus type=file.watcher.updated subscribing
+INFO  2026-05-16T18:08:52 +20ms service=snapshot hash=0697c4e5ed52dea6887ed5187a75d3cf8fc8f0ae cwd=/home/runner/work/JulesGuiCs/JulesGuiCs git=/home/runner/.local/share/opencode/snapshot/3b962fad5d14a0eab8ab8ea7fcf057a784ef0461/368616d7c00e8ef446933c239d5401374841737a tracking
+INFO  2026-05-16T18:08:52 +2ms service=session.prompt status=started resolveTools
+INFO  2026-05-16T18:08:52 +5ms service=shell-tool shell=/bin/bash shell tool using shell
+INFO  2026-05-16T18:08:52 +3ms service=tool.registry status=started invalid
+INFO  2026-05-16T18:08:52 +1ms service=tool.registry status=completed duration=1 invalid
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started question
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started bash
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started read
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started glob
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started grep
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started edit
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started write
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started task
+INFO  2026-05-16T18:08:52 +2ms service=tool.registry status=completed duration=2 task
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started websearch
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=started skill
+INFO  2026-05-16T18:08:52 +1ms service=skill count=1 init
+INFO  2026-05-16T18:08:52 +0ms service=tool.registry status=completed duration=1 skill
+INFO  2026-05-16T18:08:52 +5ms service=session.prompt status=completed duration=17 resolveTools
+INFO  2026-05-16T18:08:52 +27ms service=session.processor session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B messageID=msg_e31fa1232001Fk1cwvvpLgEzl7 process
+INFO  2026-05-16T18:08:52 +3ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B small=false agent=build mode=primary stream
+INFO  2026-05-16T18:08:52 +1ms service=provider status=started providerID=opencode getSDK
+INFO  2026-05-16T18:08:52 +0ms service=provider providerID=opencode pkg=@ai-sdk/anthropic using bundled provider
+INFO  2026-05-16T18:08:52 +5ms service=provider status=completed duration=5 providerID=opencode getSDK
+INFO  2026-05-16T18:08:52 +27ms service=bus type=session.status publishing
+INFO  2026-05-16T18:08:52 +70ms service=bus type=session.updated publishing
+INFO  2026-05-16T18:08:52 +12ms service=bus type=session.diff publishing
+INFO  2026-05-16T18:08:52 +2ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:08:57 +4777ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:08:57 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:08:57 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:57 +11ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:57 +53ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:57 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:57 +91ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:57 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +152ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +60ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +29ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +125ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +28ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +90ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +288ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:08:58 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:08:58 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +3450ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +15ms service=permission permission=edit pattern=Services/DiffConverters.cs action={"permission":"*","action":"allow","pattern":"*"} evaluated
+INFO  2026-05-16T18:09:02 +1ms service=format file=/home/runner/work/JulesGuiCs/JulesGuiCs/Services/DiffConverters.cs formatting
+INFO  2026-05-16T18:09:02 +0ms service=bus type=file.edited publishing
+INFO  2026-05-16T18:09:02 +0ms service=bus type=file.watcher.updated publishing
+INFO  2026-05-16T18:09:02 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +0ms service=lsp file=/home/runner/work/JulesGuiCs/JulesGuiCs/Services/DiffConverters.cs touching file
+INFO  2026-05-16T18:09:02 +7ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +34ms service=snapshot hash=8e77d644371c7b92c3ea4258e36e422ddb3717ea cwd=/home/runner/work/JulesGuiCs/JulesGuiCs git=/home/runner/.local/share/opencode/snapshot/3b962fad5d14a0eab8ab8ea7fcf057a784ef0461/368616d7c00e8ef446933c239d5401374841737a tracking
+INFO  2026-05-16T18:09:02 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +1ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:02 +26ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:02 +2ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:02 +1ms service=bus type=session.status publishing
+INFO  2026-05-16T18:09:02 +0ms service=session.prompt session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B step=1 loop
+INFO  2026-05-16T18:09:02 +6ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:02 +27ms service=snapshot hash=8e77d644371c7b92c3ea4258e36e422ddb3717ea cwd=/home/runner/work/JulesGuiCs/JulesGuiCs git=/home/runner/.local/share/opencode/snapshot/3b962fad5d14a0eab8ab8ea7fcf057a784ef0461/368616d7c00e8ef446933c239d5401374841737a tracking
+INFO  2026-05-16T18:09:02 +0ms service=session.prompt status=started resolveTools
+INFO  2026-05-16T18:09:02 +1ms service=tool.registry status=started invalid
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started question
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started bash
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started read
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started glob
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started grep
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started edit
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started write
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started task
+INFO  2026-05-16T18:09:02 +1ms service=tool.registry status=completed duration=1 task
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started websearch
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-16T18:09:02 +0ms service=tool.registry status=started skill
+INFO  2026-05-16T18:09:02 +1ms service=tool.registry status=completed duration=1 skill
+INFO  2026-05-16T18:09:02 +0ms service=session.prompt status=completed duration=3 resolveTools
+INFO  2026-05-16T18:09:02 +8ms service=session.processor session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B messageID=msg_e31fa3730001j7Z3yifp6l3v6s process
+INFO  2026-05-16T18:09:02 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1ce214e34ffe9XZ7P23Leg1m7B small=false agent=build mode=primary stream
+INFO  2026-05-16T18:09:02 +7ms service=bus type=session.status publishing
+INFO  2026-05-16T18:09:02 +30ms service=bus type=session.updated publishing
+INFO  2026-05-16T18:09:02 +7ms service=bus type=session.diff publishing
+INFO  2026-05-16T18:09:02 +17ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:03 +1328ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:03 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:03 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:03 +15ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:03 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:03 +158ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +133ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +124ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +142ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +256ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +14ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +9ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +80ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:04 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +126ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +136ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +168ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:05 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:05 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +100ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +25ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +28ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +57ms service=bus type=message.part.delta publishing
+INFO  2026-05-16T18:09:05 +31ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:05 +29ms service=snapshot hash=8e77d644371c7b92c3ea4258e36e422ddb3717ea cwd=/home/runner/work/JulesGuiCs/JulesGuiCs git=/home/runner/.local/share/opencode/snapshot/3b962fad5d14a0eab8ab8ea7fcf057a784ef0461/368616d7c00e8ef446933c239d5401374841737a tracking
+INFO  2026-05-16T18:09:05 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-16T18:09:05 +1ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:05 +15ms service=bus type=message.updated publishing
+INFO  2026-05-16T18:09:05 +1ms service=bus type=session.status publishing
