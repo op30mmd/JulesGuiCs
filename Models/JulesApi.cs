@@ -2,59 +2,59 @@ using System.Text.Json.Serialization;
 namespace JulesClient.Models;
 
 public record SourceListResponse(
-    [property: JsonPropertyName("sources")] List<Source>? Sources,
-    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+    [property: JsonPropertyName("sources")] List<Source>? Sources = null,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken = null
 );
 
 public record Source(
-    [property: JsonPropertyName("name")] string? Name,
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("githubRepo")] GitHubRepo? GitHubRepo,
-    [property: JsonPropertyName("createTime")] string? CreateTime,
-    [property: JsonPropertyName("updateTime")] string? UpdateTime
+    [property: JsonPropertyName("name")] string? Name = null,
+    [property: JsonPropertyName("id")] string? Id = null,
+    [property: JsonPropertyName("githubRepo")] GitHubRepo? GitHubRepo = null,
+    [property: JsonPropertyName("createTime")] string? CreateTime = null,
+    [property: JsonPropertyName("updateTime")] string? UpdateTime = null
 );
 
 public record GitHubRepo(
-    [property: JsonPropertyName("owner")] string? Owner,
-    [property: JsonPropertyName("repo")] string? Repo
+    [property: JsonPropertyName("owner")] string? Owner = null,
+    [property: JsonPropertyName("repo")] string? Repo = null
 );
 
 public record SessionListResponse(
-    [property: JsonPropertyName("sessions")] List<Session>? Sessions,
-    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+    [property: JsonPropertyName("sessions")] List<Session>? Sessions = null,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken = null
 );
 
 public record Session(
     [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext,
-    [property: JsonPropertyName("prompt")] string? Prompt,
-    [property: JsonPropertyName("createTime")] string? CreateTime,
-    [property: JsonPropertyName("updateTime")] string? UpdateTime,
-    [property: JsonPropertyName("state")] string? State,
-    [property: JsonPropertyName("plan")] Plan? Plan,
-    [property: JsonPropertyName("pendingPlan")] Plan? PendingPlan,
-    [property: JsonPropertyName("outputs")] List<SessionOutput>? Outputs,
-    [property: JsonPropertyName("requirePlanApproval")] bool? RequirePlanApproval
+    [property: JsonPropertyName("id")] string? Id = null,
+    [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext = null,
+    [property: JsonPropertyName("prompt")] string? Prompt = null,
+    [property: JsonPropertyName("createTime")] string? CreateTime = null,
+    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
+    [property: JsonPropertyName("state")] string? State = null,
+    [property: JsonPropertyName("plan")] Plan? Plan = null,
+    [property: JsonPropertyName("pendingPlan")] Plan? PendingPlan = null,
+    [property: JsonPropertyName("outputs")] List<SessionOutput>? Outputs = null,
+    [property: JsonPropertyName("requirePlanApproval")] bool? RequirePlanApproval = null
 )
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
 }
 
 public record SourceContext(
-    [property: JsonPropertyName("source")] string? Source,
-    [property: JsonPropertyName("startingBranch")] string? StartingBranch
+    [property: JsonPropertyName("source")] string? Source = null,
+    [property: JsonPropertyName("startingBranch")] string? StartingBranch = null
 );
 
 public record SessionOutput(
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null
 );
 
 public record PullRequest(
-    [property: JsonPropertyName("url")] string? Url,
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("description")] string? Description
+    [property: JsonPropertyName("url")] string? Url = null,
+    [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("description")] string? Description = null
 );
 
 public record CreateSessionRequest(
@@ -66,133 +66,163 @@ public record CreateSessionRequest(
 );
 
 public record Plan(
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("description")] string? Description,
-    [property: JsonPropertyName("steps")] List<PlanStep>? Steps
+    [property: JsonPropertyName("id")] string? Id = null,
+    [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("steps")] List<PlanStep>? Steps = null
 );
 
 public record PlanStep(
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("description")] string? Description,
-    [property: JsonPropertyName("status")] string? Status,
-    [property: JsonPropertyName("index")] int? Index
+    [property: JsonPropertyName("id")] string? Id = null,
+    [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("status")] string? Status = null,
+    [property: JsonPropertyName("index")] int? Index = null
 );
 
 public record ApprovePlanResponse();
 
 public record ActivityListResponse(
-    [property: JsonPropertyName("activities")] List<Activity>? Activities,
-    [property: JsonPropertyName("nextPageToken")] string? NextPageToken
+    [property: JsonPropertyName("activities")] List<Activity>? Activities = null,
+    [property: JsonPropertyName("nextPageToken")] string? NextPageToken = null
 );
 
 public record Activity(
     [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("id")] string? Id,
-    [property: JsonPropertyName("createTime")] string? CreateTime,
-    [property: JsonPropertyName("originator")] string? Originator,
-    [property: JsonPropertyName("progressUpdated")] ProgressUpdated? ProgressUpdated,
-    [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated,
-    [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved,
-    [property: JsonPropertyName("sessionCompleted")] object? SessionCompleted,
-    [property: JsonPropertyName("sessionFailed")] SessionFailed? SessionFailed,
-    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
-    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
-    [property: JsonPropertyName("media")] Media? Media,
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest,
-    [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts,
-    [property: JsonPropertyName("userMessage")] UserMessage? UserMessage,
-    [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage,
-    [property: JsonPropertyName("text")] string? Text,
-    [property: JsonPropertyName("prompt")] string? Prompt,
-    [property: JsonPropertyName("description")] string? Description
+    [property: JsonPropertyName("id")] string? Id = null,
+    [property: JsonPropertyName("createTime")] string? CreateTime = null,
+    [property: JsonPropertyName("originator")] string? Originator = null,
+    [property: JsonPropertyName("progressUpdated")] ProgressUpdated? ProgressUpdated = null,
+    [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated = null,
+    [property: JsonPropertyName("planApproved")] PlanApproved? PlanApproved = null,
+    [property: JsonPropertyName("sessionCompleted")] object? SessionCompleted = null,
+    [property: JsonPropertyName("sessionFailed")] SessionFailed? SessionFailed = null,
+    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput = null,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet = null,
+    [property: JsonPropertyName("media")] Media? Media = null,
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null,
+    [property: JsonPropertyName("artifacts")] List<Artifact>? Artifacts = null,
+    [property: JsonPropertyName("userMessage")] UserMessage? UserMessage = null,
+    [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage = null,
+    [property: JsonPropertyName("userMessaged")] UserMessaged? UserMessaged = null,
+    [property: JsonPropertyName("review")] Review? Review = null,
+    [property: JsonPropertyName("text")] string? Text = null,
+    [property: JsonPropertyName("prompt")] string? Prompt = null,
+    [property: JsonPropertyName("description")] string? Description = null
 )
 {
     [JsonIgnore] public string? RawInfo { get; set; }
 
     public string? DisplayText =>
         !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
-        (!string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
-        (!string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
-        (!string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
-        (!string.IsNullOrWhiteSpace(Text) ? Text :
-        (!string.IsNullOrWhiteSpace(Prompt) ? Prompt :
-        (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
-        (!string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
-        (PlanApproved != null ? "Plan Approved" :
-        (SessionCompleted != null ? "Session Completed" :
-        (!string.IsNullOrWhiteSpace(RawInfo) ? $"[DEBUG] {RawInfo}" : null))))))))));
+        !string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
+        !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage) ? UserMessaged.UserMessage :
+        !string.IsNullOrWhiteSpace(Review?.Summary) ? Review.Summary :
+        !string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
+        !string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
+        !string.IsNullOrWhiteSpace(Text) ? Text :
+        !string.IsNullOrWhiteSpace(Prompt) ? Prompt :
+        !string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
+        !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
+        PlanApproved != null ? "Plan Approved" :
+        SessionCompleted != null ? "Session Completed" :
+        null;
 
     public bool HasContent
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(DisplayText) && !DisplayText.StartsWith("[DEBUG]")) return true;
-            if (ProgressUpdated != null && (!string.IsNullOrWhiteSpace(ProgressUpdated.Title) || !string.IsNullOrWhiteSpace(ProgressUpdated.Description))) return true;
-            if (PlanGenerated?.Plan != null && (!string.IsNullOrWhiteSpace(PlanGenerated.Plan.Title) || !string.IsNullOrWhiteSpace(PlanGenerated.Plan.Description) || PlanGenerated.Plan.Steps?.Any() == true)) return true;
-            if (Artifacts?.Any(a => a.BashOutput != null || a.ChangeSet != null || a.Media != null || a.PullRequest != null) == true) return true;
+            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
+            if (ProgressUpdated?.HasData == true) return true;
+            if (PlanGenerated?.HasData == true) return true;
+            if (Artifacts?.Any(a => a.HasData) == true) return true;
             if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
             if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
-            if (HasDebugInfo) return true; // Show bubbles that only have debug info
+            if (HasDebugInfo) return true;
             return false;
         }
     }
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
+
+    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
+    [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
+    [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
 
 public record UserMessage(
-    [property: JsonPropertyName("prompt")] string? Prompt,
-    [property: JsonPropertyName("text")] string? Text
+    [property: JsonPropertyName("prompt")] string? Prompt = null,
+    [property: JsonPropertyName("text")] string? Text = null
 );
+public record UserMessaged([property: JsonPropertyName("userMessage")] string? UserMessage = null);
 public record AgentMessage(
-    [property: JsonPropertyName("message")] string? Message,
-    [property: JsonPropertyName("text")] string? Text
+    [property: JsonPropertyName("message")] string? Message = null,
+    [property: JsonPropertyName("text")] string? Text = null
 );
 
 public record ProgressUpdated(
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("description")] string? Description
-);
+    [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("description")] string? Description = null
+)
+{
+    public bool HasData => !string.IsNullOrWhiteSpace(Title) || !string.IsNullOrWhiteSpace(Description);
+}
 
-public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan);
-public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId);
-public record SessionFailed([property: JsonPropertyName("reason")] string? Reason);
+public record PlanGenerated([property: JsonPropertyName("plan")] Plan? Plan = null)
+{
+    public bool HasData => Plan != null && (!string.IsNullOrWhiteSpace(Plan.Title) || !string.IsNullOrWhiteSpace(Plan.Description) || Plan.Steps?.Any() == true);
+}
+
+public record PlanApproved([property: JsonPropertyName("planId")] string? PlanId = null);
+public record SessionFailed([property: JsonPropertyName("reason")] string? Reason = null);
 
 public record Artifact(
-    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput,
-    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet,
-    [property: JsonPropertyName("media")] Media? Media,
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest
-);
+    [property: JsonPropertyName("bashOutput")] BashOutput? BashOutput = null,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet = null,
+    [property: JsonPropertyName("media")] Media? Media = null,
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null
+)
+{
+    public bool HasData => BashOutput != null || ChangeSet != null || Media != null || PullRequest != null;
+}
 
 public record BashOutput(
-    [property: JsonPropertyName("command")] string? Command,
-    [property: JsonPropertyName("output")] string? Output,
-    [property: JsonPropertyName("exitCode")] int? ExitCode
+    [property: JsonPropertyName("command")] string? Command = null,
+    [property: JsonPropertyName("output")] string? Output = null,
+    [property: JsonPropertyName("exitCode")] int? ExitCode = null
 );
 
 public record ChangeSet(
-    [property: JsonPropertyName("source")] string? Source,
-    [property: JsonPropertyName("gitPatch")] GitPatch? GitPatch
+    [property: JsonPropertyName("source")] string? Source = null,
+    [property: JsonPropertyName("gitPatch")] GitPatch? GitPatch = null
 );
 
 public record GitPatch(
-    [property: JsonPropertyName("baseCommitId")] string? BaseCommitId,
-    [property: JsonPropertyName("unidiffPatch")] string? UnidiffPatch,
-    [property: JsonPropertyName("suggestedCommitMessage")] string? SuggestedCommitMessage
+    [property: JsonPropertyName("baseCommitId")] string? BaseCommitId = null,
+    [property: JsonPropertyName("unidiffPatch")] string? UnidiffPatch = null,
+    [property: JsonPropertyName("suggestedCommitMessage")] string? SuggestedCommitMessage = null
 );
 
 public record Media(
-    [property: JsonPropertyName("mimeType")] string? MimeType,
-    [property: JsonPropertyName("data")] string? Data
+    [property: JsonPropertyName("mimeType")] string? MimeType = null,
+    [property: JsonPropertyName("data")] string? Data = null
 );
 
 public record SendMessageResponse
 {
     [property: JsonPropertyName("success")] public bool Success { get; init; }
 }
+
+public record Review(
+    [property: JsonPropertyName("comments")] List<ReviewComment>? Comments = null,
+    [property: JsonPropertyName("summary")] string? Summary = null
+);
+
+public record ReviewComment(
+    [property: JsonPropertyName("filePath")] string? FilePath = null,
+    [property: JsonPropertyName("lineNumber")] int? LineNumber = null,
+    [property: JsonPropertyName("comment")] string? Comment = null
+);
 
 public static class AutomationModes
 {

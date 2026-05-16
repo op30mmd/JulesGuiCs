@@ -23,8 +23,12 @@ public partial class SessionsViewModel : ObservableObject
     [ObservableProperty]
     private string _chatInput = string.Empty;
 
+    [ObservableProperty]
+    private ParsedPatch? _aggregatePatch;
+
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
+    public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
 
     public SessionsViewModel()
     {
@@ -85,7 +89,14 @@ public partial class SessionsViewModel : ObservableObject
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        _syncContext?.Post(_ => Activities.Clear(), null);
+        _syncContext?.Post(_ =>
+        {
+            Activities.Clear();
+            DiffFiles.Clear();
+            AggregatePatch = null;
+            _lastPatchSignature = string.Empty;
+        }, null);
+
         if (value != null)
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
@@ -100,6 +111,7 @@ public partial class SessionsViewModel : ObservableObject
             {
                 _syncContext?.Post(_ =>
                 {
+                    bool changed = false;
                     if (resp.Activities != null)
                     {
                         foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
@@ -115,8 +127,10 @@ public partial class SessionsViewModel : ObservableObject
 
                                 Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
                                 Activities.Add(activity);
+                                changed = true;
                             }
                         }
+                        if (changed) UpdateAggregatePatch();
                     }
                 }, null);
             });
@@ -154,6 +168,7 @@ public partial class SessionsViewModel : ObservableObject
                         Activities.Add(activity);
                     }
                 }
+                UpdateAggregatePatch();
             }, null);
         }
         catch (Exception ex)
@@ -187,6 +202,8 @@ public partial class SessionsViewModel : ObservableObject
             Artifacts: null,
             UserMessage: new UserMessage(Prompt: msg, Text: null),
             AgentMessage: null,
+            UserMessaged: null,
+            Review: null,
             Text: null,
             Prompt: null,
             Description: null
@@ -217,6 +234,47 @@ public partial class SessionsViewModel : ObservableObject
         {
             Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
         }
+    }
+
+    private string _lastPatchSignature = string.Empty;
+
+    private void UpdateAggregatePatch()
+    {
+        var allPatches = Activities
+            .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
+            .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToList();
+
+        if (allPatches.Count == 0) return;
+
+        var signature = allPatches.Count + ":" + allPatches[^1].Length;
+        if (signature == _lastPatchSignature) return;
+        _lastPatchSignature = signature;
+
+        var merged = DiffParser.MergeLatest(allPatches);
+        var fileTree = DiffParser.BuildFileTree(merged);
+
+        Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
+
+        _syncContext?.Post(_ =>
+        {
+            AggregatePatch = merged;
+            DiffFiles.Clear();
+            foreach (var fileNode in fileTree)
+            {
+                DiffFiles.Add(new DiffFileViewModel(fileNode));
+            }
+        }, null);
+    }
+
+    [RelayCommand]
+    public void CopyToClipboard(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dataPackage.SetText(text);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
     }
 
     public void Cleanup()

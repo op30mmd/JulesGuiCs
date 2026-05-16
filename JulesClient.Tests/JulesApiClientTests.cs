@@ -17,16 +17,20 @@ public class JulesApiClientTests
     }
 
     [Fact]
-    public async Task ListActivitiesAsync_FormatsCreateTimeQueryParameter()
+    public async Task ListActivitiesAsync_FormatsFilterQueryParameter()
     {
         // Arrange
         var timestamp = "2024-01-15T10:30:00Z";
+        var filter = $"create_time > \"{timestamp}\"";
         var sessionId = "sessions/123";
-        var expectedUri = $"https://jules.googleapis.com/v1alpha/{sessionId}/activities?pageSize=30&createTime={Uri.EscapeDataString(timestamp)}";
+        // HttpClient.GetAsync(string) does not automatically escape everything in the string if it's already a URI-like string,
+        // but our implementation uses string interpolation then GetAsync.
+        // Actually, ListActivitiesAsync uses $"?{string.Join("&", q)}".
 
         var handler = new MockHttpMessageHandler((request, ct) =>
         {
-            if (request.RequestUri?.ToString() == expectedUri)
+            var query = request.RequestUri?.Query;
+            if (query != null && query.Contains($"filter={Uri.EscapeDataString(filter)}"))
             {
                 var response = new ActivityListResponse(new List<Activity>(), null);
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
@@ -40,7 +44,7 @@ public class JulesApiClientTests
         var client = new JulesApiClient(_mockSettings.Object, handler);
 
         // Act
-        var result = await client.ListActivitiesAsync(sessionId, createTime: timestamp);
+        var result = await client.ListActivitiesAsync(sessionId, filter: filter);
 
         // Assert
         Assert.NotNull(result);

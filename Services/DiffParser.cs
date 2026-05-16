@@ -1,35 +1,192 @@
-using System.Text.RegularExpressions;
+using System.Buffers;
+
 namespace JulesClient.Services;
 
 public partial class DiffParser
 {
-    [GeneratedRegex(@"^diff --git a/(?<old>.+) b/(?<new>.+)$")] private static partial Regex DiffHeader();
-    [GeneratedRegex(@"^@@ -(?<os>\d+)(?:,(?<oc>\d+))? \+(?<ns>\d+)(?:,(?<nc>\d+))? @@")] private static partial Regex HunkHeader();
+    private static void ParseHunkRange(ReadOnlySpan<char> rangePart, ref int ol, ref int nl)
+    {
+        int plusIdx = rangePart.IndexOf('+');
+        if (plusIdx > 1)
+        {
+            var oldRange = rangePart[1..plusIdx].Trim();
+            var newRange = rangePart[(plusIdx + 1)..].Trim();
+
+            int oldComma = oldRange.IndexOf(',');
+            ol = oldComma >= 0 ? int.Parse(oldRange[..oldComma]) : int.Parse(oldRange);
+
+            int newComma = newRange.IndexOf(',');
+            nl = newComma >= 0 ? int.Parse(newRange[..newComma]) : int.Parse(newRange);
+        }
+    }
+
     public static ParsedPatch Parse(string patch)
     {
-        var res = new ParsedPatch { Files = new() }; if (string.IsNullOrWhiteSpace(patch)) return res;
-        ParsedFile? cf = null; ParsedHunk? ch = null; int ol = 0, nl = 0;
-        foreach (var rl in patch.Split('\n'))
+        var res = new ParsedPatch { Files = new() };
+        if (string.IsNullOrWhiteSpace(patch)) return res;
+
+        ParsedFile? cf = null;
+        ParsedHunk? ch = null;
+        int ol = 0, nl = 0;
+
+        var span = patch.AsSpan();
+        while (span.Length > 0)
         {
-            var l = rl.TrimEnd('\r'); var dm = DiffHeader().Match(l);
-            if (dm.Success) { cf = new() { OldPath = dm.Groups["old"].Value, NewPath = dm.Groups["new"].Value, Hunks = new() }; res.Files.Add(cf); ch = null; continue; }
-            if (cf == null) continue; var hm = HunkHeader().Match(l);
-            if (hm.Success) { ol = int.Parse(hm.Groups["os"].Value); nl = int.Parse(hm.Groups["ns"].Value); ch = new() { Header = l, Lines = new() }; cf.Hunks.Add(ch); continue; }
-            if (ch == null) continue;
-            var dl = l switch
+            int lineEnd = span.IndexOfAny('\r', '\n');
+            ReadOnlySpan<char> lineSpan = lineEnd >= 0 ? span[..lineEnd] : span;
+
+            if (lineEnd >= 0)
             {
-                var x when x.StartsWith("+") => new ParsedLine { Type = DiffLineType.Added, Content = l[1..], OldLineNumber = null, NewLineNumber = nl++ },
-                var x when x.StartsWith("-") => new ParsedLine { Type = DiffLineType.Removed, Content = l[1..], OldLineNumber = ol++, NewLineNumber = null },
-                var x when x.StartsWith(" ") || l == "" => new ParsedLine { Type = DiffLineType.Context, Content = l.Length > 0 ? l[1..] : "", OldLineNumber = ol++, NewLineNumber = nl++ },
-                var x when x.StartsWith(@"\") => new ParsedLine { Type = DiffLineType.Metadata, Content = l, OldLineNumber = null, NewLineNumber = null },
-                _ => new ParsedLine { Type = DiffLineType.Unknown, Content = l, OldLineNumber = null, NewLineNumber = null }
-            }; ch.Lines.Add(dl);
+                int skip = lineEnd;
+                if (skip < span.Length && span[skip] == '\r') skip++;
+                if (skip < span.Length && span[skip] == '\n') skip++;
+                span = span[skip..];
+            }
+            else
+            {
+                span = ReadOnlySpan<char>.Empty;
+            }
+
+            if (lineSpan.IsEmpty) continue;
+
+            if (lineSpan.StartsWith("diff --git a/"))
+            {
+                var rest = lineSpan["diff --git a/".Length..];
+                int bIdx = rest.IndexOf(" b/");
+                string oldPath = bIdx >= 0 ? rest[..bIdx].ToString() : rest.ToString();
+                string newPath = bIdx >= 0 ? rest[(bIdx + 3)..].ToString() : oldPath;
+                cf = new() { OldPath = oldPath, NewPath = newPath, Hunks = new() };
+                res.Files.Add(cf);
+                ch = null;
+                continue;
+            }
+
+            if (cf == null) continue;
+
+            if (lineSpan.StartsWith("@@ -"))
+            {
+                int closeIdx = lineSpan[2..].IndexOf("@@");
+                string headerFull = lineSpan.ToString();
+
+                if (closeIdx >= 0)
+                {
+                    var rangePart = lineSpan[3..(closeIdx + 2)].Trim();
+                    ParseHunkRange(rangePart, ref ol, ref nl);
+                }
+                else
+                {
+                    var rangePart = lineSpan[3..].Trim();
+                    ParseHunkRange(rangePart, ref ol, ref nl);
+                }
+
+                ch = new() { Header = headerFull, Lines = new() };
+                cf.Hunks.Add(ch);
+                continue;
+            }
+
+            if (ch == null) continue;
+
+            char first = lineSpan[0];
+            var content = lineSpan.Length > 1 ? lineSpan[1..].ToString() : "";
+
+            var dl = first switch
+            {
+                '+' => new ParsedLine { Type = DiffLineType.Added, Content = content, OldLineNumber = null, NewLineNumber = nl++ },
+                '-' => new ParsedLine { Type = DiffLineType.Removed, Content = content, OldLineNumber = ol++, NewLineNumber = null },
+                ' ' => new ParsedLine { Type = DiffLineType.Context, Content = content, OldLineNumber = ol++, NewLineNumber = nl++ },
+                '\\' => new ParsedLine { Type = DiffLineType.Metadata, Content = lineSpan.ToString(), OldLineNumber = null, NewLineNumber = null },
+                _ => new ParsedLine { Type = DiffLineType.Unknown, Content = lineSpan.ToString(), OldLineNumber = null, NewLineNumber = null }
+            };
+            ch.Lines.Add(dl);
         }
+
         return res;
     }
+
+    public static ParsedPatch MergeLatest(IEnumerable<string> patches)
+    {
+        var filesMap = new Dictionary<string, ParsedFile>();
+        var fileOrder = new List<string>();
+
+        foreach (var patchStr in patches)
+        {
+            var patch = Parse(patchStr);
+            foreach (var file in patch.Files)
+            {
+                if (!filesMap.ContainsKey(file.NewPath))
+                {
+                    fileOrder.Add(file.NewPath);
+                }
+
+                var latestFile = new ParsedFile
+                {
+                    OldPath = file.OldPath,
+                    NewPath = file.NewPath,
+                    Hunks = new List<ParsedHunk>(file.Hunks)
+                };
+                filesMap[file.NewPath] = latestFile;
+            }
+        }
+
+        var result = new ParsedPatch { Files = new() };
+        foreach (var path in fileOrder)
+        {
+            result.Files.Add(filesMap[path]);
+        }
+        return result;
+    }
+
+    public static List<DiffFileNode> BuildFileTree(ParsedPatch patch)
+    {
+        var result = new List<DiffFileNode>(patch.Files.Count);
+        foreach (var file in patch.Files)
+        {
+            var fileNode = new DiffFileNode(file);
+            result.Add(fileNode);
+        }
+        return result;
+    }
 }
+
 public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new(); }
 public record ParsedFile { public string OldPath { get; init; } = ""; public string NewPath { get; init; } = ""; public List<ParsedHunk> Hunks { get; init; } = new(); }
 public record ParsedHunk { public string Header { get; init; } = ""; public List<ParsedLine> Lines { get; init; } = new(); }
 public record ParsedLine { public DiffLineType Type { get; init; } public string Content { get; init; } = ""; public int? OldLineNumber { get; init; } public int? NewLineNumber { get; init; } }
-public enum DiffLineType { Added, Removed, Context, Metadata, Unknown }
+public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeader, HunkHeader }
+
+public class DiffFileNode
+{
+    public ParsedFile File { get; }
+    public int TotalLines { get; }
+    public int AddedLines { get; }
+    public int RemovedLines { get; }
+
+    public DiffFileNode(ParsedFile file)
+    {
+        File = file;
+        int total = 0, added = 0, removed = 0;
+        foreach (var hunk in file.Hunks)
+        {
+            foreach (var line in hunk.Lines)
+            {
+                total++;
+                if (line.Type == DiffLineType.Added) added++;
+                else if (line.Type == DiffLineType.Removed) removed++;
+            }
+        }
+        TotalLines = total;
+        AddedLines = added;
+        RemovedLines = removed;
+    }
+
+    public string DisplayName
+    {
+        get
+        {
+            if (File.OldPath == File.NewPath) return File.NewPath;
+            return $"{File.OldPath} → {File.NewPath}";
+        }
+    }
+
+    public string Stats => $"+{AddedLines} -{RemovedLines}";
+}

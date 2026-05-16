@@ -17,7 +17,7 @@
                        Style="{StaticResource CaptionTextBlockStyle}"/>
         </Grid>
 
-        <NavigationView x:Name="Nav" Grid.Row="1" PaneDisplayMode="Left">
+        <NavigationView x:Name="Nav" Grid.Row="1" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed">
             <NavigationView.MenuItems>
                 <!-- Sources -->
                 <NavigationViewItem Content="Sources" Tag="Sources">
