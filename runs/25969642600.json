@@ -1,0 +1,13 @@
+{
+  "run_id": "25969642600",
+  "run_number": "1",
+  "actor": "op30mmd",
+  "ref": "fix-network-stability-and-proxy-handshake-4734855603096148483",
+  "model": "opencode/qwen3.6-plus-free",
+  "variant": "",
+  "session_id": "",
+  "share_url": "",
+  "timestamp": "2026-05-16T18:33:08.833977Z",
+  "prompt": "Build started at 9:56 PM... 1>------ Build started: Project: JulesClient, Configuration: Debug x64 ------ 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffParser.cs(56,59,56,62): error CS1503: Argument 2: cannot convert from 'char' to 'System.ReadOnlySpan<char>' 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffParser.cs(56,64,56,71): error CS1503: Argument 3: cannot convert from 'int' to 'System.StringComparison' 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffParser.cs(57,89,57,92): error CS1503: Argument 2: cannot convert from 'char' to 'System.ReadOnlySpan<char>' 1>C:\\Users\\mmd\\JulesGuiCs\\Services\\DiffParser.cs(57,94,57,105): error CS1503: Argument 3: cannot convert from 'int' to 'System.StringComparison' 1>Done building project \"JulesClient.csproj\" -- FAILED. ========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ========== ========== Build completed at 9:56 PM and took 06.682 seconds ========== ========== Deploy: 0 succeeded, 0 failed, 0 skipped ========== ========== Deploy completed at 9:56 PM and took 06.682 seconds ==========",
+  "run_url": "https://github.com/op30mmd/JulesGuiCs/actions/runs/25969642600"
+}
