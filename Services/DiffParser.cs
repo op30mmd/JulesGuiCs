@@ -53,9 +53,9 @@ public partial class DiffParser
                 int plusIdx = lineSpan.IndexOf('+');
                 if (plusIdx > 0)
                 {
-                    int spaceAfterPlus = lineSpan.IndexOf(' ', plusIdx);
-                    int endIdx = spaceAfterPlus > 0 ? spaceAfterPlus : lineSpan.IndexOf(' ', plusIdx + 1);
-                    if (endIdx < 0) endIdx = lineSpan.Length;
+                    var afterPlus = lineSpan[(plusIdx + 1)..];
+                    int spaceIdx = afterPlus.IndexOf(' ');
+                    int endIdx = spaceIdx >= 0 ? plusIdx + 1 + spaceIdx : lineSpan.Length;
 
                     var oldPart = lineSpan[3..plusIdx];
                     var newPart = lineSpan[(plusIdx + 1)..endIdx];
