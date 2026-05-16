@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI.Text;
 
 namespace JulesClient.Services;
 
@@ -99,9 +100,9 @@ public class DiffPrefixConverter : IValueConverter
 
 public class DiffLineTypeToFontWeightConverter : IValueConverter
 {
-    private static readonly Microsoft.UI.Text.FontWeight _bold = new(700);
-    private static readonly Microsoft.UI.Text.FontWeight _semiBold = new(600);
-    private static readonly Microsoft.UI.Text.FontWeight _normal = new(400);
+    private static readonly FontWeight _bold = new(700);
+    private static readonly FontWeight _semiBold = new(600);
+    private static readonly FontWeight _normal = new(400);
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
