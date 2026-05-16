@@ -1,30 +1,93 @@
-using System.Text.RegularExpressions;
+using System.Buffers;
+using System.Text;
+
 namespace JulesClient.Services;
 
 public partial class DiffParser
 {
-    [GeneratedRegex(@"^diff --git a/(?<old>.+) b/(?<new>.+)$")] private static partial Regex DiffHeader();
-    [GeneratedRegex(@"^@@ -(?<os>\d+)(?:,(?<oc>\d+))? \+(?<ns>\d+)(?:,(?<nc>\d+))? @@")] private static partial Regex HunkHeader();
     public static ParsedPatch Parse(string patch)
     {
-        var res = new ParsedPatch { Files = new() }; if (string.IsNullOrWhiteSpace(patch)) return res;
-        ParsedFile? cf = null; ParsedHunk? ch = null; int ol = 0, nl = 0;
-        foreach (var rl in patch.Split('\n'))
+        var res = new ParsedPatch { Files = new() };
+        if (string.IsNullOrWhiteSpace(patch)) return res;
+
+        ParsedFile? cf = null;
+        ParsedHunk? ch = null;
+        int ol = 0, nl = 0;
+
+        var span = patch.AsSpan();
+        while (span.Length > 0)
         {
-            var l = rl.TrimEnd('\r'); var dm = DiffHeader().Match(l);
-            if (dm.Success) { cf = new() { OldPath = dm.Groups["old"].Value, NewPath = dm.Groups["new"].Value, Hunks = new() }; res.Files.Add(cf); ch = null; continue; }
-            if (cf == null) continue; var hm = HunkHeader().Match(l);
-            if (hm.Success) { ol = int.Parse(hm.Groups["os"].Value); nl = int.Parse(hm.Groups["ns"].Value); ch = new() { Header = l, Lines = new() }; cf.Hunks.Add(ch); continue; }
-            if (ch == null) continue;
-            var dl = l switch
+            int lineEnd = span.IndexOfAny('\r', '\n');
+            ReadOnlySpan<char> lineSpan = lineEnd >= 0 ? span[..lineEnd] : span;
+
+            if (lineEnd >= 0)
             {
-                var x when x.StartsWith("+") => new ParsedLine { Type = DiffLineType.Added, Content = l[1..], OldLineNumber = null, NewLineNumber = nl++ },
-                var x when x.StartsWith("-") => new ParsedLine { Type = DiffLineType.Removed, Content = l[1..], OldLineNumber = ol++, NewLineNumber = null },
-                var x when x.StartsWith(" ") || l == "" => new ParsedLine { Type = DiffLineType.Context, Content = l.Length > 0 ? l[1..] : "", OldLineNumber = ol++, NewLineNumber = nl++ },
-                var x when x.StartsWith(@"\") => new ParsedLine { Type = DiffLineType.Metadata, Content = l, OldLineNumber = null, NewLineNumber = null },
-                _ => new ParsedLine { Type = DiffLineType.Unknown, Content = l, OldLineNumber = null, NewLineNumber = null }
-            }; ch.Lines.Add(dl);
+                int skip = lineEnd;
+                if (skip < span.Length && span[skip] == '\r') skip++;
+                if (skip < span.Length && span[skip] == '\n') skip++;
+                span = span[skip..];
+            }
+            else
+            {
+                span = ReadOnlySpan<char>.Empty;
+            }
+
+            if (lineSpan.IsEmpty) continue;
+
+            if (lineSpan.StartsWith("diff --git a/"))
+            {
+                var rest = lineSpan["diff --git a/".Length..];
+                int bIdx = rest.IndexOf(" b/");
+                string oldPath = bIdx >= 0 ? rest[..bIdx].ToString() : rest.ToString();
+                string newPath = bIdx >= 0 ? rest[(bIdx + 3)..].ToString() : oldPath;
+                cf = new() { OldPath = oldPath, NewPath = newPath, Hunks = new() };
+                res.Files.Add(cf);
+                ch = null;
+                continue;
+            }
+
+            if (cf == null) continue;
+
+            if (lineSpan.StartsWith("@@ -"))
+            {
+                int plusIdx = lineSpan.IndexOf('+');
+                if (plusIdx > 0)
+                {
+                    int spaceAfterPlus = lineSpan.IndexOf(' ', plusIdx);
+                    int endIdx = spaceAfterPlus > 0 ? spaceAfterPlus : lineSpan.IndexOf(' ', plusIdx + 1);
+                    if (endIdx < 0) endIdx = lineSpan.Length;
+
+                    var oldPart = lineSpan[3..plusIdx];
+                    var newPart = lineSpan[(plusIdx + 1)..endIdx];
+
+                    int oldComma = oldPart.IndexOf(',');
+                    ol = oldComma >= 0 ? int.Parse(oldPart[..oldComma]) : int.Parse(oldPart);
+
+                    int newComma = newPart.IndexOf(',');
+                    nl = newComma >= 0 ? int.Parse(newPart[..newComma]) : int.Parse(newPart);
+                }
+
+                ch = new() { Header = lineSpan.ToString(), Lines = new() };
+                cf.Hunks.Add(ch);
+                continue;
+            }
+
+            if (ch == null) continue;
+
+            char first = lineSpan[0];
+            var content = lineSpan[1..].ToString();
+
+            var dl = first switch
+            {
+                '+' => new ParsedLine { Type = DiffLineType.Added, Content = content, OldLineNumber = null, NewLineNumber = nl++ },
+                '-' => new ParsedLine { Type = DiffLineType.Removed, Content = content, OldLineNumber = ol++, NewLineNumber = null },
+                ' ' => new ParsedLine { Type = DiffLineType.Context, Content = content, OldLineNumber = ol++, NewLineNumber = nl++ },
+                '\\' => new ParsedLine { Type = DiffLineType.Metadata, Content = lineSpan.ToString(), OldLineNumber = null, NewLineNumber = null },
+                _ => new ParsedLine { Type = DiffLineType.Unknown, Content = lineSpan.ToString(), OldLineNumber = null, NewLineNumber = null }
+            };
+            ch.Lines.Add(dl);
         }
+
         return res;
     }
 
@@ -52,7 +115,13 @@ public partial class DiffParser
 
     public static List<DiffDisplayItem> Flatten(ParsedPatch patch)
     {
-        var result = new List<DiffDisplayItem>();
+        int estimatedCapacity = patch.Files.Count * 2;
+        foreach (var file in patch.Files)
+            foreach (var hunk in file.Hunks)
+                estimatedCapacity += hunk.Lines.Count;
+
+        var result = new List<DiffDisplayItem>(estimatedCapacity);
+
         foreach (var file in patch.Files)
         {
             result.Add(new DiffDisplayItem { Type = DiffLineType.FileHeader, Content = file.NewPath });
@@ -61,13 +130,14 @@ public partial class DiffParser
                 result.Add(new DiffDisplayItem { Type = DiffLineType.HunkHeader, Content = hunk.Header });
                 foreach (var line in hunk.Lines)
                 {
-                    result.Add(new DiffDisplayItem { Type = line.Type, Content = line.Content, LineNumber = line.NewLineNumber ?? line.OldLineNumber });
+                    result.Add(new DiffDisplayItem { Type = line.Type, Content = line.Content, LineNumber = line.NewLineNumber ?? line.OldLineNumber, OldLineNumber = line.OldLineNumber, NewLineNumber = line.NewLineNumber });
                 }
             }
         }
         return result;
     }
 }
+
 public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new(); }
 public record ParsedFile { public string OldPath { get; init; } = ""; public string NewPath { get; init; } = ""; public List<ParsedHunk> Hunks { get; init; } = new(); }
 public record ParsedHunk { public string Header { get; init; } = ""; public List<ParsedLine> Lines { get; init; } = new(); }
@@ -79,4 +149,6 @@ public class DiffDisplayItem
     public DiffLineType Type { get; init; }
     public string Content { get; init; } = "";
     public int? LineNumber { get; init; }
+    public int? OldLineNumber { get; init; }
+    public int? NewLineNumber { get; init; }
 }
