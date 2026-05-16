@@ -12,7 +12,7 @@ on:
         description: "Model (provider/model format)"
         required: false
         type: choice
-        default: "anthropic/claude-sonnet-4-5"
+        default: "opencode/qwen3.6-plus-free"
         options:
           - anthropic/claude-opus-4-5
           - anthropic/claude-sonnet-4-5
@@ -20,7 +20,12 @@ on:
           - openai/gpt-4o
           - openai/gpt-4o-mini
           - google/gemini-2.0-flash
-
+          - opencode/big-pickle
+          - opencode/deepseek-v4-flash-free
+          - opencode/minimax-m2.5-free
+          - opencode/nemotron-3-super-free
+          - opencode/qwen3.6-plus-free
+  
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — provider-specific, leave blank for default)"
         required: false
@@ -323,6 +328,7 @@ jobs:
         env:
           SESSION_ID: ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
+          VARIANT: ${{ inputs.variant }}
         run: |
           {
             echo "## OpenCode Task — Run #${{ github.run_number }}"
@@ -352,5 +358,4 @@ jobs:
             cat /tmp/opencode-output.txt 2>/dev/null || echo "(no output captured)"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-        env:
-          VARIANT: ${{ inputs.variant }}
+          
