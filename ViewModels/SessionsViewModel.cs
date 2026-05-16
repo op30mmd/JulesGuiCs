@@ -28,7 +28,7 @@ public partial class SessionsViewModel : ObservableObject
 
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
-    public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
+    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
 
     public SessionsViewModel()
     {
@@ -92,10 +92,8 @@ public partial class SessionsViewModel : ObservableObject
         _syncContext?.Post(_ =>
         {
             Activities.Clear();
-            DiffFiles.Clear();
+            FlattenedDiff.Clear();
             AggregatePatch = null;
-            _processedPatchKeys.Clear();
-            _lastCombinedPatchHash = string.Empty;
         }, null);
 
         if (value != null)
@@ -237,9 +235,6 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
-    private readonly HashSet<string> _processedPatchKeys = new();
-    private string _lastCombinedPatchHash = string.Empty;
-
     private void UpdateAggregatePatch()
     {
         var patches = Activities
@@ -249,27 +244,21 @@ public partial class SessionsViewModel : ObservableObject
             .Cast<string>()
             .ToList();
 
-        if (patches.Count == 0) return;
-
-        var combinedKey = string.Join("|", patches.Select((p, i) => $"{i}:{p.Length}"));
-        if (combinedKey == _lastCombinedPatchHash) return;
-        _lastCombinedPatchHash = combinedKey;
-
-        var newPatches = patches.Where(p => !_processedPatchKeys.Contains(p)).ToList();
-        foreach (var p in patches) _processedPatchKeys.Add(p);
-
-        var merged = DiffParser.Merge(patches);
-        var fileTree = DiffParser.BuildFileTree(merged);
-
-        _syncContext?.Post(_ =>
+        if (patches.Any())
         {
-            AggregatePatch = merged;
-            DiffFiles.Clear();
-            foreach (var fileNode in fileTree)
+            var merged = DiffParser.Merge(patches);
+            var flattened = DiffParser.Flatten(merged);
+
+            _syncContext?.Post(_ =>
             {
-                DiffFiles.Add(new DiffFileViewModel(fileNode));
-            }
-        }, null);
+                AggregatePatch = merged;
+                FlattenedDiff.Clear();
+                foreach (var item in flattened)
+                {
+                    FlattenedDiff.Add(item);
+                }
+            }, null);
+        }
     }
 
     [RelayCommand]
