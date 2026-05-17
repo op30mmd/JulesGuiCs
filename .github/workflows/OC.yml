@@ -25,7 +25,7 @@ on:
           - opencode/minimax-m2.5-free
           - opencode/nemotron-3-super-free
           - opencode/qwen3.6-plus-free
-
+          
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — provider-specific, leave blank for default)"
         required: false
@@ -288,13 +288,16 @@ jobs:
           git add -A
 
           if ! git diff --cached --quiet; then
-            git commit -m "chore(opencode): session from run #${{ github.run_number }}
+            cat > /tmp/session-commit-msg.txt <<COMMITMSG
+chore(opencode): session from run #${{ github.run_number }}
 
-          model:   ${{ inputs.model }}
-          ref:     ${{ github.ref_name }}
-          actor:   ${{ github.actor }}
-          session: ${SESSION_ID:-<none>}
-          run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+model:   ${{ inputs.model }}
+ref:     ${{ github.ref_name }}
+actor:   ${{ github.actor }}
+session: ${SESSION_ID:-<none>}
+run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+COMMITMSG
+            git commit -F /tmp/session-commit-msg.txt
 
             git push origin "$SESSION_BRANCH"
           else
@@ -306,8 +309,6 @@ jobs:
       # ── Commit code changes back to the source branch ─────────────────────────
       - name: Commit code changes
         if: ${{ inputs.commit_changes }}
-        env:
-          OC_PROMPT:         ${{ inputs.prompt }}
         run: |
           set -euo pipefail
 
@@ -320,13 +321,21 @@ jobs:
             exit 0
           fi
 
-          git commit -m "feat(opencode): changes from run #${{ github.run_number }}
+          # Write commit message to a file so the prompt (which may contain
+          # quotes, braces, newlines, etc.) never touches the shell command line.
+          cat > /tmp/commit-msg.txt <<COMMITMSG
+feat(opencode): changes from run #${{ github.run_number }}
 
-          model:  ${{ inputs.model }}
-          actor:  ${{ github.actor }}
-          run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+model:  ${{ inputs.model }}
+actor:  ${{ github.actor }}
+run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Prompt: "$OC_PROMPT"
+Prompt:
+COMMITMSG
+          # Append the prompt safely via printf so no shell expansion happens
+          printf '%s\n' "$OC_PROMPT" >> /tmp/commit-msg.txt
+
+          git commit -F /tmp/commit-msg.txt
 
           git push origin HEAD:"${{ github.ref_name }}"
 
@@ -337,7 +346,6 @@ jobs:
           SESSION_ID: ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
           VARIANT:    ${{ inputs.variant }}
-          OC_PROMPT:  ${{ inputs.prompt }}
         run: |
           {
             echo "## OpenCode Task — Run #${{ github.run_number }}"
@@ -359,7 +367,7 @@ jobs:
             echo ""
             echo "### Prompt"
             echo '```'
-            echo "$OC_PROMPT"
+            echo "${{ inputs.prompt }}"
             echo '```'
             echo ""
             echo "### Output"
