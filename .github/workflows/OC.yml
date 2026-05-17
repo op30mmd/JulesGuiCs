@@ -26,6 +26,7 @@ on:
           - opencode/nemotron-3-super-free
           - opencode/qwen3.6-plus-free
 
+
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — leave blank for default)"
         required: false
@@ -98,13 +99,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Set opencode data dir ─────────────────────────────────────────────────
-      # runner context is not available in job-level env:, so we derive the path
-      # here and export it for all subsequent steps via GITHUB_ENV.
-      - name: Set OPENCODE_DATA_DIR
+      # ── Set XDG_DATA_HOME ────────────────────────────────────────────────────
+      # opencode follows the XDG spec on all platforms: it stores sessions at
+      # $XDG_DATA_HOME/opencode. Pinning XDG_DATA_HOME to RUNNER_TEMP gives us
+      # a known, writable path that works on both Linux and Windows runners.
+      - name: Set XDG_DATA_HOME
         shell: bash
-        run: echo "OPENCODE_DATA_DIR=$RUNNER_TEMP/opencode-data" >> "$GITHUB_ENV"
-
+        run: echo "XDG_DATA_HOME=$RUNNER_TEMP/xdg-data" >> "$GITHUB_ENV"
 
       # ── Git identity ──────────────────────────────────────────────────────────
       - name: Configure git identity
@@ -147,7 +148,7 @@ jobs:
         id: session-cache
         uses: actions/cache/restore@v4
         with:
-          path: ${{ runner.temp }}\opencode-data
+          path: ${{ runner.temp }}/xdg-data/opencode
           key: opencode-data-${{ github.run_id }}
           restore-keys: |
             opencode-data-
@@ -227,7 +228,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: opencode-sessions-${{ github.run_id }}
-          path: ${{ runner.temp }}\opencode-data
+          path: ${{ runner.temp }}/xdg-data/opencode
           retention-days: 90
           if-no-files-found: warn
 
@@ -236,7 +237,7 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: ${{ runner.temp }}\opencode-data
+          path: ${{ runner.temp }}/xdg-data/opencode
           key: opencode-data-${{ github.run_id }}
 
       # ── Persist sessions to a permanent git branch ────────────────────────────
@@ -256,7 +257,7 @@ jobs:
 
           # Use a path under RUNNER_TEMP that works the same in Git Bash and Python
           WORKTREE="$RUNNER_TEMP/session-branch"
-          SESSIONS_SRC="$RUNNER_TEMP/opencode-data"
+          SESSIONS_SRC="$RUNNER_TEMP/xdg-data/opencode"
 
           # Create or fetch the sessions branch as a git worktree
           if git ls-remote --exit-code --heads origin "$SESSION_BRANCH" > /dev/null 2>&1; then
@@ -273,7 +274,7 @@ jobs:
           import os, shutil, pathlib, json, datetime
 
           worktree   = pathlib.Path(os.environ["RUNNER_TEMP"]) / "session-branch"
-          source     = pathlib.Path(os.environ["RUNNER_TEMP"]) / "opencode-data"
+          source     = pathlib.Path(os.environ["RUNNER_TEMP"]) / "xdg-data" / "opencode"
           data_dest  = worktree / "data"
 
           if source.is_dir() and any(source.iterdir()):
