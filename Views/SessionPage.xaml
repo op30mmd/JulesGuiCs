@@ -222,12 +222,12 @@
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:Activity">
-                                    <Grid Margin="16,1" HorizontalAlignment="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToAlignmentConverter}}"
+                                    <Grid Margin="16,1" HorizontalAlignment="{x:Bind Originator, Converter={StaticResource OriginatorToAlignmentConverter}}"
                                           Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                                         <Border CornerRadius="12" Padding="12,10" MaxWidth="700"
-                                                Background="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToColorConverter}}">
+                                                Background="{x:Bind Originator, Converter={StaticResource OriginatorToColorConverter}}">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="{x:Bind EffectiveOriginator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
+                                                <TextBlock Text="{x:Bind Originator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
 
                                                 <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
                                                            TextWrapping="WrapWholeWords" FontSize="14"

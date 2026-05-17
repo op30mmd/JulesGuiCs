@@ -113,38 +113,23 @@ public record Activity(
 {
     [JsonIgnore] public string? RawInfo { get; set; }
 
-    [JsonIgnore]
-    public string EffectiveOriginator
-    {
-        get
-        {
-            if (UserMessage != null || UserMessaged != null) return "user";
-            if (AgentMessage != null) return "agent";
-            return Originator ?? "agent";
-        }
-    }
-
     public string? DisplayText
     {
         get
         {
-            bool isUser = string.Equals(EffectiveOriginator, "user", StringComparison.OrdinalIgnoreCase);
+            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
 
             if (isUser)
             {
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
                 if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
-                if (!string.IsNullOrWhiteSpace(Text)) return Text;
-                if (!string.IsNullOrWhiteSpace(Prompt)) return Prompt;
-                if (!string.IsNullOrWhiteSpace(Description)) return Description;
             }
             else
             {
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
                 if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-                if (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null) return Description;
                 if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
                 if (PlanApproved != null) return "Plan Approved";
                 if (SessionCompleted != null) return "Session Completed";
@@ -171,7 +156,7 @@ public record Activity(
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
-    [JsonIgnore] public bool IsReview => Review != null || (EffectiveOriginator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
+    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
