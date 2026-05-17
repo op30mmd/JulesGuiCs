@@ -12,7 +12,7 @@ on:
         description: "Model (provider/model format)"
         required: false
         type: choice
-        default: "opencode/qwen3.6-plus-free"
+        default: "anthropic/claude-sonnet-4-5"
         options:
           - anthropic/claude-opus-4-5
           - anthropic/claude-sonnet-4-5
@@ -293,7 +293,7 @@ jobs:
               '${{ inputs.model }}' \
               '${{ github.ref_name }}' \
               '${{ github.actor }}' \
-              "${SESSION_ID:-<none>}" \
+              "${SESSION_ID:-unknown}" \
               '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
               > /tmp/session-commit-msg.txt
             git commit -F /tmp/session-commit-msg.txt
@@ -308,6 +308,8 @@ jobs:
       # ── Commit code changes back to the source branch ─────────────────────────
       - name: Commit code changes
         if: ${{ inputs.commit_changes }}
+        env:
+          OC_PROMPT: ${{ inputs.prompt }}
         run: |
           set -euo pipefail
 
@@ -342,6 +344,7 @@ jobs:
           SESSION_ID: ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
           VARIANT:    ${{ inputs.variant }}
+          OC_PROMPT:  ${{ inputs.prompt }}
         run: |
           {
             echo "## OpenCode Task — Run #${{ github.run_number }}"
@@ -363,7 +366,7 @@ jobs:
             echo ""
             echo "### Prompt"
             echo '```'
-            echo "${{ inputs.prompt }}"
+            printf '%s\n' "$OC_PROMPT"
             echo '```'
             echo ""
             echo "### Output"
