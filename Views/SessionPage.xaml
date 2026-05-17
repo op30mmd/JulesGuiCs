@@ -59,9 +59,10 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PlanGeneratedTemplate" x:DataType="models:Plan">
-            <StackPanel Margin="0,1" Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+            <StackPanel Margin="0,1">
                 <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="13" Opacity="0.8"/>
-                <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14"/>
+                <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14"
+                           Visibility="{x:Bind Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                 <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
                            Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
@@ -106,6 +107,7 @@
         <DataTemplate x:Key="ChangeSetTemplate" x:DataType="models:ChangeSet">
             <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
                 <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
+                <TextBlock Text="{x:Bind Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" Visibility="{x:Bind Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                 <TextBlock converters:MarkdownHelper.Text="{x:Bind GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
             </StackPanel>
         </DataTemplate>
