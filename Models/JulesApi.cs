@@ -113,20 +113,37 @@ public record Activity(
 {
     [JsonIgnore] public string? RawInfo { get; set; }
 
-    public string? DisplayText =>
-        !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
-        !string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
-        !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage) ? UserMessaged.UserMessage :
-        !string.IsNullOrWhiteSpace(Review?.Summary) ? Review.Summary :
-        !string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
-        !string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
-        !string.IsNullOrWhiteSpace(Text) ? Text :
-        !string.IsNullOrWhiteSpace(Prompt) ? Prompt :
-        !string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
-        !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
-        PlanApproved != null ? "Plan Approved" :
-        SessionCompleted != null ? "Session Completed" :
-        null;
+    public string? DisplayText
+    {
+        get
+        {
+            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+
+            if (isUser)
+            {
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
+                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
+                if (!string.IsNullOrWhiteSpace(Text)) return Text;
+                if (!string.IsNullOrWhiteSpace(Prompt)) return Prompt;
+                if (!string.IsNullOrWhiteSpace(Description)) return Description;
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
+                if (!string.IsNullOrWhiteSpace(Text)) return Text;
+                if (!string.IsNullOrWhiteSpace(Prompt)) return Prompt;
+                if (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null) return Description;
+                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
+                if (PlanApproved != null) return "Plan Approved";
+                if (SessionCompleted != null) return "Session Completed";
+            }
+
+            return null;
+        }
+    }
 
     public bool HasContent
     {
