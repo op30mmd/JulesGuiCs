@@ -306,6 +306,8 @@ jobs:
       # ── Commit code changes back to the source branch ─────────────────────────
       - name: Commit code changes
         if: ${{ inputs.commit_changes }}
+        env:
+          OC_PROMPT:         ${{ inputs.prompt }}
         run: |
           set -euo pipefail
 
@@ -324,7 +326,7 @@ jobs:
           actor:  ${{ github.actor }}
           run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Prompt: ${{ inputs.prompt }}"
+          Prompt: "$OC_PROMPT"
 
           git push origin HEAD:"${{ github.ref_name }}"
 
@@ -335,6 +337,7 @@ jobs:
           SESSION_ID: ${{ steps.opencode.outputs.session_id }}
           SHARE_URL:  ${{ steps.opencode.outputs.share_url }}
           VARIANT:    ${{ inputs.variant }}
+          OC_PROMPT:  ${{ inputs.prompt }}
         run: |
           {
             echo "## OpenCode Task — Run #${{ github.run_number }}"
@@ -356,7 +359,7 @@ jobs:
             echo ""
             echo "### Prompt"
             echo '```'
-            echo "${{ inputs.prompt }}"
+            echo "$OC_PROMPT"
             echo '```'
             echo ""
             echo "### Output"
