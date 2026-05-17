@@ -144,8 +144,6 @@ public record Activity(
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
                 if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-                if (!string.IsNullOrWhiteSpace(Text)) return Text;
-                if (!string.IsNullOrWhiteSpace(Prompt)) return Prompt;
                 if (!string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null) return Description;
                 if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
                 if (PlanApproved != null) return "Plan Approved";
