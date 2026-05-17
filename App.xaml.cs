@@ -68,8 +68,12 @@ public partial class App : Application
                         catch (Exception ex)
                         {
                             Debug.WriteLine($"[PROXY] Connection failed: {ex.Message}");
+                            Debug.WriteLine($"[PROXY] Falling back to direct connection for {context.DnsEndPoint.Host}:{context.DnsEndPoint.Port}");
                             socket.Dispose();
-                            throw;
+
+                            var directSocket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+                            await directSocket.ConnectAsync(context.DnsEndPoint.Host, context.DnsEndPoint.Port, ct);
+                            return new NetworkStream(directSocket, true);
                         }
                     }
                 };
