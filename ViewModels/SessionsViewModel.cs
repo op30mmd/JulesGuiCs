@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
 using System.Diagnostics;
+using Microsoft.UI.Dispatching;
 
 namespace JulesClient.ViewModels;
 
@@ -10,7 +11,7 @@ public partial class SessionsViewModel : ObservableObject
     private readonly IJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
-    private readonly SynchronizationContext? _syncContext = SynchronizationContext.Current;
+    private readonly DispatcherQueue _dispatcher;
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<JulesClient.Models.Activity>> _activitiesCache = new();
     private static List<Session>? _sessionsCache;
 
@@ -34,6 +35,7 @@ public partial class SessionsViewModel : ObservableObject
     {
         _api = App.Current.Services.GetRequiredService<IJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
+        _dispatcher = DispatcherQueue.TryGetForCurrentThread() ?? throw new InvalidOperationException("SessionsViewModel must be created on UI thread");
     }
 
     [RelayCommand]
@@ -67,14 +69,14 @@ public partial class SessionsViewModel : ObservableObject
             } while (pageToken != null);
 
             _sessionsCache = sessions;
-            _syncContext?.Post(_ =>
+            _dispatcher.TryEnqueue(() =>
             {
                 Sessions.Clear();
                 foreach (var session in sessions)
                 {
                     Sessions.Add(session);
                 }
-            }, null);
+            });
         }
         catch (Exception ex)
         {
@@ -89,13 +91,13 @@ public partial class SessionsViewModel : ObservableObject
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        _syncContext?.Post(_ =>
+        _dispatcher.TryEnqueue(() =>
         {
             Activities.Clear();
             DiffFiles.Clear();
             AggregatePatch = null;
             _lastPatchSignature = string.Empty;
-        }, null);
+        });
 
         if (value != null)
         {
@@ -103,13 +105,16 @@ public partial class SessionsViewModel : ObservableObject
 
             if (_activitiesCache.TryGetValue(value.Name, out var cached))
             {
-                foreach (var a in cached.OrderBy(a => a.CreateTime ?? string.Empty)) Activities.Add(a);
+                _dispatcher.TryEnqueue(() =>
+                {
+                    foreach (var a in cached.OrderBy(a => a.CreateTime ?? string.Empty)) Activities.Add(a);
+                });
             }
 
             _ = LoadActivitiesAsync(value.Name);
             _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
-                _syncContext?.Post(_ =>
+                _dispatcher.TryEnqueue(() =>
                 {
                     bool changed = false;
                     if (resp.Activities != null)
@@ -132,7 +137,7 @@ public partial class SessionsViewModel : ObservableObject
                         }
                         if (changed) UpdateAggregatePatch();
                     }
-                }, null);
+                });
             });
         }
     }
@@ -153,7 +158,7 @@ public partial class SessionsViewModel : ObservableObject
 
             _activitiesCache[sessionId] = allActivities;
 
-            _syncContext?.Post(_ =>
+            _dispatcher.TryEnqueue(() =>
             {
                 foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? string.Empty))
                 {
@@ -169,7 +174,7 @@ public partial class SessionsViewModel : ObservableObject
                     }
                 }
                 UpdateAggregatePatch();
-            }, null);
+            });
         }
         catch (Exception ex)
         {
@@ -228,7 +233,7 @@ public partial class SessionsViewModel : ObservableObject
         {
             await _api.ApprovePlanAsync(SelectedSession.Name);
             var updated = await _api.GetSessionAsync(SelectedSession.Name);
-            _syncContext?.Post(_ => SelectedSession = updated, null);
+            _dispatcher.TryEnqueue(() => SelectedSession = updated);
         }
         catch (Exception ex)
         {
@@ -257,15 +262,12 @@ public partial class SessionsViewModel : ObservableObject
 
         Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
 
-        _syncContext?.Post(_ =>
+        AggregatePatch = merged;
+        DiffFiles.Clear();
+        foreach (var fileNode in fileTree)
         {
-            AggregatePatch = merged;
-            DiffFiles.Clear();
-            foreach (var fileNode in fileTree)
-            {
-                DiffFiles.Add(new DiffFileViewModel(fileNode));
-            }
-        }, null);
+            DiffFiles.Add(new DiffFileViewModel(fileNode));
+        }
     }
 
     [RelayCommand]
