@@ -35,7 +35,7 @@ public partial class SessionsViewModel : ObservableObject
     {
         _api = App.Current.Services.GetRequiredService<IJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
-        _dispatcher = DispatcherQueue.TryGetForCurrentThread() ?? throw new InvalidOperationException("SessionsViewModel must be created on UI thread");
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
     }
 
     [RelayCommand]
@@ -249,6 +249,7 @@ public partial class SessionsViewModel : ObservableObject
             .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
             .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
             .Where(p => !string.IsNullOrEmpty(p))
+            .Cast<string>()
             .ToList();
 
         if (allPatches.Count == 0) return;
