@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	worktree = D:/a/JulesGuiCs/JulesGuiCs
+	ignorecase = true
+	autocrlf = false
+	longpaths = true
+	symlinks = true
+	fsmonitor = false
