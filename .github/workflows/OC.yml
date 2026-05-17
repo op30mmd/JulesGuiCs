@@ -325,18 +325,9 @@ jobs:
             echo "No new session data to persist."
           fi
 
+          # Unregister the worktree from git. --force handles open handles.
+          # The leftover directory is fine — D:\a\_temp is wiped between runs.
           git worktree remove --force "$WORKTREE" 2>/dev/null || true
-          python3 -c "
-          import shutil, pathlib, stat, os
-          p = pathlib.Path(os.environ['RUNNER_TEMP']) / 'session-branch'
-          if p.exists():
-              def _force(fn, path, _):
-                  pathlib.Path(path).chmod(stat.S_IWRITE)
-                  fn(path)
-              shutil.rmtree(p, onexc=_force)
-              print('Worktree directory removed.')
-          "
-
 
       # ── Commit code changes back to the source branch ─────────────────────────
       - name: Commit code changes
