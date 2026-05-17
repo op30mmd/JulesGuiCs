@@ -8,7 +8,7 @@ public static class Socks5Handshaker
     public static async Task HandshakeAsync(Stream stream, string targetHost, int targetPort, string? username, string? password, CancellationToken ct)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        cts.CancelAfter(TimeSpan.FromSeconds(30));
         var token = cts.Token;
 
         try
