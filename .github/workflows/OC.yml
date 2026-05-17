@@ -25,7 +25,7 @@ on:
           - opencode/minimax-m2.5-free
           - opencode/nemotron-3-super-free
           - opencode/qwen3.6-plus-free
-          
+
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — provider-specific, leave blank for default)"
         required: false
@@ -271,7 +271,7 @@ jobs:
               "variant":     os.environ.get("OC_VARIANT", ""),
               "session_id":  os.environ.get("SESSION_ID", ""),
               "share_url":   os.environ.get("SHARE_URL", ""),
-              "timestamp":   datetime.datetime.utcnow().isoformat() + "Z",
+              "timestamp":   datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00","Z"),
               "prompt":      os.environ.get("OC_PROMPT", ""),
               "run_url":     os.environ.get("OC_RUN_URL", ""),
           }
@@ -288,15 +288,14 @@ jobs:
           git add -A
 
           if ! git diff --cached --quiet; then
-            cat > /tmp/session-commit-msg.txt <<COMMITMSG
-            chore(opencode): session from run #${{ github.run_number }}
-
-            model:   ${{ inputs.model }}
-            ref:     ${{ github.ref_name }}
-            actor:   ${{ github.actor }}
-            session: ${SESSION_ID:-<none>}
-            run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            COMMITMSG
+            printf 'chore(opencode): session from run #%s\n\nmodel:   %s\nref:     %s\nactor:   %s\nsession: %s\nrun:     %s\n' \
+              '${{ github.run_number }}' \
+              '${{ inputs.model }}' \
+              '${{ github.ref_name }}' \
+              '${{ github.actor }}' \
+              "${SESSION_ID:-<none>}" \
+              '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+              > /tmp/session-commit-msg.txt
             git commit -F /tmp/session-commit-msg.txt
 
             git push origin "$SESSION_BRANCH"
@@ -321,18 +320,15 @@ jobs:
             exit 0
           fi
 
-          # Write commit message to a file so the prompt (which may contain
-          # quotes, braces, newlines, etc.) never touches the shell command line.
-          cat > /tmp/commit-msg.txt <<COMMITMSG
-          feat(opencode): changes from run #${{ github.run_number }}
-
-          model:  ${{ inputs.model }}
-          actor:  ${{ github.actor }}
-          run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-          Prompt:
-          COMMITMSG
-          # Append the prompt safely via printf so no shell expansion happens
+          # Build commit message entirely with printf — no heredoc (heredocs
+          # break inside YAML run: blocks due to indentation).
+          printf 'feat(opencode): changes from run #%s\n\nmodel:  %s\nactor:  %s\nrun:    %s\n\nPrompt:\n' \
+            '${{ github.run_number }}' \
+            '${{ inputs.model }}' \
+            '${{ github.actor }}' \
+            '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            > /tmp/commit-msg.txt
+          # Append the prompt safely — $OC_PROMPT may contain quotes/braces/newlines
           printf '%s\n' "$OC_PROMPT" >> /tmp/commit-msg.txt
 
           git commit -F /tmp/commit-msg.txt
