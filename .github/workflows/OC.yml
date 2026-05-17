@@ -289,14 +289,14 @@ jobs:
 
           if ! git diff --cached --quiet; then
             cat > /tmp/session-commit-msg.txt <<COMMITMSG
-chore(opencode): session from run #${{ github.run_number }}
+            chore(opencode): session from run #${{ github.run_number }}
 
-model:   ${{ inputs.model }}
-ref:     ${{ github.ref_name }}
-actor:   ${{ github.actor }}
-session: ${SESSION_ID:-<none>}
-run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-COMMITMSG
+            model:   ${{ inputs.model }}
+            ref:     ${{ github.ref_name }}
+            actor:   ${{ github.actor }}
+            session: ${SESSION_ID:-<none>}
+            run:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            COMMITMSG
             git commit -F /tmp/session-commit-msg.txt
 
             git push origin "$SESSION_BRANCH"
@@ -324,14 +324,14 @@ COMMITMSG
           # Write commit message to a file so the prompt (which may contain
           # quotes, braces, newlines, etc.) never touches the shell command line.
           cat > /tmp/commit-msg.txt <<COMMITMSG
-feat(opencode): changes from run #${{ github.run_number }}
+          feat(opencode): changes from run #${{ github.run_number }}
 
-model:  ${{ inputs.model }}
-actor:  ${{ github.actor }}
-run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          model:  ${{ inputs.model }}
+          actor:  ${{ github.actor }}
+          run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-Prompt:
-COMMITMSG
+          Prompt:
+          COMMITMSG
           # Append the prompt safely via printf so no shell expansion happens
           printf '%s\n' "$OC_PROMPT" >> /tmp/commit-msg.txt
 
