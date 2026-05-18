@@ -117,6 +117,22 @@ public record Activity(
     {
         get
         {
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null ||
+                                   ProgressUpdated?.HasData == true ||
+                                   PlanGenerated?.HasData == true ||
+                                   BashOutput != null ||
+                                   ChangeSet != null ||
+                                   Media != null ||
+                                   PullRequest != null ||
+                                   Artifacts?.Any(a => a.HasData) == true;
+
+            if (hasAgentContent) return "agent";
+
             if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
                 !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
                 !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage))
@@ -157,15 +173,14 @@ public record Activity(
     {
         get
         {
-            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null;
 
-            if (isUser)
-            {
-                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
-                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
-                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
-            }
-            else
+            if (hasAgentContent)
             {
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
@@ -173,6 +188,14 @@ public record Activity(
                 if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
                 if (PlanApproved != null) return "Plan Approved";
                 if (SessionCompleted != null) return "Session Completed";
+            }
+
+            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+            if (isUser)
+            {
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
+                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
             }
 
             return null;
