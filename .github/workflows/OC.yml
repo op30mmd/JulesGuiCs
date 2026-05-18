@@ -26,7 +26,6 @@ on:
           - opencode/nemotron-3-super-free
           - opencode/qwen3.6-plus-free
 
-
       variant:
         description: "Model variant / reasoning effort (high | max | minimal — leave blank for default)"
         required: false
@@ -83,14 +82,13 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 jobs:
   run-opencode:
     # Windows runner: ships VS 2022, MSBuild, Windows SDK, NuGet, C++ build tools.
     # Git Bash is available for all `shell: bash` steps.
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     steps:
       # ── Checkout ─────────────────────────────────────────────────────────────
@@ -115,20 +113,39 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # ── .NET SDK + WinUI 3 / Windows App SDK workload ─────────────────────────
-      # windows-latest already has a .NET SDK; this pins the exact version and
-      # installs the 'windows' workload which pulls in the Windows App SDK manifest
-      # (NuGet packages are restored automatically by dotnet restore / MSBuild).
+      # ── .NET SDK ──────────────────────────────────────────────────────────────
+      # windows-latest ships VS 2022, MSBuild, and the Windows SDK — everything
+      # WinUI 3 needs at build time. The Windows App SDK itself arrives via NuGet
+      # (Microsoft.WindowsAppSDK package), restored automatically by MSBuild.
+      # This step just pins the exact .NET SDK version.
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
-      - name: Install Windows App SDK workload
-        shell: bash
-        run: dotnet workload install windows --skip-sign-check || true
-        # '--skip-sign-check' avoids failures on preview SDKs.
-        # '|| true' — if the workload is already installed the command exits non-zero.
+
+      # ── Build caches ─────────────────────────────────────────────────────────
+      # NuGet package cache — avoids re-downloading on every run (~5-15 min saved)
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/packages.lock.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      # MSBuild incremental output cache — avoids full recompile when only
+      # source files changed that opencode touched (~10-20 min saved)
+      - name: Cache MSBuild outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/bin
+            **/obj
+          key: msbuild-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            msbuild-${{ runner.os }}-${{ github.ref_name }}-
+            msbuild-${{ runner.os }}-
 
       # ── Bun + opencode ────────────────────────────────────────────────────────
       - name: Set up Bun
@@ -184,26 +201,30 @@ jobs:
 
           [ "${{ inputs.share_session }}" = "true" ] && ARGS+=(--share)
 
-          # Run opencode — tee the raw JSONL, extract text in parallel.
-          # set +e: jq exits non-zero when no lines match; that must not kill the step.
-          set +e
-          opencode run "${ARGS[@]}" -- "$OC_PROMPT" \
-            | tee "$RUNNER_TEMP/opencode-events.jsonl" \
-            | jq --unbuffered -r '
-                select(.type == "text" and .part.type == "text") | .part.text' \
-            | tee "$RUNNER_TEMP/opencode-output.txt"
-          OPENCODE_EXIT=${PIPESTATUS[0]}
-          set -e
+          # Redirect stdout directly to the events file — no pipe.
+          # Piping through tee causes OS-level buffering when stdout is not a TTY,
+          # so events are generated but never flushed; the file stays empty until
+          # the process exits (or is cancelled).
+          # Redirecting to a file bypasses that: the kernel writes straight through.
+          # Write the prompt to a file so it never becomes a shell argument.
+          # Large prompts (JSON, error logs, etc.) exceed the OS ARG_MAX limit
+          # when passed on the command line.
+          PROMPT_FILE="$RUNNER_TEMP/opencode-prompt.txt"
+          printf '%s' "$OC_PROMPT" > "$PROMPT_FILE"
+
+          opencode run "${ARGS[@]}" -f "$PROMPT_FILE" -- "Complete the task described in the attached file."             > "$RUNNER_TEMP/opencode-events.jsonl"
+          OPENCODE_EXIT=$?
 
           [ "$OPENCODE_EXIT" -eq 0 ] || { echo "opencode exited with $OPENCODE_EXIT"; exit "$OPENCODE_EXIT"; }
 
-          SESSION_ID=$(jq -r 'select(.sessionID != null) | .sessionID' \
-                         "$RUNNER_TEMP/opencode-events.jsonl" 2>/dev/null | head -1 || true)
+          # Parse the completed event stream
+          jq -r 'select(.type == "text" and .part.type == "text") | .part.text'             "$RUNNER_TEMP/opencode-events.jsonl"             > "$RUNNER_TEMP/opencode-output.txt" 2>/dev/null || true
+
+          SESSION_ID=$(jq -r 'select(.sessionID != null) | .sessionID'                          "$RUNNER_TEMP/opencode-events.jsonl" 2>/dev/null | head -1 || true)
           echo "session_id=${SESSION_ID}" >> "$GITHUB_OUTPUT"
           echo "Opencode session ID: ${SESSION_ID}"
 
-          SHARE_URL=$(jq -r 'select(.type == "share") | .part.url // empty' \
-                        "$RUNNER_TEMP/opencode-events.jsonl" 2>/dev/null | head -1 || true)
+          SHARE_URL=$(jq -r 'select(.type == "share") | .part.url // empty'                         "$RUNNER_TEMP/opencode-events.jsonl" 2>/dev/null | head -1 || true)
           echo "share_url=${SHARE_URL}" >> "$GITHUB_OUTPUT"
           [ -n "$SHARE_URL" ] && echo "Session shared at: $SHARE_URL" || true
 
