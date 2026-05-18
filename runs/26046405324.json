@@ -1,0 +1,13 @@
+{
+  "run_id": "26046405324",
+  "run_number": "1",
+  "actor": "op30mmd",
+  "ref": "fix-bugs-and-improvements",
+  "model": "opencode/qwen3.6-plus-free",
+  "variant": "",
+  "session_id": "ses_1c435e1c1ffeyL6kLmwpLwwSQv",
+  "share_url": "",
+  "timestamp": "2026-05-18T16:33:03.462262Z",
+  "prompt": "its still appearing, but in a weird way, you see the actual agent msg content is shown under the \"Debug Info\" btn? the user message is shown above it.",
+  "run_url": "https://github.com/op30mmd/JulesGuiCs/actions/runs/26046405324"
+}
