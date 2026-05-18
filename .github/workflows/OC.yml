@@ -377,7 +377,7 @@ jobs:
             > "$RUNNER_TEMP/commit-msg.txt"
           printf '%s\n' "$OC_PROMPT" >> "$RUNNER_TEMP/commit-msg.txt"
 
-          git commit -F "$RUNNER_TEMP/commit-msg.txt"
+          git commit -F "$RUNNER_TEMP/opencode-output.txt"
           git push origin HEAD:"${{ github.ref_name }}"
 
       # ── Job summary ───────────────────────────────────────────────────────────
