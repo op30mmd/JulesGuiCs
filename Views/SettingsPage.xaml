@@ -12,7 +12,7 @@
 
     <ScrollViewer>
         <Grid Margin="40">
-            <StackPanel Spacing="20" MaxWidth="500" HorizontalAlignment="Left">
+            <StackPanel Spacing="20" MaxWidth="500" HorizontalAlignment="Center">
                 <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
 
                 <InfoBar Title="API Key Required"

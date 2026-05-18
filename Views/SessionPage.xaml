@@ -113,12 +113,12 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PullRequestTemplate" x:DataType="models:PullRequest">
-             <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource AccentFillColorDefaultBrush}">
+             <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <SymbolIcon Symbol="Link" Foreground="White"/>
+                    <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
                     <StackPanel>
-                        <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" Foreground="White" FontSize="14"/>
-                        <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind Url, Mode=OneWay}" Padding="0" Foreground="White" Opacity="0.8" FontSize="13"/>
+                        <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" FontSize="14"/>
+                        <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind Url, Mode=OneWay}" Padding="0" FontSize="13"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -189,7 +189,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Select a session to start"
+            <TextBlock Grid.Row="0" Text="Select a session to start"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Visibility="{x:Bind ViewModel.SelectedSession, Mode=OneWay, Converter={StaticResource InvertedNullToVisibilityConverter}}"
                        Style="{StaticResource TitleTextBlockStyle}"/>
@@ -210,8 +210,8 @@
                 </StackPanel>
 
                 <TabView Grid.Row="1" IsAddTabButtonVisible="False" TabWidthMode="Equal" Padding="8,4,8,0">
-                    <TabViewItem Header="Chat">
-                        <ListView ItemsSource="{x:Bind ViewModel.Activities}" SelectionMode="None" Padding="0,10">
+                     <TabViewItem Header="Chat">
+                         <ListView x:Name="ChatListView" ItemsSource="{x:Bind ViewModel.Activities}" SelectionMode="None" Padding="0,10">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

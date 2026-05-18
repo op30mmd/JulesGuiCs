@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using JulesClient.ViewModels;
+using System.Collections.Specialized;
 
 namespace JulesClient.Views;
 
@@ -12,6 +13,18 @@ public sealed partial class SessionsPage : Page
     public SessionsPage()
     {
         this.InitializeComponent();
+        ViewModel.Activities.CollectionChanged += OnActivitiesChanged;
+    }
+
+    private void OnActivitiesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (ChatListView.Items.Count > 0)
+        {
+            _ = DispatcherQueue.TryEnqueue(() =>
+            {
+                ChatListView.ScrollIntoView(ChatListView.Items[^1]);
+            });
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -27,6 +40,7 @@ public sealed partial class SessionsPage : Page
     {
         base.OnNavigatedFrom(e);
         ViewModel.Cleanup();
+        ViewModel.Activities.CollectionChanged -= OnActivitiesChanged;
     }
 
     private void DiffFileExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
