@@ -55,9 +55,14 @@ public partial class App : Application
             {
                 handler = new SocketsHttpHandler
                 {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1),
+                    MaxConnectionsPerServer = 2,
+                    EnableMultipleHttp2Connections = false,
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Brotli,
                     ConnectCallback = async (context, ct) =>
                     {
-                        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+                        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = false };
                         try
                         {
                             await socket.ConnectAsync(settings.ProxyHost, settings.ProxyPort, ct);
@@ -71,7 +76,7 @@ public partial class App : Application
                             Debug.WriteLine($"[PROXY] Falling back to direct connection for {context.DnsEndPoint.Host}:{context.DnsEndPoint.Port}");
                             socket.Dispose();
 
-                            var directSocket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+                            var directSocket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = false };
                             await directSocket.ConnectAsync(context.DnsEndPoint.Host, context.DnsEndPoint.Port, ct);
                             return new NetworkStream(directSocket, true);
                         }
@@ -80,7 +85,14 @@ public partial class App : Application
             }
             else
             {
-                handler = new HttpClientHandler();
+                handler = new SocketsHttpHandler
+                {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1),
+                    MaxConnectionsPerServer = 2,
+                    EnableMultipleHttp2Connections = false,
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Brotli
+                };
             }
 
             return new JulesApiClient(settings, handler);

@@ -17,7 +17,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
     private readonly IJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
     private readonly Dictionary<string, string> _lastTimestamps = new();
-    private readonly TimeSpan _def = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
     public PollingService(IJulesApiClient api) => _api = api;
 
@@ -41,7 +41,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                     do
                     {
                         string? filter = last != null ? $"create_time > \"{last}\"" : null;
-                        var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, filter: filter, ct: ct);
+                        var resp = await _api.ListActivitiesAsync(sid, 10, pageToken: pageToken, filter: filter, ct: ct);
                         if (firstResp == null) firstResp = resp;
 
                         if (resp?.Activities != null)
