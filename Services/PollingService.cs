@@ -14,12 +14,12 @@ public interface IPollingService
 
 public class PollingService : ObservableObject, IPollingService, IDisposable
 {
-    private readonly IJulesApiClient _api;
+    private readonly ICachedJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
     private readonly Dictionary<string, string> _lastTimestamps = new();
     private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
-    public PollingService(IJulesApiClient api) => _api = api;
+    public PollingService(ICachedJulesApiClient api) => _api = api;
 
     public IDisposable StartPolling(string sid, Action<ActivityListResponse> onRecv, TimeSpan? iv = null)
     {

@@ -43,6 +43,7 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IPollingService, PollingService>();
 
         services.AddSingleton<IJulesApiClient>(sp =>
@@ -96,6 +97,13 @@ public partial class App : Application
             }
 
             return new JulesApiClient(settings, handler);
+        });
+
+        services.AddSingleton<ICachedJulesApiClient>(sp =>
+        {
+            var inner = sp.GetRequiredService<IJulesApiClient>();
+            var cache = sp.GetRequiredService<ICacheService>();
+            return new CachedJulesApiClient(inner, cache);
         });
 
         return services.BuildServiceProvider();

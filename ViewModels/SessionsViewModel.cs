@@ -8,12 +8,11 @@ namespace JulesClient.ViewModels;
 
 public partial class SessionsViewModel : ObservableObject
 {
-    private readonly IJulesApiClient _api;
+    private readonly ICachedJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
     private readonly DispatcherQueue _dispatcher;
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<JulesClient.Models.Activity>> _activitiesCache = new();
-    private static List<Session>? _sessionsCache;
+    private readonly HashSet<string> _loadedActivityIds = new();
 
     [ObservableProperty]
     private bool _isLoading;
@@ -33,7 +32,7 @@ public partial class SessionsViewModel : ObservableObject
 
     public SessionsViewModel()
     {
-        _api = App.Current.Services.GetRequiredService<IJulesApiClient>();
+        _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
         _dispatcher = DispatcherQueue.GetForCurrentThread();
     }
@@ -41,41 +40,30 @@ public partial class SessionsViewModel : ObservableObject
     [RelayCommand]
     public async Task RefreshAllDataAsync()
     {
-        _sessionsCache = null;
-        _activitiesCache.Clear();
+        await _api.InvalidateAllAsync();
+        _loadedActivityIds.Clear();
         await LoadSessionsAsync();
     }
 
     [RelayCommand]
     public async Task LoadSessionsAsync()
     {
-        if (_sessionsCache != null)
-        {
-            Sessions.Clear();
-            foreach (var s in _sessionsCache) Sessions.Add(s);
-        }
-
         IsLoading = true;
         try
         {
             Debug.WriteLine("[VM] Loading sessions...");
-            var sessions = new List<Session>();
+            var allSessions = new List<Session>();
             string? pageToken = null;
             do
             {
                 var response = await _api.ListSessionsAsync(pageToken: pageToken);
-                if (response.Sessions != null) sessions.AddRange(response.Sessions);
+                if (response.Sessions != null) allSessions.AddRange(response.Sessions);
                 pageToken = response.NextPageToken;
             } while (pageToken != null);
 
-            _sessionsCache = sessions;
             _dispatcher.TryEnqueue(() =>
             {
-                Sessions.Clear();
-                foreach (var session in sessions)
-                {
-                    Sessions.Add(session);
-                }
+                SyncSessions(allSessions);
             });
         }
         catch (Exception ex)
@@ -88,9 +76,39 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    private void SyncSessions(List<Session> freshSessions)
+    {
+        var existingIds = Sessions.Select(s => s.Name).ToHashSet();
+        var freshIds = freshSessions.Select(s => s.Name).ToHashSet();
+
+        foreach (var session in Sessions.Where(s => !freshIds.Contains(s.Name)).ToList())
+        {
+            Sessions.Remove(session);
+        }
+
+        foreach (var fresh in freshSessions)
+        {
+            var existing = Sessions.FirstOrDefault(s => s.Name == fresh.Name);
+            if (existing == null)
+            {
+                Sessions.Add(fresh);
+            }
+            else
+            {
+                var idx = Sessions.IndexOf(existing);
+                Sessions[idx] = fresh;
+                if (SelectedSession?.Name == fresh.Name)
+                {
+                    SelectedSession = fresh;
+                }
+            }
+        }
+    }
+
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
+        _loadedActivityIds.Clear();
         _dispatcher.TryEnqueue(() =>
         {
             Activities.Clear();
@@ -102,15 +120,6 @@ public partial class SessionsViewModel : ObservableObject
         if (value != null)
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
-
-            if (_activitiesCache.TryGetValue(value.Name, out var cached))
-            {
-                _dispatcher.TryEnqueue(() =>
-                {
-                    foreach (var a in cached.OrderBy(a => a.CreateTime ?? string.Empty)) Activities.Add(a);
-                });
-            }
-
             _ = LoadActivitiesAsync(value.Name);
             _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
@@ -121,13 +130,16 @@ public partial class SessionsViewModel : ObservableObject
                     {
                         foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
                         {
-                            if (!Activities.Any(a => a.Name == activity.Name))
+                            if (_loadedActivityIds.Add(activity.Name))
                             {
-                                // Remove optimistic message if this activity is its server-side counterpart
                                 if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
                                 {
                                     var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                                    if (local != null) Activities.Remove(local);
+                                    if (local != null)
+                                    {
+                                        Activities.Remove(local);
+                                        _loadedActivityIds.Remove(local.Name);
+                                    }
                                 }
 
                                 Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
@@ -156,19 +168,20 @@ public partial class SessionsViewModel : ObservableObject
                 pageToken = response.NextPageToken;
             } while (pageToken != null);
 
-            _activitiesCache[sessionId] = allActivities;
-
             _dispatcher.TryEnqueue(() =>
             {
                 foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? string.Empty))
                 {
-                    if (!Activities.Any(a => a.Name == activity.Name))
+                    if (_loadedActivityIds.Add(activity.Name))
                     {
-                        // Remove optimistic message
                         if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
                         {
                             var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                            if (local != null) Activities.Remove(local);
+                            if (local != null)
+                            {
+                                Activities.Remove(local);
+                                _loadedActivityIds.Remove(local.Name);
+                            }
                         }
                         Activities.Add(activity);
                     }
@@ -189,7 +202,6 @@ public partial class SessionsViewModel : ObservableObject
         var msg = ChatInput;
         ChatInput = string.Empty;
 
-        // Optimistic UI update
         var localMsg = new JulesClient.Models.Activity(
             Name: $"local_{Guid.NewGuid()}",
             Id: null,
