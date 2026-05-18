@@ -113,27 +113,45 @@ public record Activity(
 {
     [JsonIgnore] public string? RawInfo { get; set; }
 
+    [JsonIgnore] public string? EffectiveOriginator
+    {
+        get
+        {
+            // If activity contains user message data, treat it as user originator
+            if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage))
+            {
+                return "user";
+            }
+            return Originator;
+        }
+    }
+
     public string? DisplayText
     {
         get
         {
-            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+            // Check if this activity contains user message data
+            bool hasUserMessage = !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                                  !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                                  !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage);
 
-            if (isUser)
+            // If it has user message content, prioritize that regardless of Originator
+            if (hasUserMessage)
             {
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
                 if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
             }
-            else
-            {
-                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
-                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
-                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
-                if (PlanApproved != null) return "Plan Approved";
-                if (SessionCompleted != null) return "Session Completed";
-            }
+
+            // Otherwise, treat as agent/system message
+            if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
+            if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
+            if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
+            if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
+            if (PlanApproved != null) return "Plan Approved";
+            if (SessionCompleted != null) return "Session Completed";
 
             return null;
         }
