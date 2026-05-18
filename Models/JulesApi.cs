@@ -117,7 +117,6 @@ public record Activity(
     {
         get
         {
-            // If activity contains user message data, treat it as user originator
             if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
                 !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
                 !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage))
@@ -128,30 +127,53 @@ public record Activity(
         }
     }
 
+    [JsonIgnore] public bool IsDuplicateUserMessage
+    {
+        get
+        {
+            bool hasUserContent = !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                                  !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                                  !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage);
+
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null ||
+                                   ProgressUpdated?.HasData == true ||
+                                   PlanGenerated?.HasData == true ||
+                                   BashOutput != null ||
+                                   ChangeSet != null ||
+                                   Media != null ||
+                                   PullRequest != null ||
+                                   Artifacts?.Any(a => a.HasData) == true;
+
+            return hasUserContent && !hasAgentContent && !string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     public string? DisplayText
     {
         get
         {
-            // Check if this activity contains user message data
-            bool hasUserMessage = !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
-                                  !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
-                                  !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage);
+            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
 
-            // If it has user message content, prioritize that regardless of Originator
-            if (hasUserMessage)
+            if (isUser)
             {
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
                 if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
                 if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
             }
-
-            // Otherwise, treat as agent/system message
-            if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
-            if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
-            if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-            if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
-            if (PlanApproved != null) return "Plan Approved";
-            if (SessionCompleted != null) return "Session Completed";
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
+                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
+                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
+                if (PlanApproved != null) return "Plan Approved";
+                if (SessionCompleted != null) return "Session Completed";
+            }
 
             return null;
         }
@@ -161,6 +183,7 @@ public record Activity(
     {
         get
         {
+            if (IsDuplicateUserMessage) return false;
             if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
             if (ProgressUpdated?.HasData == true) return true;
             if (PlanGenerated?.HasData == true) return true;
