@@ -1,0 +1,1146 @@
+INFO  2026-05-19T13:25:49 +416ms service=default version=1.15.5 args=["run","--model","opencode/qwen3.6-plus-free","--format","json","--dangerously-skip-permissions","--title","CI run #56 (fix-bugs-and-improvements) by op30mmd","--session","ses_1c327f83affeuDseoUsQsFcrDx","-f","D:\\a\\_temp/opencode-prompt.txt","--","Complete the task described in the attached file."] process_role=main run_id=9bc9a7ad-e001-4bfa-8ffd-c4da15f8b866 opencode
+INFO  2026-05-19T13:25:49 +18ms service=file init
+INFO  2026-05-19T13:25:49 +348ms service=db path=D:\a\_temp\xdg-data\opencode\opencode.db opening database
+INFO  2026-05-19T13:25:49 +9ms service=db count=20 mode=bundled applying migrations
+INFO  2026-05-19T13:25:49 +74ms service=default directory=D:\a\JulesGuiCs\JulesGuiCs creating instance
+INFO  2026-05-19T13:25:49 +2ms service=project directory=D:\a\JulesGuiCs\JulesGuiCs fromDirectory
+INFO  2026-05-19T13:25:49 +203ms service=default directory=D:\a\JulesGuiCs\JulesGuiCs bootstrapping
+INFO  2026-05-19T13:25:49 +17ms service=config path=C:\Users\runneradmin\.config\opencode\config.json loading
+INFO  2026-05-19T13:25:49 +1ms service=config path=C:\Users\runneradmin\.config\opencode\opencode.json loading
+INFO  2026-05-19T13:25:49 +0ms service=config path=C:\Users\runneradmin\.config\opencode\opencode.jsonc loading
+INFO  2026-05-19T13:25:49 +171ms service=plugin name=AG loading internal plugin
+INFO  2026-05-19T13:25:49 +1ms service=plugin name=DG loading internal plugin
+INFO  2026-05-19T13:25:49 +0ms service=plugin name=RV loading internal plugin
+INFO  2026-05-19T13:25:49 +1ms service=plugin name=rQ loading internal plugin
+INFO  2026-05-19T13:25:49 +0ms service=plugin name=CV loading internal plugin
+INFO  2026-05-19T13:25:49 +0ms service=plugin name=_V loading internal plugin
+INFO  2026-05-19T13:25:49 +0ms service=plugin name=bV loading internal plugin
+INFO  2026-05-19T13:25:49 +0ms service=plugin name=vV loading internal plugin
+INFO  2026-05-19T13:25:49 +1ms service=bus type=* subscribing
+INFO  2026-05-19T13:25:49 +2ms service=lsp all LSPs are disabled
+INFO  2026-05-19T13:25:49 +2ms service=bus type=session.updated subscribing
+INFO  2026-05-19T13:25:49 +0ms service=bus type=message.updated subscribing
+INFO  2026-05-19T13:25:49 +0ms service=bus type=message.part.updated subscribing
+INFO  2026-05-19T13:25:49 +0ms service=bus type=session.diff subscribing
+INFO  2026-05-19T13:25:49 +0ms service=bus type=session.deleted subscribing
+INFO  2026-05-19T13:25:49 +1ms service=format all formatters are disabled
+INFO  2026-05-19T13:25:49 +0ms service=format init
+INFO  2026-05-19T13:25:49 +2ms service=file.watcher directory=D:\a\JulesGuiCs\JulesGuiCs init
+INFO  2026-05-19T13:25:50 +155ms service=file.watcher directory=D:\a\JulesGuiCs\JulesGuiCs platform=win32 backend=windows watcher backend
+INFO  2026-05-19T13:25:50 +3ms service=bus type=command.executed subscribing
+INFO  2026-05-19T13:25:50 +101ms service=ripgrep url=https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-pc-windows-msvc.zip downloading ripgrep
+INFO  2026-05-19T13:25:50 +133ms service=bus type=* subscribing
+INFO  2026-05-19T13:25:50 +1ms service=server event connected
+INFO  2026-05-19T13:25:50 +112ms service=session.prompt mime=text/plain file
+INFO  2026-05-19T13:25:50 +68ms service=shell-tool shell=C:\Program Files\PowerShell\7\pwsh.EXE shell tool using shell
+INFO  2026-05-19T13:25:50 +14ms service=provider status=started state
+INFO  2026-05-19T13:25:50 +218ms service=provider init
+INFO  2026-05-19T13:25:50 +78ms service=vcs branch=fix-bugs-and-improvements initialized
+INFO  2026-05-19T13:25:50 +0ms service=bus type=file.watcher.updated subscribing
+INFO  2026-05-19T13:25:50 +14ms service=provider providerID=opencode found
+INFO  2026-05-19T13:25:50 +0ms service=provider status=completed duration=310 state
+INFO  2026-05-19T13:25:50 +37ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:25:50 +8ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:25:50 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:25:50 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:25:50 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:25:50 +10ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:25:50 +4ms service=lsp file=D:\a\_temp\opencode-prompt.txt touching file
+INFO  2026-05-19T13:25:50 +8ms service=bus type=session.status publishing
+INFO  2026-05-19T13:25:50 +1ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=0 loop
+INFO  2026-05-19T13:25:50 +57ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:25:51 +312ms service=snapshot hash=cce13d359c3c48ec7d9c40b499ed772f843cb0d5 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:25:51 +3ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:25:51 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:25:51 +1ms service=tool.registry status=completed duration=1 glob
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:25:51 +2ms service=tool.registry status=completed duration=2 task
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:25:51 +1ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:25:51 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:25:51 +1ms service=skill count=1 init
+INFO  2026-05-19T13:25:51 +1ms service=tool.registry status=completed duration=2 skill
+INFO  2026-05-19T13:25:51 +8ms service=session.tools status=completed duration=15 resolveTools
+INFO  2026-05-19T13:25:51 +107ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406a06c2001mjd2jwOyVBbIbr process
+INFO  2026-05-19T13:25:51 +8ms service=bus type=session.status publishing
+INFO  2026-05-19T13:25:51 +3ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:25:51 +1ms service=provider status=started providerID=opencode getSDK
+INFO  2026-05-19T13:25:51 +0ms service=provider providerID=opencode pkg=@ai-sdk/anthropic using bundled provider
+INFO  2026-05-19T13:25:51 +7ms service=provider status=completed duration=7 providerID=opencode getSDK
+INFO  2026-05-19T13:25:51 +3ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:25:51 +492ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:25:51 +84ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:25:51 +3ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:26:21 +29466ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:21 +5ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +15ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +127ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +38ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +140ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +220ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +147ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +101ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +158ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +4ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +39ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +202ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +100ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +97ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +365ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +49ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +147ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +150ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +97ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +103ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +147ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +69ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +3ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +103ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +166ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +112ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:24 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +220ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +300ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +35ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +173ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +177ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:25 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +111ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +112ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +208ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +50ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +167ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +103ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:26 +40ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +92ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +166ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +126ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +41ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +90ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +207ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +83ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:27 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +189ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +172ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +117ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +268ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +74ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +41ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +125ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:28 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +152ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +70ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +180ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +116ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +4ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +169ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:29 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +229ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +171ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +116ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:30 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +150ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +81ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +260ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +52ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:31 +5ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:31 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:32 +990ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:32 +7ms service=permission permission=read pattern=Services\MarkdownHelper.cs action={"permission":"read","pattern":"*","action":"allow"} evaluated
+INFO  2026-05-19T13:26:32 +21ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:32 +5ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Services\MarkdownHelper.cs touching file
+INFO  2026-05-19T13:26:32 +125ms service=snapshot hash=cce13d359c3c48ec7d9c40b499ed772f843cb0d5 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:26:32 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:32 +2ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:26:32 +116ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:26:32 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:26:32 +1ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=1 loop
+INFO  2026-05-19T13:26:32 +30ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:26:32 +151ms service=snapshot hash=cce13d359c3c48ec7d9c40b499ed772f843cb0d5 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:26:32 +0ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:26:32 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:26:32 +1ms service=tool.registry status=started task
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:26:32 +1ms service=tool.registry status=started skill
+INFO  2026-05-19T13:26:32 +0ms service=tool.registry status=completed duration=1 skill
+INFO  2026-05-19T13:26:32 +0ms service=session.tools status=completed duration=3 resolveTools
+INFO  2026-05-19T13:26:32 +16ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406aaa720017tQoAuOrrN6oct process
+INFO  2026-05-19T13:26:32 +1ms service=bus type=session.status publishing
+INFO  2026-05-19T13:26:32 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:26:32 +2ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:26:33 +228ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:26:33 +9ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:26:33 +75ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:26:36 +3579ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:36 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:36 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:36 +9ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +120ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +122ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +235ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:37 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +534ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +50ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +21ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +18ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +122ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +72ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +143ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +3ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +42ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:38 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +172ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +98ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +19ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +94ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +205ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +102ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +98ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:39 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +131ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +96ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +499ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +123ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:40 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +339ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +111ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +3ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +205ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +127ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:41 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +144ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +317ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +68ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:26:42 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:42 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:26:50 +7767ms service=snapshot prune=7.days cleanup
+INFO  2026-05-19T13:27:06 +16240ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:06 +13ms service=permission permission=edit pattern=Services\MarkdownHelper.cs action={"permission":"*","action":"allow","pattern":"*"} evaluated
+INFO  2026-05-19T13:27:06 +2ms service=format file=D:\a\JulesGuiCs\JulesGuiCs\Services\MarkdownHelper.cs formatting
+INFO  2026-05-19T13:27:06 +0ms service=bus type=file.edited publishing
+INFO  2026-05-19T13:27:06 +0ms service=bus type=file.watcher.updated publishing
+INFO  2026-05-19T13:27:06 +6ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:06 +1ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Services\MarkdownHelper.cs touching file
+INFO  2026-05-19T13:27:06 +7ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:06 +245ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:06 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:06 +2ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:06 +155ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:06 +3ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:06 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:06 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=2 loop
+INFO  2026-05-19T13:27:06 +37ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:07 +156ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:07 +0ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:27:07 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:27:07 +1ms service=tool.registry status=started grep
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:27:07 +1ms service=tool.registry status=completed duration=1 webfetch
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:27:07 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:27:07 +1ms service=session.tools status=completed duration=4 resolveTools
+INFO  2026-05-19T13:27:07 +10ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406b2fd9001vPiwHe5TA5YEc9 process
+INFO  2026-05-19T13:27:07 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:07 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:27:07 +2ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:27:07 +232ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:27:07 +10ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:27:07 +162ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:13 +5764ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:13 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:13 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +67ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +125ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +174ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:13 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +335ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +13ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +9ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +181ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +186ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +119ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:14 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:14 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:15 +957ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:15 +3ms service=permission permission=read pattern=Views\SessionPage.xaml action={"permission":"read","pattern":"*","action":"allow"} evaluated
+INFO  2026-05-19T13:27:15 +17ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:15 +3ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Views\SessionPage.xaml touching file
+INFO  2026-05-19T13:27:15 +118ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:15 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:15 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:15 +114ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:15 +1ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:15 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=3 loop
+INFO  2026-05-19T13:27:15 +36ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:16 +175ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:16 +1ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:27:16 +1ms service=tool.registry status=completed duration=1 glob
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:27:16 +1ms service=tool.registry status=completed duration=1 task
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:27:16 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:27:16 +0ms service=session.tools status=completed duration=2 resolveTools
+INFO  2026-05-19T13:27:16 +11ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406b52c7001mRcn8g0794ocRl process
+INFO  2026-05-19T13:27:16 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:16 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:27:16 +11ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:27:16 +232ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:27:16 +8ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:27:16 +161ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:19 +2836ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:19 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:19 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +144ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +84ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +109ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +116ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:19 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +256ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +34ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +111ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +131ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +30ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +111ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +3ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +130ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:20 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +169ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +50ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +4ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +118ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +173ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:21 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +123ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +5ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +176ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +39ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +73ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +244ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:22 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +112ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +118ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +130ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +165ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +60ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +117ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:23 +4ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +133ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +89ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +112ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +117ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:24 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +117ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +170ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +124ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:25 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:25 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:26 +941ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:26 +2ms service=permission permission=read pattern=Models\JulesApi.cs action={"permission":"read","pattern":"*","action":"allow"} evaluated
+INFO  2026-05-19T13:27:26 +16ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:26 +2ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Models\JulesApi.cs touching file
+INFO  2026-05-19T13:27:26 +126ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:26 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:26 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:26 +126ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:26 +1ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:26 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=4 loop
+INFO  2026-05-19T13:27:26 +29ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:27 +162ms service=snapshot hash=c0b4ca69ecba146983cef1b93a4b14a978897038 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:27 +0ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:27:27 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:27:27 +1ms service=tool.registry status=completed duration=1 task
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:27:27 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:27:27 +0ms service=session.tools status=completed duration=2 resolveTools
+INFO  2026-05-19T13:27:27 +9ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406b7df2001SVPe28vZJwJhGv process
+INFO  2026-05-19T13:27:27 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:27 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:27:27 +2ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:27:27 +225ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:27:27 +10ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:27:27 +149ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:31 +3962ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:31 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:31 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +122ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +171ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:31 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +124ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +137ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +111ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +122ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +120ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +175ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:32 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +175ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +296ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +167ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +186ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:33 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +130ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +138ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +128ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +129ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +131ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +129ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +203ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:34 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +297ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +84ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +185ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +70ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +142ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:35 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:36 +129ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:36 +119ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:36 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:36 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:47 +11376ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:47 +11ms service=permission permission=edit pattern=Models\JulesApi.cs action={"permission":"*","action":"allow","pattern":"*"} evaluated
+INFO  2026-05-19T13:27:47 +1ms service=format file=D:\a\JulesGuiCs\JulesGuiCs\Models\JulesApi.cs formatting
+INFO  2026-05-19T13:27:47 +0ms service=bus type=file.edited publishing
+INFO  2026-05-19T13:27:47 +0ms service=bus type=file.watcher.updated publishing
+INFO  2026-05-19T13:27:47 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:47 +0ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Models\JulesApi.cs touching file
+INFO  2026-05-19T13:27:47 +7ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:47 +249ms service=snapshot hash=0accada96ed3b657a47ba937c40b7e2f7b96a2d9 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:47 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:47 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:48 +152ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:48 +2ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:48 +1ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:48 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=5 loop
+INFO  2026-05-19T13:27:48 +27ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:48 +181ms service=snapshot hash=0accada96ed3b657a47ba937c40b7e2f7b96a2d9 cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:27:48 +1ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:27:48 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:27:48 +1ms service=tool.registry status=completed duration=1 write
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:27:48 +1ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:27:48 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:27:48 +0ms service=session.tools status=completed duration=3 resolveTools
+INFO  2026-05-19T13:27:48 +11ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406bd059001gQKf4b32QnnYct process
+INFO  2026-05-19T13:27:48 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:27:48 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:27:48 +10ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:27:48 +209ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:27:48 +8ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:27:48 +150ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:27:52 +3535ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:52 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:52 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +5ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +118ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +140ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +269ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:27:52 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:27:52 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +9382ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +9ms service=permission permission=edit pattern=Views\SessionPage.xaml action={"permission":"*","action":"allow","pattern":"*"} evaluated
+INFO  2026-05-19T13:28:02 +1ms service=format file=D:\a\JulesGuiCs\JulesGuiCs\Views\SessionPage.xaml formatting
+INFO  2026-05-19T13:28:02 +0ms service=bus type=file.edited publishing
+INFO  2026-05-19T13:28:02 +0ms service=bus type=file.watcher.updated publishing
+INFO  2026-05-19T13:28:02 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +0ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Views\SessionPage.xaml touching file
+INFO  2026-05-19T13:28:02 +5ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +242ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:02 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:02 +154ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:02 +2ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:02 +1ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:02 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=6 loop
+INFO  2026-05-19T13:28:02 +25ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:02 +146ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:02 +1ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:28:02 +1ms service=tool.registry status=completed duration=1 question
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:28:02 +1ms service=tool.registry status=completed duration=1 todowrite
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:28:02 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:28:02 +0ms service=session.tools status=completed duration=2 resolveTools
+INFO  2026-05-19T13:28:02 +8ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406c09620015Of4KpdD9ZSJgx process
+INFO  2026-05-19T13:28:02 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:02 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:28:02 +1ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:28:03 +217ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:28:03 +9ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:28:03 +159ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:07 +4039ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:07 +1ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:07 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +3ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +49ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +112ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +243ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +89ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +58ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +46ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +119ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:07 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +96ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +159ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +216ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +103ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:08 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:08 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:09 +990ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:09 +2ms service=permission permission=read pattern=Models\JulesApi.cs action={"permission":"read","pattern":"*","action":"allow"} evaluated
+INFO  2026-05-19T13:28:09 +15ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:09 +3ms service=lsp file=D:\a\JulesGuiCs\JulesGuiCs\Models\JulesApi.cs touching file
+INFO  2026-05-19T13:28:09 +126ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:09 +3ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:09 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:10 +114ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:10 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:10 +0ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=7 loop
+INFO  2026-05-19T13:28:10 +28ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:10 +150ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:10 +1ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:28:10 +1ms service=tool.registry status=completed duration=1 read
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 edit
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:28:10 +1ms service=tool.registry status=completed duration=1 webfetch
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:28:10 +0ms service=tool.registry status=completed duration=0 skill
+INFO  2026-05-19T13:28:10 +0ms service=session.tools status=completed duration=2 resolveTools
+INFO  2026-05-19T13:28:10 +10ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406c26470010KkaA02t8xAsTH process
+INFO  2026-05-19T13:28:10 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:10 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:28:10 +2ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:28:10 +210ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:28:10 +9ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:28:10 +160ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:14 +3569ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:14 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +62ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +161ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +137ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +73ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +98ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +102ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:14 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +159ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +101ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +115ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +113ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:28:15 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:15 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:16 +728ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:16 +47ms service=permission permission=bash pattern=dotnet build 2>&1 action={"permission":"*","action":"allow","pattern":"*"} evaluated
+INFO  2026-05-19T13:28:16 +26ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:27 +11129ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:28 +988ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:41 +12874ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:55 +14274ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:56 +599ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:56 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:56 +58ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:56 +114ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:56 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:28:56 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:56 +120ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:56 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:56 +1ms service=session.prompt session.id=ses_1c327f83affeuDseoUsQsFcrDx step=8 loop
+INFO  2026-05-19T13:28:56 +26ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:28:56 +149ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:28:56 +0ms service=session.tools status=started resolveTools
+INFO  2026-05-19T13:28:56 +1ms service=tool.registry status=started invalid
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 invalid
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started question
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 question
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started bash
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 bash
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started read
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 read
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started glob
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 glob
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started grep
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 grep
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started edit
+INFO  2026-05-19T13:28:56 +1ms service=tool.registry status=completed duration=1 edit
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started write
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 write
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started task
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 task
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started webfetch
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 webfetch
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started todowrite
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 todowrite
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started websearch
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=completed duration=0 websearch
+INFO  2026-05-19T13:28:56 +0ms service=tool.registry status=started skill
+INFO  2026-05-19T13:28:56 +1ms service=tool.registry status=completed duration=1 skill
+INFO  2026-05-19T13:28:56 +0ms service=session.tools status=completed duration=3 resolveTools
+INFO  2026-05-19T13:28:56 +15ms service=session.processor session.id=ses_1c327f83affeuDseoUsQsFcrDx messageID=msg_e406cdbba001KHS49KrvY1RgfR process
+INFO  2026-05-19T13:28:56 +0ms service=bus type=session.status publishing
+INFO  2026-05-19T13:28:56 +1ms service=llm providerID=opencode modelID=qwen3.6-plus-free session.id=ses_1c327f83affeuDseoUsQsFcrDx small=false agent=build mode=primary stream
+INFO  2026-05-19T13:28:56 +1ms service=default llm.runtime=ai-sdk llm.provider=opencode llm.model=qwen3.6-plus-free llm runtime selected
+INFO  2026-05-19T13:28:56 +233ms service=bus type=session.updated publishing
+INFO  2026-05-19T13:28:56 +8ms service=bus type=session.diff publishing
+INFO  2026-05-19T13:28:57 +151ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:29:01 +4037ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:01 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:01 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +7ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +44ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +114ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +235ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +97ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +130ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:01 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +146ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +144ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +143ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +142ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +126ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +41ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +106ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:02 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +108ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +88ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +125ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +104ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +116ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +89ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:03 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +515ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +117ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +4ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +29ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +2ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +5ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +41ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +121ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +131ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:04 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +426ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:05 +2ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +168ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +146ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +42ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +43ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +29ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +156ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:05 +28ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +97ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +25ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +76ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +27ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +80ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +6ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +105ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +30ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +100ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +147ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +87ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +22ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +189ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:06 +34ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +110ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +29ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +92ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +27ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +95ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +26ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +87ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +29ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +166ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +63ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +22ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +81ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:07 +128ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +33ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +77ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +21ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +86ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +27ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +152ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +39ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +71ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +27ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +107ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +27ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +93ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +1ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +208ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:08 +0ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:09 +82ms service=bus type=message.part.delta publishing
+INFO  2026-05-19T13:29:09 +264ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:09 +146ms service=snapshot hash=7657bec8df298283ab9ea8444f4d9e3dec645e0d cwd=D:\a\JulesGuiCs\JulesGuiCs git=D:\a\_temp\xdg-data\opencode\snapshot\3b962fad5d14a0eab8ab8ea7fcf057a784ef0461\992fa75d462ee875f7f4afc75e9fd2de8b946dc8 tracking
+INFO  2026-05-19T13:29:09 +4ms service=bus type=message.part.updated publishing
+INFO  2026-05-19T13:29:09 +1ms service=bus type=message.updated publishing
+INFO  2026-05-19T13:29:09 +119ms service=bus type=message.updated publishing

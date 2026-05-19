@@ -1,0 +1,13 @@
+{
+  "run_id": "26100116971",
+  "run_number": "1",
+  "actor": "op30mmd",
+  "ref": "fix-bugs-and-improvements",
+  "model": "opencode/qwen3.6-plus-free",
+  "variant": "",
+  "session_id": "ses_1c327f83affeuDseoUsQsFcrDx",
+  "share_url": "",
+  "timestamp": "2026-05-19T13:29:15.509331Z",
+  "prompt": "code reviews are now broken, all their bullet points are now getting shown as  no matter where they are. long paragraphs are now being shown as dashes  or something, they dont have a dropdown, they are not distinct from other messages",
+  "run_url": "https://github.com/op30mmd/JulesGuiCs/actions/runs/26100116971"
+}
