@@ -1,0 +1,13 @@
+{
+  "run_id": "26101860850",
+  "run_number": "1",
+  "actor": "op30mmd",
+  "ref": "fix-bugs-and-improvements",
+  "model": "opencode/qwen3.6-plus-free",
+  "variant": "",
+  "session_id": "ses_1c327f83affeuDseoUsQsFcrDx",
+  "share_url": "",
+  "timestamp": "2026-05-19T14:00:03.891697Z",
+  "prompt": "Error: Failed to create session: API Error (400): Invalid JSON payload received. Unknown name 'startingBranch' at 'session.source_context': Cannot find field. (Status: INVALID_ARGUMENT)",
+  "run_url": "https://github.com/op30mmd/JulesGuiCs/actions/runs/26101860850"
+}
