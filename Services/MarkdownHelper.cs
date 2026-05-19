@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Shapes;
 using System.Diagnostics;
 using System.Text;
 
@@ -65,32 +64,45 @@ public static class MarkdownParser
 
     private static bool TryParseCodeBlock(string[] lines, ref int index, TextBlock textBlock)
     {
-        var line = lines[index];
-        var trimmed = line.TrimStart();
-        if (!trimmed.StartsWith("```")) return false;
-
-        var fenceLen = trimmed.TakeWhile(c => c == '`').Count();
-        if (fenceLen < 3) return false;
-
-        var lang = trimmed.Substring(fenceLen).Trim();
-        var sb = new StringBuilder();
-        index++;
-
-        while (index < lines.Length)
+        try
         {
-            var current = lines[index].TrimEnd();
-            if (current.TrimStart().StartsWith("```") && current.TrimStart().TakeWhile(c => c == '`').Count() >= fenceLen)
-            {
-                index++;
-                break;
-            }
-            if (sb.Length > 0) sb.AppendLine();
-            sb.Append(lines[index]);
-            index++;
-        }
+            var line = lines[index];
+            var trimmed = line.TrimStart();
+            if (!trimmed.StartsWith("```")) return false;
 
-        AddCodeBlock(textBlock, sb.ToString(), lang);
-        return true;
+            var fenceLen = trimmed.TakeWhile(c => c == '`').Count();
+            if (fenceLen < 3) return false;
+
+            var lang = trimmed.Substring(fenceLen).Trim();
+            var sb = new StringBuilder();
+            index++;
+
+            while (index < lines.Length)
+            {
+                var current = lines[index].TrimEnd();
+                if (current.TrimStart().StartsWith("```") && current.TrimStart().TakeWhile(c => c == '`').Count() >= fenceLen)
+                {
+                    index++;
+                    break;
+                }
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(lines[index]);
+                index++;
+            }
+
+            if (!string.IsNullOrEmpty(lang))
+            {
+                var langRun = new Run { Text = $"// {lang}", FontSize = 10, Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) };
+                textBlock.Inlines.Add(langRun);
+                textBlock.Inlines.Add(new LineBreak());
+            }
+
+            var codeRun = new Run { Text = sb.ToString(), FontFamily = new FontFamily("Consolas"), FontSize = 12 };
+            textBlock.Inlines.Add(codeRun);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
+        }
+        catch { return false; }
     }
 
     private static bool TryParseHeading(string line, TextBlock textBlock)
@@ -134,10 +146,7 @@ public static class MarkdownParser
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
     private static bool TryParseHorizontalRule(string line, TextBlock textBlock)
@@ -153,16 +162,7 @@ public static class MarkdownParser
             var count = trimmed.TakeWhile(c => c == marker || c == ' ').Count(c => c == marker);
             if (count < 3) return false;
 
-            var rect = new Rectangle
-            {
-                Height = 1,
-                Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                Margin = new Thickness(0, 8, 0, 8),
-                HorizontalAlignment = HorizontalAlignment.Stretch
-            };
-
-            var container = new InlineUIContainer { Child = rect };
-            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new Run { Text = "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 8 });
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -186,17 +186,8 @@ public static class MarkdownParser
                 index++;
             }
 
-            var border = new Border
-            {
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                BorderThickness = new Thickness(3, 0, 0, 0),
-                Padding = new Thickness(8, 2, 4, 2),
-                Margin = new Thickness(0, 2, 0, 2),
-                Child = new TextBlock { Text = sb.ToString(), TextWrapping = TextWrapping.Wrap, Opacity = 0.8, FontSize = 13 }
-            };
-
-            var container = new InlineUIContainer { Child = border };
-            textBlock.Inlines.Add(container);
+            var quoteRun = new Run { Text = sb.ToString(), FontSize = 13 };
+            textBlock.Inlines.Add(quoteRun);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -210,26 +201,23 @@ public static class MarkdownParser
             var line = lines[index];
             if (!IsUnorderedListItem(line)) return false;
 
-            var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
-
             while (index < lines.Length)
             {
                 var current = lines[index];
                 if (!IsUnorderedListItem(current)) break;
 
                 var content = ExtractListItemContent(current);
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
-                row.Children.Add(new TextBlock { Text = "\u2022", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.Bold });
-                var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
-                ParseInto(tb, content);
-                row.Children.Add(tb);
-                panel.Children.Add(row);
+                var bulletRun = new Run { Text = "\u2022  ", FontWeight = MdStyles.Bold };
+                textBlock.Inlines.Add(bulletRun);
+
+                var contentSpan = CreateInlineSpan(textBlock, content);
+                foreach (var inline in contentSpan.Inlines)
+                {
+                    textBlock.Inlines.Add(inline);
+                }
+                textBlock.Inlines.Add(new LineBreak());
                 index++;
             }
-
-            var container = new InlineUIContainer { Child = panel };
-            textBlock.Inlines.Add(container);
-            textBlock.Inlines.Add(new LineBreak());
             return true;
         }
         catch { return false; }
@@ -254,28 +242,25 @@ public static class MarkdownParser
             var line = lines[index];
             if (!IsOrderedListItem(line)) return false;
 
-            var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
             int itemNum = 1;
-
             while (index < lines.Length)
             {
                 var current = lines[index];
                 if (!IsOrderedListItem(current)) break;
 
                 var content = ExtractOrderedItemContent(current);
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
-                row.Children.Add(new TextBlock { Text = $"{itemNum}.", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.SemiBold });
-                var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
-                ParseInto(tb, content);
-                row.Children.Add(tb);
-                panel.Children.Add(row);
+                var numRun = new Run { Text = $"{itemNum}.  ", FontWeight = MdStyles.SemiBold };
+                textBlock.Inlines.Add(numRun);
+
+                var contentSpan = CreateInlineSpan(textBlock, content);
+                foreach (var inline in contentSpan.Inlines)
+                {
+                    textBlock.Inlines.Add(inline);
+                }
+                textBlock.Inlines.Add(new LineBreak());
                 itemNum++;
                 index++;
             }
-
-            var container = new InlineUIContainer { Child = panel };
-            textBlock.Inlines.Add(container);
-            textBlock.Inlines.Add(new LineBreak());
             return true;
         }
         catch { return false; }
@@ -325,41 +310,40 @@ public static class MarkdownParser
                 index++;
             }
 
-            var grid = new Grid { Margin = new Thickness(0, 4, 0, 4) };
             var colCount = headerParts.Length;
-
-            for (int c = 0; c < colCount; c++)
-            {
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            }
-
+            var colWidths = new int[colCount];
             for (int r = 0; r < rows.Count; r++)
             {
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
                 for (int c = 0; c < colCount; c++)
                 {
                     var cellContent = c < rows[r].Length ? rows[r][c].Trim() : "";
-                    var cellBorder = new Border
-                    {
-                        BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                        BorderThickness = new Thickness(0.5),
-                        Padding = new Thickness(6, 3, 6, 3),
-                        Background = r == 0 ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(30, 128, 128, 128)) : null
-                    };
-
-                    var cellTb = new TextBlock { Text = cellContent, TextWrapping = TextWrapping.Wrap, FontSize = 12 };
-                    if (r == 0) cellTb.FontWeight = MdStyles.Bold;
-                    cellBorder.Child = cellTb;
-
-                    Grid.SetRow(cellBorder, r);
-                    Grid.SetColumn(cellBorder, c);
-                    grid.Children.Add(cellBorder);
+                    if (cellContent.Length > colWidths[c]) colWidths[c] = cellContent.Length;
                 }
             }
 
-            var container = new InlineUIContainer { Child = grid };
-            textBlock.Inlines.Add(container);
+            var sb = new StringBuilder();
+            for (int r = 0; r < rows.Count; r++)
+            {
+                var lineSb = new StringBuilder();
+                for (int c = 0; c < colCount; c++)
+                {
+                    var cellContent = c < rows[r].Length ? rows[r][c].Trim() : "";
+                    lineSb.Append(cellContent.PadRight(Math.Min(colWidths[c] + 2, 20)));
+                }
+                sb.AppendLine(lineSb.ToString());
+                if (r == 0)
+                {
+                    var sepSb = new StringBuilder();
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        sepSb.Append(new string('-', Math.Min(colWidths[c] + 2, 20)));
+                    }
+                    sb.AppendLine(sepSb.ToString());
+                }
+            }
+
+            var tableRun = new Run { Text = sb.ToString(), FontFamily = new FontFamily("Consolas"), FontSize = 11 };
+            textBlock.Inlines.Add(tableRun);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -376,36 +360,23 @@ public static class MarkdownParser
 
     private static bool TryParseImage(string line, TextBlock textBlock)
     {
-        var trimmed = line.Trim();
-        if (!trimmed.StartsWith("![") || !trimmed.Contains("](")) return false;
-
-        var match = System.Text.RegularExpressions.Regex.Match(trimmed, @"!\[(.*?)\]\((.*?)\)");
-        if (!match.Success) return false;
-
-        var alt = match.Groups[1].Value;
-        var url = match.Groups[2].Value;
-
         try
         {
-            var uri = new Uri(url);
-            var img = new Image
-            {
-                Source = new BitmapImage(uri),
-                MaxHeight = 300,
-                Stretch = Stretch.Uniform,
-                Margin = new Thickness(0, 4, 0, 4)
-            };
-            ToolTipService.SetToolTip(img, alt);
+            var trimmed = line.Trim();
+            if (!trimmed.StartsWith("![") || !trimmed.Contains("](")) return false;
 
-            var container = new InlineUIContainer { Child = img };
-            textBlock.Inlines.Add(container);
+            var match = System.Text.RegularExpressions.Regex.Match(trimmed, @"!\[(.*?)\]\((.*?)\)");
+            if (!match.Success) return false;
+
+            var alt = match.Groups[1].Value;
+            var url = match.Groups[2].Value;
+
+            var imgRun = new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 12 };
+            textBlock.Inlines.Add(imgRun);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
     private static void ParseInlineLine(string line, TextBlock textBlock, bool addNewline)
@@ -455,8 +426,7 @@ public static class MarkdownParser
                 }
                 else if (segment.StartsWith("~~") && segment.EndsWith("~~") && segment.Length > 4)
                 {
-                    var run = new Run { Text = segment.Substring(2, segment.Length - 4) };
-                    span.Inlines.Add(new Run { Text = run.Text });
+                    span.Inlines.Add(new Run { Text = segment.Substring(2, segment.Length - 4), Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) });
                 }
                 else if (segment.StartsWith("`") && segment.EndsWith("`") && segment.Length > 2)
                 {
@@ -468,19 +438,7 @@ public static class MarkdownParser
                     if (match.Success)
                     {
                         var alt = match.Groups[1].Value;
-                        var url = match.Groups[2].Value;
-                        try
-                        {
-                            var img = new Image
-                            {
-                                Source = new BitmapImage(new Uri(url)),
-                                MaxHeight = 200,
-                                Stretch = Stretch.Uniform
-                            };
-                            ToolTipService.SetToolTip(img, alt);
-                            span.Inlines.Add(new InlineUIContainer { Child = img });
-                        }
-                        catch { span.Inlines.Add(new Run { Text = alt }); }
+                        span.Inlines.Add(new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) });
                     }
                     else { span.Inlines.Add(new Run { Text = segment }); }
                 }
@@ -513,7 +471,7 @@ public static class MarkdownParser
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[MARKDOWN] Inline parse failed for segment '{segment.Substring(0, Math.Min(20, segment.Length))}...': {ex.Message}");
+                Debug.WriteLine($"[MARKDOWN] Inline parse failed for segment: {ex.Message}");
                 try { span.Inlines.Add(new Run { Text = segment }); } catch { }
             }
         }
@@ -530,54 +488,6 @@ public static class MarkdownParser
             Foreground = BrushCache.AccentBrush,
             FontSize = Math.Max(10, textBlock.FontSize - 1)
         };
-    }
-
-    private static void AddCodeBlock(TextBlock textBlock, string code, string? lang)
-    {
-        try
-        {
-            var border = new Border
-            {
-                Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(20, 0, 0, 0)),
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(8, 6, 8, 6),
-                Margin = new Thickness(0, 4, 0, 4)
-            };
-
-            var stack = new StackPanel();
-
-            if (!string.IsNullOrEmpty(lang))
-            {
-                stack.Children.Add(new TextBlock
-                {
-                    Text = lang,
-                    FontSize = 10,
-                    Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                    Margin = new Thickness(0, 0, 0, 4)
-                });
-            }
-
-            stack.Children.Add(new TextBlock
-            {
-                Text = code,
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = 12,
-                TextWrapping = TextWrapping.Wrap,
-                IsTextSelectionEnabled = true
-            });
-
-            border.Child = stack;
-            var container = new InlineUIContainer { Child = border };
-            textBlock.Inlines.Add(container);
-            textBlock.Inlines.Add(new LineBreak());
-        }
-        catch
-        {
-            textBlock.Inlines.Add(new Run { Text = code });
-            textBlock.Inlines.Add(new LineBreak());
-        }
     }
 }
 

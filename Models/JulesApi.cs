@@ -257,10 +257,15 @@ public record Activity(
                                      text.Contains("feedback", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("suggestion", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("changes needed", StringComparison.OrdinalIgnoreCase) ||
-                                     text.Contains("looks good", StringComparison.OrdinalIgnoreCase);
+                                     text.Contains("looks good", StringComparison.OrdinalIgnoreCase) ||
+                                     text.Contains("code review", StringComparison.OrdinalIgnoreCase) ||
+                                     text.Contains("pull request", StringComparison.OrdinalIgnoreCase) ||
+                                     text.Contains("approve", StringComparison.OrdinalIgnoreCase) ||
+                                     text.Contains("nit", StringComparison.OrdinalIgnoreCase) ||
+                                     text.Contains("LGTM", StringComparison.OrdinalIgnoreCase);
             var result = Review != null ||
                          Review?.Comments?.Any() == true ||
-                         (Originator == "agent" && (hasReviewKeywords || text.Length > 300));
+                         (!string.IsNullOrWhiteSpace(Originator) && Originator.Equals("agent", StringComparison.OrdinalIgnoreCase) && (hasReviewKeywords || text.Length > 200));
             _cachedIsReview = result;
             return result;
         }
