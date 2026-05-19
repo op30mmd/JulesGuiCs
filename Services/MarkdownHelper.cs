@@ -159,8 +159,10 @@ public static class MarkdownParser
             char marker = trimmed[0];
             if (marker != '-' && marker != '*' && marker != '_') return false;
 
-            var count = trimmed.TakeWhile(c => c == marker || c == ' ').Count(c => c == marker);
-            if (count < 3) return false;
+            for (int i = 0; i < trimmed.Length; i++)
+            {
+                if (trimmed[i] != marker && trimmed[i] != ' ') return false;
+            }
 
             textBlock.Inlines.Add(new Run { Text = "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 8 });
             textBlock.Inlines.Add(new LineBreak());
@@ -200,6 +202,15 @@ public static class MarkdownParser
         {
             var line = lines[index];
             if (!IsUnorderedListItem(line)) return false;
+
+            int listCount = 1;
+            for (int i = index + 1; i < lines.Length; i++)
+            {
+                if (IsUnorderedListItem(lines[i])) listCount++;
+                else if (!IsBlank(lines[i])) break;
+            }
+
+            if (listCount < 2) return false;
 
             while (index < lines.Length)
             {

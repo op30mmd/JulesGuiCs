@@ -259,6 +259,10 @@ public record Activity(
             if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
             var text = DisplayText ?? "";
             var title = Title ?? "";
+            bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
+                (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Review", StringComparison.OrdinalIgnoreCase));
             bool hasReviewKeywords = text.Contains("review", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("feedback", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("suggestion", StringComparison.OrdinalIgnoreCase) ||
@@ -268,16 +272,23 @@ public record Activity(
                                      text.Contains("pull request", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("approve", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("nit", StringComparison.OrdinalIgnoreCase) ||
-                                     text.Contains("LGTM", StringComparison.OrdinalIgnoreCase) ||
-                                     title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                                     title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                                     title.Contains("Review", StringComparison.OrdinalIgnoreCase);
+                                     text.Contains("LGTM", StringComparison.OrdinalIgnoreCase);
             var result = Review != null ||
                          Review?.Comments?.Any() == true ||
-                         hasReviewKeywords ||
-                         (!string.IsNullOrWhiteSpace(Originator) && Originator.Equals("agent", StringComparison.OrdinalIgnoreCase) && text.Length > 200);
+                         titleIndicatesReview ||
+                         hasReviewKeywords;
             _cachedIsReview = result;
             return result;
+        }
+    }
+
+    [JsonIgnore] public string? ReviewDisplayTitle
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Title)) return Title;
+            if (Review?.Summary != null) return "Code Review";
+            return "Code Review";
         }
     }
 
