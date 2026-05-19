@@ -98,11 +98,13 @@ public static class MarkdownParser
         if (trimmed.Length == 0 || trimmed[0] != '#') return false;
 
         var level = trimmed.TakeWhile(c => c == '#').Count();
-        if (level > 6 || trimmed.Length <= level || trimmed[level] != ' ') return false;
+        if (level > 6 || level < 1) return false;
 
-        var content = trimmed.Substring(level + 1).TrimEnd();
-        if (content.EndsWith("#") && content.TrimEnd('#').Length > 0)
-            content = content.TrimEnd('#').TrimEnd();
+        var content = trimmed.Substring(level).Trim();
+        if (content.Length == 0) return false;
+
+        if (content.StartsWith(" ")) content = content.Substring(1);
+        if (content.EndsWith("#")) content = content.TrimEnd('#').TrimEnd();
 
         double fontSize = level switch
         {
@@ -393,7 +395,7 @@ public static class MarkdownParser
         var span = new Span();
         if (string.IsNullOrEmpty(text)) return span;
 
-        var pattern = @"(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|~~[^~]+~~|`[^`]+`|!\[[^\]]*\]\([^)]*\)|\[[^\]]*\]\([^)]*\))";
+        var pattern = @"(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|~~.*?~~|`[^`]+`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)|<br\s*/?>)";
         var segments = System.Text.RegularExpressions.Regex.Split(text, pattern);
 
         foreach (var segment in segments)
@@ -462,6 +464,10 @@ public static class MarkdownParser
                     catch { span.Inlines.Add(new Run { Text = segment }); }
                 }
                 else { span.Inlines.Add(new Run { Text = segment }); }
+            }
+            else if (System.Text.RegularExpressions.Regex.IsMatch(segment, @"^<br\s*/?>$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                span.Inlines.Add(new LineBreak());
             }
             else
             {
