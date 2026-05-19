@@ -395,33 +395,33 @@ public static class MarkdownParser
         var span = new Span();
         if (string.IsNullOrEmpty(text)) return span;
 
-        var pattern = @"(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|~~.*?~~|`[^`]+`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)|<br\s*/?>)";
+        var pattern = @"(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*.+?\*|~~.+?~~|`[^`]+`|!\[[^\]]*\]\([^)]*\)|\[[^\]]*\]\([^)]*\)|<br\s*/?>)";
         var segments = System.Text.RegularExpressions.Regex.Split(text, pattern);
 
         foreach (var segment in segments)
         {
             if (string.IsNullOrEmpty(segment)) continue;
 
-            if (segment.StartsWith("***") && segment.EndsWith("***"))
+            if (segment.StartsWith("***") && segment.EndsWith("***") && segment.Length > 6)
             {
                 var inner = segment.Substring(3, segment.Length - 6);
                 span.Inlines.Add(new Bold { Inlines = { new Italic { Inlines = { new Run { Text = inner } } } } });
             }
-            else if (segment.StartsWith("**") && segment.EndsWith("**"))
+            else if (segment.StartsWith("**") && segment.EndsWith("**") && segment.Length > 4)
             {
                 span.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Substring(2, segment.Length - 4) } } });
             }
-            else if (segment.StartsWith("*") && segment.EndsWith("*") && !segment.StartsWith("**"))
+            else if (segment.StartsWith("*") && segment.EndsWith("*") && segment.Length > 2 && !segment.StartsWith("**"))
             {
                 span.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Substring(1, segment.Length - 2) } } });
             }
-            else if (segment.StartsWith("~~") && segment.EndsWith("~~"))
+            else if (segment.StartsWith("~~") && segment.EndsWith("~~") && segment.Length > 4)
             {
                 var run = new Run { Text = segment.Substring(2, segment.Length - 4) };
                 var strikeSpan = new Span { Inlines = { run }, TextDecorations = Windows.UI.Text.TextDecorations.Strikethrough };
                 span.Inlines.Add(strikeSpan);
             }
-            else if (segment.StartsWith("`") && segment.EndsWith("`"))
+            else if (segment.StartsWith("`") && segment.EndsWith("`") && segment.Length > 2)
             {
                 span.Inlines.Add(CreateCodeRun(textBlock, segment.Substring(1, segment.Length - 2)));
             }
