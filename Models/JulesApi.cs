@@ -111,12 +111,24 @@ public record Activity(
     [property: JsonPropertyName("description")] string? Description = null
 )
 {
-    [JsonIgnore] public string? RawInfo { get; set; }
+    [JsonIgnore] private string? _rawInfo;
+    [JsonIgnore] private string? _cachedOriginator;
+    [JsonIgnore] private string? _cachedDisplayText;
+    [JsonIgnore] private bool? _cachedHasContent;
+    [JsonIgnore] private bool? _cachedIsReview;
+
+    [JsonIgnore] public string? RawInfo
+    {
+        get => _rawInfo;
+        set { _rawInfo = value; _cachedOriginator = null; _cachedDisplayText = null; _cachedHasContent = null; _cachedIsReview = null; }
+    }
 
     [JsonIgnore] public string? EffectiveOriginator
     {
         get
         {
+            if (_cachedOriginator != null) return _cachedOriginator;
+
             bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
@@ -131,15 +143,15 @@ public record Activity(
                                    PullRequest != null ||
                                    Artifacts?.Any(a => a.HasData) == true;
 
-            if (hasAgentContent) return "agent";
+            if (hasAgentContent) return _cachedOriginator = "agent";
 
             if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
                 !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
                 !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage))
             {
-                return "user";
+                return _cachedOriginator = "user";
             }
-            return Originator;
+            return _cachedOriginator = Originator;
         }
     }
 
@@ -173,6 +185,8 @@ public record Activity(
     {
         get
         {
+            if (_cachedDisplayText != null) return _cachedDisplayText;
+
             bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
@@ -182,23 +196,23 @@ public record Activity(
 
             if (hasAgentContent)
             {
-                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return AgentMessage.Message;
-                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return AgentMessage.Text;
-                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return SessionFailed.Reason;
-                if (PlanApproved != null) return "Plan Approved";
-                if (SessionCompleted != null) return "Session Completed";
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return _cachedDisplayText = AgentMessage.Message;
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return _cachedDisplayText = AgentMessage.Text;
+                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return _cachedDisplayText = Review.Summary;
+                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return _cachedDisplayText = SessionFailed.Reason;
+                if (PlanApproved != null) return _cachedDisplayText = "Plan Approved";
+                if (SessionCompleted != null) return _cachedDisplayText = "Session Completed";
             }
 
             bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
             if (isUser)
             {
-                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return UserMessage.Prompt;
-                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return UserMessage.Text;
-                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return UserMessaged.UserMessage;
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return _cachedDisplayText = UserMessage.Prompt;
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return _cachedDisplayText = UserMessage.Text;
+                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return _cachedDisplayText = UserMessaged.UserMessage;
             }
 
-            return null;
+            return _cachedDisplayText = null;
         }
     }
 
@@ -206,21 +220,37 @@ public record Activity(
     {
         get
         {
-            if (IsDuplicateUserMessage) return false;
-            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
-            if (ProgressUpdated?.HasData == true) return true;
-            if (PlanGenerated?.HasData == true) return true;
-            if (Artifacts?.Any(a => a.HasData) == true) return true;
-            if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
-            if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
-            if (HasDebugInfo) return true;
-            return false;
+            if (_cachedHasContent.HasValue) return _cachedHasContent.Value;
+
+            bool result;
+            if (IsDuplicateUserMessage) result = false;
+            else if (!string.IsNullOrWhiteSpace(DisplayText)) result = true;
+            else if (ProgressUpdated?.HasData == true) result = true;
+            else if (PlanGenerated?.HasData == true) result = true;
+            else if (Artifacts?.Any(a => a.HasData) == true) result = true;
+            else if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) result = true;
+            else if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) result = true;
+            else if (HasDebugInfo) result = true;
+            else result = false;
+
+            _cachedHasContent = result;
+            return result;
         }
     }
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
-    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
+    [JsonIgnore] public bool IsReview
+    {
+        get
+        {
+            if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
+            var result = Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
+            _cachedIsReview = result;
+            return result;
+        }
+    }
+
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }

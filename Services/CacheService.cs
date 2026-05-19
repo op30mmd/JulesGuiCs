@@ -10,6 +10,8 @@ public interface ICacheService
     Task RemoveAsync(string key, CancellationToken ct = default);
     Task ClearAsync(CancellationToken ct = default);
     Task RemoveByPrefixAsync(string prefix, CancellationToken ct = default);
+    Task<long> GetCacheSizeAsync(CancellationToken ct = default);
+    Task CleanupExpiredAsync(CancellationToken ct = default);
 }
 
 public class CacheEntry<T>
@@ -28,6 +30,8 @@ public class CacheService : ICacheService
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
+    private const long MaxCacheSizeBytes = 50 * 1024 * 1024;
+
 #if WINDOWS
     private readonly Windows.Storage.StorageFolder _localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
     private const string CacheSubfolder = "cache";
@@ -37,6 +41,11 @@ public class CacheService : ICacheService
         var safeKey = key.Replace("/", "_").Replace(":", "_").Replace("\\", "_");
         var folder = await _localFolder.CreateFolderAsync(CacheSubfolder, Windows.Storage.CreationCollisionOption.OpenIfExists);
         return System.IO.Path.Combine(folder.Path, $"{safeKey}.json");
+    }
+
+    private async Task<Windows.Storage.StorageFolder?> GetCacheFolder()
+    {
+        return await _localFolder.CreateFolderAsync(CacheSubfolder, Windows.Storage.CreationCollisionOption.OpenIfExists);
     }
 #endif
 
@@ -58,7 +67,6 @@ public class CacheService : ICacheService
                 return default;
             }
 
-            Debug.WriteLine($"[CACHE] Hit: {key} (age: {(DateTime.UtcNow - entry.CreatedAt).TotalSeconds:F0}s)");
             return entry.Data;
         }
         catch (Exception ex)
@@ -76,6 +84,16 @@ public class CacheService : ICacheService
 #if WINDOWS
         try
         {
+            var folder = await GetCacheFolder();
+            if (folder != null)
+            {
+                var props = await folder.GetBasicPropertiesAsync();
+                if (props.Size > MaxCacheSizeBytes)
+                {
+                    await CleanupExpiredAsync(ct);
+                }
+            }
+
             var entry = new CacheEntry<T>
             {
                 Data = value,
@@ -86,8 +104,6 @@ public class CacheService : ICacheService
             var json = JsonSerializer.Serialize(entry, _json);
             var path = await GetFilePath(key);
             await System.IO.File.WriteAllTextAsync(path, json, ct);
-
-            Debug.WriteLine($"[CACHE] Set: {key} (ttl: {(ttl ?? TimeSpan.FromMinutes(30)).TotalMinutes:F0}m)");
         }
         catch (Exception ex)
         {
@@ -105,7 +121,6 @@ public class CacheService : ICacheService
             if (System.IO.File.Exists(path))
             {
                 System.IO.File.Delete(path);
-                Debug.WriteLine($"[CACHE] Removed: {key}");
             }
         }
         catch (Exception ex)
@@ -120,13 +135,13 @@ public class CacheService : ICacheService
 #if WINDOWS
         try
         {
-            var folder = await _localFolder.CreateFolderAsync(CacheSubfolder, Windows.Storage.CreationCollisionOption.OpenIfExists);
+            var folder = await GetCacheFolder();
+            if (folder == null) return;
             var files = await folder.GetFilesAsync();
             foreach (var file in files)
             {
                 await file.DeleteAsync();
             }
-            Debug.WriteLine("[CACHE] Cleared all");
         }
         catch (Exception ex)
         {
@@ -140,7 +155,8 @@ public class CacheService : ICacheService
 #if WINDOWS
         try
         {
-            var folder = await _localFolder.CreateFolderAsync(CacheSubfolder, Windows.Storage.CreationCollisionOption.OpenIfExists);
+            var folder = await GetCacheFolder();
+            if (folder == null) return;
             var files = await folder.GetFilesAsync();
             var safePrefix = prefix.Replace("/", "_").Replace(":", "_").Replace("\\", "_");
 
@@ -149,13 +165,63 @@ public class CacheService : ICacheService
                 if (file.Name.StartsWith(safePrefix))
                 {
                     await file.DeleteAsync();
-                    Debug.WriteLine($"[CACHE] Removed by prefix: {file.Name}");
                 }
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[CACHE] RemoveByPrefix error for {prefix}: {ex.Message}");
+        }
+#endif
+    }
+
+    public async Task<long> GetCacheSizeAsync(CancellationToken ct = default)
+    {
+#if WINDOWS
+        try
+        {
+            var folder = await GetCacheFolder();
+            if (folder == null) return 0;
+            var props = await folder.GetBasicPropertiesAsync();
+            return (long)props.Size;
+        }
+        catch { return 0; }
+#else
+        return 0;
+#endif
+    }
+
+    public async Task CleanupExpiredAsync(CancellationToken ct = default)
+    {
+#if WINDOWS
+        try
+        {
+            var folder = await GetCacheFolder();
+            if (folder == null) return;
+            var files = await folder.GetFilesAsync();
+
+            foreach (var file in files)
+            {
+                if (ct.IsCancellationRequested) break;
+                try
+                {
+                    var json = await System.IO.File.ReadAllTextAsync(System.IO.Path.Combine(folder.Path, file.Name), ct);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("expiresAt", out var expProp))
+                    {
+                        var expiresAt = expProp.GetDateTime();
+                        if (DateTime.UtcNow > expiresAt)
+                        {
+                            await file.DeleteAsync();
+                        }
+                    }
+                }
+                catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[CACHE] Cleanup error: {ex.Message}");
         }
 #endif
     }
