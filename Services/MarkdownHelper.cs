@@ -56,6 +56,7 @@ public static class MarkdownParser
         catch (Exception ex)
         {
             Debug.WriteLine($"[MARKDOWN] Parse failed: {ex.Message}");
+            try { textBlock.Inlines.Clear(); } catch { }
             textBlock.Text = text;
         }
     }
@@ -94,125 +95,144 @@ public static class MarkdownParser
 
     private static bool TryParseHeading(string line, TextBlock textBlock)
     {
-        var trimmed = line.TrimStart();
-        if (trimmed.Length == 0 || trimmed[0] != '#') return false;
-
-        var level = trimmed.TakeWhile(c => c == '#').Count();
-        if (level > 6 || level < 1) return false;
-
-        var content = trimmed.Substring(level).Trim();
-        if (content.Length == 0) return false;
-
-        if (content.StartsWith(" ")) content = content.Substring(1);
-        if (content.EndsWith("#")) content = content.TrimEnd('#').TrimEnd();
-
-        double fontSize = level switch
+        try
         {
-            1 => 28,
-            2 => 24,
-            3 => 20,
-            4 => 18,
-            5 => 16,
-            _ => 14
-        };
+            var trimmed = line.TrimStart();
+            if (trimmed.Length == 0 || trimmed[0] != '#') return false;
 
-        var weight = level <= 3 ? MdStyles.Bold : MdStyles.SemiBold;
+            var level = trimmed.TakeWhile(c => c == '#').Count();
+            if (level > 6 || level < 1) return false;
 
-        var span = CreateInlineSpan(textBlock, content);
-        foreach (var inline in span.Inlines)
-        {
-            if (inline is Run run)
+            var content = trimmed.Substring(level).Trim();
+            if (content.Length == 0) return false;
+
+            if (content.StartsWith(" ")) content = content.Substring(1);
+            if (content.EndsWith("#")) content = content.TrimEnd('#').TrimEnd();
+
+            double fontSize = level switch
             {
-                run.FontSize = fontSize;
-                run.FontWeight = weight;
+                1 => 28,
+                2 => 24,
+                3 => 20,
+                4 => 18,
+                5 => 16,
+                _ => 14
+            };
+
+            var weight = level <= 3 ? MdStyles.Bold : MdStyles.SemiBold;
+
+            var span = CreateInlineSpan(textBlock, content);
+            foreach (var inline in span.Inlines)
+            {
+                if (inline is Run run)
+                {
+                    run.FontSize = fontSize;
+                    run.FontWeight = weight;
+                }
+                textBlock.Inlines.Add(inline);
             }
-            textBlock.Inlines.Add(inline);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
         }
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool TryParseHorizontalRule(string line, TextBlock textBlock)
     {
-        var trimmed = line.Trim();
-        if (trimmed.Length < 3) return false;
-
-        char marker = trimmed[0];
-        if (marker != '-' && marker != '*' && marker != '_') return false;
-
-        var count = trimmed.TakeWhile(c => c == marker || c == ' ').Count(c => c == marker);
-        if (count < 3) return false;
-
-        var rect = new Rectangle
+        try
         {
-            Height = 1,
-            Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-            Margin = new Thickness(0, 8, 0, 8),
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
+            var trimmed = line.Trim();
+            if (trimmed.Length < 3) return false;
 
-        var container = new InlineUIContainer { Child = rect };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+            char marker = trimmed[0];
+            if (marker != '-' && marker != '*' && marker != '_') return false;
+
+            var count = trimmed.TakeWhile(c => c == marker || c == ' ').Count(c => c == marker);
+            if (count < 3) return false;
+
+            var rect = new Rectangle
+            {
+                Height = 1,
+                Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                Margin = new Thickness(0, 8, 0, 8),
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+
+            var container = new InlineUIContainer { Child = rect };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
+        }
+        catch { return false; }
     }
 
     private static bool TryParseBlockquote(string[] lines, ref int index, TextBlock textBlock)
     {
-        var line = lines[index];
-        if (!line.TrimStart().StartsWith(">")) return false;
-
-        var sb = new StringBuilder();
-        while (index < lines.Length)
+        try
         {
-            var current = lines[index].TrimStart();
-            if (!current.StartsWith(">")) break;
-            if (sb.Length > 0) sb.AppendLine();
-            sb.Append(current.Substring(1).TrimStart());
-            index++;
+            var line = lines[index];
+            if (!line.TrimStart().StartsWith(">")) return false;
+
+            var sb = new StringBuilder();
+            while (index < lines.Length)
+            {
+                var current = lines[index].TrimStart();
+                if (!current.StartsWith(">")) break;
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(current.Substring(1).TrimStart());
+                index++;
+            }
+
+            var border = new Border
+            {
+                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                BorderThickness = new Thickness(3, 0, 0, 0),
+                Padding = new Thickness(8, 2, 4, 2),
+                Margin = new Thickness(0, 2, 0, 2),
+                Child = new TextBlock { Text = sb.ToString(), TextWrapping = TextWrapping.Wrap, Opacity = 0.8, FontSize = 13 }
+            };
+
+            var container = new InlineUIContainer { Child = border };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
         }
-
-        var border = new Border
-        {
-            BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-            BorderThickness = new Thickness(3, 0, 0, 0),
-            Padding = new Thickness(8, 2, 4, 2),
-            Margin = new Thickness(0, 2, 0, 2),
-            Child = new TextBlock { Text = sb.ToString(), TextWrapping = TextWrapping.Wrap, Opacity = 0.8, FontSize = 13 }
-        };
-
-        var container = new InlineUIContainer { Child = border };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+        catch { return false; }
     }
 
     private static bool TryParseUnorderedList(string[] lines, ref int index, TextBlock textBlock)
     {
-        var line = lines[index];
-        if (!IsUnorderedListItem(line)) return false;
-
-        var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
-
-        while (index < lines.Length)
+        try
         {
-            var current = lines[index];
-            if (!IsUnorderedListItem(current)) break;
+            var line = lines[index];
+            if (!IsUnorderedListItem(line)) return false;
 
-            var content = ExtractListItemContent(current);
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
-            row.Children.Add(new TextBlock { Text = "\u2022", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.Bold });
-            var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
-            ParseInto(tb, content);
-            row.Children.Add(tb);
-            panel.Children.Add(row);
-            index++;
+            var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
+
+            while (index < lines.Length)
+            {
+                var current = lines[index];
+                if (!IsUnorderedListItem(current)) break;
+
+                var content = ExtractListItemContent(current);
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
+                row.Children.Add(new TextBlock { Text = "\u2022", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.Bold });
+                var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
+                ParseInto(tb, content);
+                row.Children.Add(tb);
+                panel.Children.Add(row);
+                index++;
+            }
+
+            var container = new InlineUIContainer { Child = panel };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
         }
-
-        var container = new InlineUIContainer { Child = panel };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+        catch { return false; }
     }
 
     private static bool IsUnorderedListItem(string line)
@@ -229,32 +249,36 @@ public static class MarkdownParser
 
     private static bool TryParseOrderedList(string[] lines, ref int index, TextBlock textBlock)
     {
-        var line = lines[index];
-        if (!IsOrderedListItem(line)) return false;
-
-        var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
-        int itemNum = 1;
-
-        while (index < lines.Length)
+        try
         {
-            var current = lines[index];
-            if (!IsOrderedListItem(current)) break;
+            var line = lines[index];
+            if (!IsOrderedListItem(line)) return false;
 
-            var content = ExtractOrderedItemContent(current);
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
-            row.Children.Add(new TextBlock { Text = $"{itemNum}.", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.SemiBold });
-            var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
-            ParseInto(tb, content);
-            row.Children.Add(tb);
-            panel.Children.Add(row);
-            itemNum++;
-            index++;
+            var panel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(12, 2, 0, 2) };
+            int itemNum = 1;
+
+            while (index < lines.Length)
+            {
+                var current = lines[index];
+                if (!IsOrderedListItem(current)) break;
+
+                var content = ExtractOrderedItemContent(current);
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 1, 0, 1) };
+                row.Children.Add(new TextBlock { Text = $"{itemNum}.", Margin = new Thickness(0, 0, 6, 0), FontWeight = MdStyles.SemiBold });
+                var tb = new TextBlock { TextWrapping = TextWrapping.Wrap };
+                ParseInto(tb, content);
+                row.Children.Add(tb);
+                panel.Children.Add(row);
+                itemNum++;
+                index++;
+            }
+
+            var container = new InlineUIContainer { Child = panel };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
         }
-
-        var container = new InlineUIContainer { Child = panel };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+        catch { return false; }
     }
 
     private static bool IsOrderedListItem(string line)
@@ -273,69 +297,73 @@ public static class MarkdownParser
 
     private static bool TryParseTable(string[] lines, ref int index, TextBlock textBlock)
     {
-        var line = lines[index];
-        if (!line.Contains('|')) return false;
-
-        var rows = new List<string[]>();
-        var headerParts = ParseTableRow(line);
-        if (headerParts.Length < 2) return false;
-
-        rows.Add(headerParts);
-
-        index++;
-        if (index >= lines.Length) return false;
-
-        var sepLine = lines[index].Trim();
-        if (!sepLine.Contains('|') || !sepLine.Contains('-')) return false;
-        index++;
-
-        while (index < lines.Length)
+        try
         {
-            var current = lines[index].Trim();
-            if (!current.Contains('|')) break;
-            var parts = ParseTableRow(current);
-            if (parts.Length != headerParts.Length) break;
-            rows.Add(parts);
+            var line = lines[index];
+            if (!line.Contains('|')) return false;
+
+            var rows = new List<string[]>();
+            var headerParts = ParseTableRow(line);
+            if (headerParts.Length < 2) return false;
+
+            rows.Add(headerParts);
+
             index++;
-        }
+            if (index >= lines.Length) return false;
 
-        var grid = new Grid { Margin = new Thickness(0, 4, 0, 4) };
-        var colCount = headerParts.Length;
+            var sepLine = lines[index].Trim();
+            if (!sepLine.Contains('|') || !sepLine.Contains('-')) return false;
+            index++;
 
-        for (int c = 0; c < colCount; c++)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        }
+            while (index < lines.Length)
+            {
+                var current = lines[index].Trim();
+                if (!current.Contains('|')) break;
+                var parts = ParseTableRow(current);
+                if (parts.Length != headerParts.Length) break;
+                rows.Add(parts);
+                index++;
+            }
 
-        for (int r = 0; r < rows.Count; r++)
-        {
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var grid = new Grid { Margin = new Thickness(0, 4, 0, 4) };
+            var colCount = headerParts.Length;
 
             for (int c = 0; c < colCount; c++)
             {
-                var cellContent = c < rows[r].Length ? rows[r][c].Trim() : "";
-                var cellBorder = new Border
-                {
-                    BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                    BorderThickness = new Thickness(0.5),
-                    Padding = new Thickness(6, 3, 6, 3),
-                    Background = r == 0 ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(30, 128, 128, 128)) : null
-                };
-
-                var cellTb = new TextBlock { Text = cellContent, TextWrapping = TextWrapping.Wrap, FontSize = 12 };
-                if (r == 0) cellTb.FontWeight = MdStyles.Bold;
-                cellBorder.Child = cellTb;
-
-                Grid.SetRow(cellBorder, r);
-                Grid.SetColumn(cellBorder, c);
-                grid.Children.Add(cellBorder);
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
-        }
 
-        var container = new InlineUIContainer { Child = grid };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
-        return true;
+            for (int r = 0; r < rows.Count; r++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                for (int c = 0; c < colCount; c++)
+                {
+                    var cellContent = c < rows[r].Length ? rows[r][c].Trim() : "";
+                    var cellBorder = new Border
+                    {
+                        BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                        BorderThickness = new Thickness(0.5),
+                        Padding = new Thickness(6, 3, 6, 3),
+                        Background = r == 0 ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(30, 128, 128, 128)) : null
+                    };
+
+                    var cellTb = new TextBlock { Text = cellContent, TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+                    if (r == 0) cellTb.FontWeight = MdStyles.Bold;
+                    cellBorder.Child = cellTb;
+
+                    Grid.SetRow(cellBorder, r);
+                    Grid.SetColumn(cellBorder, c);
+                    grid.Children.Add(cellBorder);
+                }
+            }
+
+            var container = new InlineUIContainer { Child = grid };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
+            return true;
+        }
+        catch { return false; }
     }
 
     private static string[] ParseTableRow(string line)
@@ -382,12 +410,20 @@ public static class MarkdownParser
 
     private static void ParseInlineLine(string line, TextBlock textBlock, bool addNewline)
     {
-        var span = CreateInlineSpan(textBlock, line);
-        foreach (var inline in span.Inlines)
+        try
         {
-            textBlock.Inlines.Add(inline);
+            var span = CreateInlineSpan(textBlock, line);
+            foreach (var inline in span.Inlines)
+            {
+                textBlock.Inlines.Add(inline);
+            }
+            if (addNewline) textBlock.Inlines.Add(new LineBreak());
         }
-        if (addNewline) textBlock.Inlines.Add(new LineBreak());
+        catch
+        {
+            textBlock.Inlines.Add(new Run { Text = line });
+            if (addNewline) textBlock.Inlines.Add(new LineBreak());
+        }
     }
 
     private static Span CreateInlineSpan(TextBlock textBlock, string text)
@@ -400,78 +436,85 @@ public static class MarkdownParser
 
         foreach (var segment in segments)
         {
-            if (string.IsNullOrEmpty(segment)) continue;
+            try
+            {
+                if (string.IsNullOrEmpty(segment)) continue;
 
-            if (segment.StartsWith("***") && segment.EndsWith("***") && segment.Length > 6)
-            {
-                var inner = segment.Substring(3, segment.Length - 6);
-                span.Inlines.Add(new Bold { Inlines = { new Italic { Inlines = { new Run { Text = inner } } } } });
-            }
-            else if (segment.StartsWith("**") && segment.EndsWith("**") && segment.Length > 4)
-            {
-                span.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Substring(2, segment.Length - 4) } } });
-            }
-            else if (segment.StartsWith("*") && segment.EndsWith("*") && segment.Length > 2 && !segment.StartsWith("**"))
-            {
-                span.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Substring(1, segment.Length - 2) } } });
-            }
-            else if (segment.StartsWith("~~") && segment.EndsWith("~~") && segment.Length > 4)
-            {
-                var run = new Run { Text = segment.Substring(2, segment.Length - 4) };
-                var strikeSpan = new Span { Inlines = { run }, TextDecorations = Windows.UI.Text.TextDecorations.Strikethrough };
-                span.Inlines.Add(strikeSpan);
-            }
-            else if (segment.StartsWith("`") && segment.EndsWith("`") && segment.Length > 2)
-            {
-                span.Inlines.Add(CreateCodeRun(textBlock, segment.Substring(1, segment.Length - 2)));
-            }
-            else if (segment.StartsWith("![") && segment.Contains("]("))
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(segment, @"!\[(.*?)\]\((.*?)\)");
-                if (match.Success)
+                if (segment.StartsWith("***") && segment.EndsWith("***") && segment.Length > 6)
                 {
-                    var alt = match.Groups[1].Value;
-                    var url = match.Groups[2].Value;
-                    try
+                    var inner = segment.Substring(3, segment.Length - 6);
+                    span.Inlines.Add(new Bold { Inlines = { new Italic { Inlines = { new Run { Text = inner } } } } });
+                }
+                else if (segment.StartsWith("**") && segment.EndsWith("**") && segment.Length > 4)
+                {
+                    span.Inlines.Add(new Bold { Inlines = { new Run { Text = segment.Substring(2, segment.Length - 4) } } });
+                }
+                else if (segment.StartsWith("*") && segment.EndsWith("*") && segment.Length > 2 && !segment.StartsWith("**"))
+                {
+                    span.Inlines.Add(new Italic { Inlines = { new Run { Text = segment.Substring(1, segment.Length - 2) } } });
+                }
+                else if (segment.StartsWith("~~") && segment.EndsWith("~~") && segment.Length > 4)
+                {
+                    var run = new Run { Text = segment.Substring(2, segment.Length - 4) };
+                    span.Inlines.Add(new Run { Text = run.Text });
+                }
+                else if (segment.StartsWith("`") && segment.EndsWith("`") && segment.Length > 2)
+                {
+                    span.Inlines.Add(CreateCodeRun(textBlock, segment.Substring(1, segment.Length - 2)));
+                }
+                else if (segment.StartsWith("![") && segment.Contains("]("))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(segment, @"!\[(.*?)\]\((.*?)\)");
+                    if (match.Success)
                     {
-                        var img = new Image
+                        var alt = match.Groups[1].Value;
+                        var url = match.Groups[2].Value;
+                        try
                         {
-                            Source = new BitmapImage(new Uri(url)),
-                            MaxHeight = 200,
-                            Stretch = Stretch.Uniform
-                        };
-                        ToolTipService.SetToolTip(img, alt);
-                        span.Inlines.Add(new InlineUIContainer { Child = img });
+                            var img = new Image
+                            {
+                                Source = new BitmapImage(new Uri(url)),
+                                MaxHeight = 200,
+                                Stretch = Stretch.Uniform
+                            };
+                            ToolTipService.SetToolTip(img, alt);
+                            span.Inlines.Add(new InlineUIContainer { Child = img });
+                        }
+                        catch { span.Inlines.Add(new Run { Text = alt }); }
                     }
-                    catch { span.Inlines.Add(new Run { Text = segment }); }
+                    else { span.Inlines.Add(new Run { Text = segment }); }
                 }
-                else { span.Inlines.Add(new Run { Text = segment }); }
-            }
-            else if (segment.StartsWith("[") && segment.Contains("]("))
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(segment, @"\[(.*?)\]\((.*?)\)");
-                if (match.Success)
+                else if (segment.StartsWith("[") && segment.Contains("]("))
                 {
-                    var linkText = match.Groups[1].Value;
-                    var url = match.Groups[2].Value;
-                    try
+                    var match = System.Text.RegularExpressions.Regex.Match(segment, @"\[(.*?)\]\((.*?)\)");
+                    if (match.Success)
                     {
-                        var hyperlink = new Hyperlink { NavigateUri = new Uri(url) };
-                        hyperlink.Inlines.Add(new Run { Text = linkText });
-                        ToolTipService.SetToolTip(hyperlink, url);
-                        span.Inlines.Add(hyperlink);
+                        var linkText = match.Groups[1].Value;
+                        var url = match.Groups[2].Value;
+                        try
+                        {
+                            var hyperlink = new Hyperlink { NavigateUri = new Uri(url) };
+                            hyperlink.Inlines.Add(new Run { Text = linkText });
+                            ToolTipService.SetToolTip(hyperlink, url);
+                            span.Inlines.Add(hyperlink);
+                        }
+                        catch { span.Inlines.Add(new Run { Text = linkText }); }
                     }
-                    catch { span.Inlines.Add(new Run { Text = segment }); }
+                    else { span.Inlines.Add(new Run { Text = segment }); }
                 }
-                else { span.Inlines.Add(new Run { Text = segment }); }
+                else if (System.Text.RegularExpressions.Regex.IsMatch(segment, @"^<br\s*/?>$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                {
+                    span.Inlines.Add(new LineBreak());
+                }
+                else
+                {
+                    span.Inlines.Add(new Run { Text = segment });
+                }
             }
-            else if (System.Text.RegularExpressions.Regex.IsMatch(segment, @"^<br\s*/?>$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            catch (Exception ex)
             {
-                span.Inlines.Add(new LineBreak());
-            }
-            else
-            {
-                span.Inlines.Add(new Run { Text = segment });
+                Debug.WriteLine($"[MARKDOWN] Inline parse failed for segment '{segment.Substring(0, Math.Min(20, segment.Length))}...': {ex.Message}");
+                try { span.Inlines.Add(new Run { Text = segment }); } catch { }
             }
         }
 
@@ -491,42 +534,50 @@ public static class MarkdownParser
 
     private static void AddCodeBlock(TextBlock textBlock, string code, string? lang)
     {
-        var border = new Border
+        try
         {
-            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(20, 0, 0, 0)),
-            BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(4),
-            Padding = new Thickness(8, 6, 8, 6),
-            Margin = new Thickness(0, 4, 0, 4)
-        };
+            var border = new Border
+            {
+                Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(20, 0, 0, 0)),
+                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(8, 6, 8, 6),
+                Margin = new Thickness(0, 4, 0, 4)
+            };
 
-        var stack = new StackPanel();
+            var stack = new StackPanel();
 
-        if (!string.IsNullOrEmpty(lang))
-        {
+            if (!string.IsNullOrEmpty(lang))
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = lang,
+                    FontSize = 10,
+                    Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                    Margin = new Thickness(0, 0, 0, 4)
+                });
+            }
+
             stack.Children.Add(new TextBlock
             {
-                Text = lang,
-                FontSize = 10,
-                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 4)
+                Text = code,
+                FontFamily = new FontFamily("Consolas"),
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true
             });
+
+            border.Child = stack;
+            var container = new InlineUIContainer { Child = border };
+            textBlock.Inlines.Add(container);
+            textBlock.Inlines.Add(new LineBreak());
         }
-
-        stack.Children.Add(new TextBlock
+        catch
         {
-            Text = code,
-            FontFamily = new FontFamily("Consolas"),
-            FontSize = 12,
-            TextWrapping = TextWrapping.Wrap,
-            IsTextSelectionEnabled = true
-        });
-
-        border.Child = stack;
-        var container = new InlineUIContainer { Child = border };
-        textBlock.Inlines.Add(container);
-        textBlock.Inlines.Add(new LineBreak());
+            textBlock.Inlines.Add(new Run { Text = code });
+            textBlock.Inlines.Add(new LineBreak());
+        }
     }
 }
 
