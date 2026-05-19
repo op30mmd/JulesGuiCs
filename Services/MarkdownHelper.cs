@@ -449,14 +449,7 @@ public static class MarkdownParser
                     {
                         var linkText = match.Groups[1].Value;
                         var url = match.Groups[2].Value;
-                        try
-                        {
-                            var hyperlink = new Hyperlink { NavigateUri = new Uri(url) };
-                            hyperlink.Inlines.Add(new Run { Text = linkText });
-                            ToolTipService.SetToolTip(hyperlink, url);
-                            span.Inlines.Add(hyperlink);
-                        }
-                        catch { span.Inlines.Add(new Run { Text = linkText }); }
+                        span.Inlines.Add(new Run { Text = linkText, Foreground = new SolidColorBrush(Microsoft.UI.Colors.CornflowerBlue) });
                     }
                     else { span.Inlines.Add(new Run { Text = segment }); }
                 }

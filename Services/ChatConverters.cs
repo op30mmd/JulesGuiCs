@@ -57,9 +57,13 @@ public class OriginatorToAlignmentConverter : IValueConverter
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        string? originator = value as string;
-        bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
-        return isUser ? _right : _left;
+        try
+        {
+            string? originator = value as string;
+            bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
+            return isUser ? _right : _left;
+        }
+        catch { return _left; }
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
@@ -112,11 +116,15 @@ public class OriginatorToColorConverter : IValueConverter
 
     private static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
     {
-        if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
+        try
         {
-            if (res is Brush brush) return brush;
-            if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+            if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
+            {
+                if (res is Brush brush) return brush;
+                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+            }
         }
+        catch { }
         return new SolidColorBrush(fallback);
     }
 
