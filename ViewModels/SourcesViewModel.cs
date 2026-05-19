@@ -23,6 +23,9 @@ public partial class SourcesViewModel : ObservableObject
     private string _newSessionTitle = string.Empty;
 
     [ObservableProperty]
+    private string _newSessionBranch = string.Empty;
+
+    [ObservableProperty]
     private bool _requirePlanApproval = true;
 
     [ObservableProperty]
@@ -70,7 +73,7 @@ public partial class SourcesViewModel : ObservableObject
         try
         {
             var req = new CreateSessionRequest(
-                new SourceContext(source.Name),
+                new SourceContext(source.Name, string.IsNullOrWhiteSpace(NewSessionBranch) ? null : NewSessionBranch),
                 NewSessionPrompt,
                 RequirePlanApproval,
                 AutomationMode: AutoCreatePR ? AutomationModes.AutoCreatePR : null,
@@ -80,6 +83,7 @@ public partial class SourcesViewModel : ObservableObject
 
             NewSessionPrompt = string.Empty;
             NewSessionTitle = string.Empty;
+            NewSessionBranch = string.Empty;
             RequirePlanApproval = true;
             AutoCreatePR = false;
 

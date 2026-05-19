@@ -203,6 +203,11 @@
                 <StackPanel Grid.Row="0" Padding="16,12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Spacing="8">
                     <TextBlock Text="{x:Bind ViewModel.SelectedSession.Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
+                    <StackPanel Orientation="Horizontal" Spacing="4" Visibility="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                        <SymbolIcon Symbol="Map" Foreground="{ThemeResource SystemAccentColor}" Opacity="0.7"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" Opacity="0.7"/>
+                    </StackPanel>
+
                     <Button Content="Approve Plan"
                             Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
                             Command="{x:Bind ViewModel.ApprovePlanCommand}"
