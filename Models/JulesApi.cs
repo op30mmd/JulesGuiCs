@@ -134,7 +134,6 @@ public record Activity(
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
-                                   !string.IsNullOrWhiteSpace(Title) ||
                                    PlanApproved != null ||
                                    SessionCompleted != null ||
                                    ProgressUpdated?.HasData == true ||
@@ -195,7 +194,6 @@ public record Activity(
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
                                    !string.IsNullOrWhiteSpace(Text) ||
                                    !string.IsNullOrWhiteSpace(Description) ||
-                                   !string.IsNullOrWhiteSpace(Title) ||
                                    PlanApproved != null ||
                                    SessionCompleted != null;
 
@@ -207,7 +205,6 @@ public record Activity(
                 if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return _cachedDisplayText = SessionFailed.Reason;
                 if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
                 if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
-                if (!string.IsNullOrWhiteSpace(Title)) return _cachedDisplayText = Title;
                 if (PlanApproved != null) return _cachedDisplayText = "Plan Approved";
                 if (SessionCompleted != null) return _cachedDisplayText = "Session Completed";
             }
@@ -222,7 +219,6 @@ public record Activity(
 
             if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
             if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
-            if (!string.IsNullOrWhiteSpace(Title)) return _cachedDisplayText = Title;
 
             return _cachedDisplayText = null;
         }

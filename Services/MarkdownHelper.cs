@@ -207,7 +207,7 @@ public static class MarkdownParser
             for (int i = index + 1; i < lines.Length; i++)
             {
                 if (IsUnorderedListItem(lines[i])) listCount++;
-                else if (!IsBlank(lines[i])) break;
+                else break;
             }
 
             if (listCount < 2) return false;
@@ -237,7 +237,11 @@ public static class MarkdownParser
     private static bool IsUnorderedListItem(string line)
     {
         var trimmed = line.TrimStart();
-        return (trimmed.StartsWith("- ") || trimmed.StartsWith("* ") || trimmed.StartsWith("+ ")) && trimmed.Length > 2;
+        if (trimmed.Length < 3) return false;
+        if (!trimmed.StartsWith("- ") && !trimmed.StartsWith("* ") && !trimmed.StartsWith("+ ")) return false;
+        var afterMarker = trimmed.Substring(2);
+        if (string.IsNullOrWhiteSpace(afterMarker)) return false;
+        return true;
     }
 
     private static string ExtractListItemContent(string line)
