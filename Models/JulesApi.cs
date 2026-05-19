@@ -43,8 +43,7 @@ public record Session(
 }
 
 public record SourceContext(
-    [property: JsonPropertyName("source")] string? Source = null,
-    [property: JsonPropertyName("startingBranch")] string? StartingBranch = null
+    [property: JsonPropertyName("source")] string? Source = null
 );
 
 public record SessionOutput(
