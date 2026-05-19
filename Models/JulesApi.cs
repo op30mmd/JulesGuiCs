@@ -108,7 +108,8 @@ public record Activity(
     [property: JsonPropertyName("review")] Review? Review = null,
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
-    [property: JsonPropertyName("description")] string? Description = null
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("title")] string? Title = null
 )
 {
     [JsonIgnore] private string? _rawInfo;
@@ -133,6 +134,7 @@ public record Activity(
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   !string.IsNullOrWhiteSpace(Title) ||
                                    PlanApproved != null ||
                                    SessionCompleted != null ||
                                    ProgressUpdated?.HasData == true ||
@@ -193,6 +195,7 @@ public record Activity(
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
                                    !string.IsNullOrWhiteSpace(Text) ||
                                    !string.IsNullOrWhiteSpace(Description) ||
+                                   !string.IsNullOrWhiteSpace(Title) ||
                                    PlanApproved != null ||
                                    SessionCompleted != null;
 
@@ -204,6 +207,7 @@ public record Activity(
                 if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return _cachedDisplayText = SessionFailed.Reason;
                 if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
                 if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
+                if (!string.IsNullOrWhiteSpace(Title)) return _cachedDisplayText = Title;
                 if (PlanApproved != null) return _cachedDisplayText = "Plan Approved";
                 if (SessionCompleted != null) return _cachedDisplayText = "Session Completed";
             }
@@ -218,6 +222,7 @@ public record Activity(
 
             if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
             if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
+            if (!string.IsNullOrWhiteSpace(Title)) return _cachedDisplayText = Title;
 
             return _cachedDisplayText = null;
         }
@@ -253,6 +258,7 @@ public record Activity(
         {
             if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
             var text = DisplayText ?? "";
+            var title = Title ?? "";
             bool hasReviewKeywords = text.Contains("review", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("feedback", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("suggestion", StringComparison.OrdinalIgnoreCase) ||
@@ -262,10 +268,14 @@ public record Activity(
                                      text.Contains("pull request", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("approve", StringComparison.OrdinalIgnoreCase) ||
                                      text.Contains("nit", StringComparison.OrdinalIgnoreCase) ||
-                                     text.Contains("LGTM", StringComparison.OrdinalIgnoreCase);
+                                     text.Contains("LGTM", StringComparison.OrdinalIgnoreCase) ||
+                                     title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                                     title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
+                                     title.Contains("Review", StringComparison.OrdinalIgnoreCase);
             var result = Review != null ||
                          Review?.Comments?.Any() == true ||
-                         (!string.IsNullOrWhiteSpace(Originator) && Originator.Equals("agent", StringComparison.OrdinalIgnoreCase) && (hasReviewKeywords || text.Length > 200));
+                         hasReviewKeywords ||
+                         (!string.IsNullOrWhiteSpace(Originator) && Originator.Equals("agent", StringComparison.OrdinalIgnoreCase) && text.Length > 200);
             _cachedIsReview = result;
             return result;
         }
