@@ -10,7 +10,10 @@ public partial class SettingsViewModel : ObservableObject
     private string _apiKey = string.Empty;
 
     [ObservableProperty]
-    private bool _proxyEnabled;
+    private ProxyMode _proxyMode;
+
+    [ObservableProperty]
+    private bool _proxyBypassLocal;
 
     [ObservableProperty]
     private string _proxyHost = string.Empty;
@@ -28,7 +31,8 @@ public partial class SettingsViewModel : ObservableObject
     {
         _settings = App.Current.Services.GetRequiredService<ISettingsService>();
         _apiKey = _settings.ApiKey;
-        _proxyEnabled = _settings.ProxyEnabled;
+        _proxyMode = _settings.ProxyMode;
+        _proxyBypassLocal = _settings.ProxyBypassLocal;
         _proxyHost = _settings.ProxyHost;
         _proxyPort = _settings.ProxyPort;
         _proxyUsername = _settings.ProxyUsername;
@@ -38,7 +42,8 @@ public partial class SettingsViewModel : ObservableObject
     public void Save()
     {
         _settings.ApiKey = ApiKey;
-        _settings.ProxyEnabled = ProxyEnabled;
+        _settings.ProxyMode = ProxyMode;
+        _settings.ProxyBypassLocal = ProxyBypassLocal;
         _settings.ProxyHost = ProxyHost;
         _settings.ProxyPort = (int)ProxyPort;
         _settings.ProxyUsername = ProxyUsername;

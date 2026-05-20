@@ -36,10 +36,18 @@
 
                 <TextBlock Text="Proxy Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
-                <ToggleSwitch x:Name="ProxyEnabledToggle" Header="Enable SOCKS5 Proxy"
-                              IsOn="{x:Bind ViewModel.ProxyEnabled, Mode=TwoWay}"/>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Proxy Mode" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <ComboBox x:Name="ProxyModeComboBox" SelectedIndex="{x:Bind ProxyModeToInt(ViewModel.ProxyMode), Mode=OneWay}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="None"/>
+                        <ComboBoxItem Content="Manual (SOCKS5)"/>
+                        <ComboBoxItem Content="System Proxy"/>
+                    </ComboBox>
+                </StackPanel>
 
-                <StackPanel Spacing="8" Visibility="{x:Bind ProxyEnabledToggle.IsOn, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                <StackPanel Spacing="8" Visibility="{x:Bind IsManualProxy(ViewModel.ProxyMode), Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <CheckBox Content="Bypass proxy for local addresses" IsChecked="{x:Bind ViewModel.ProxyBypassLocal, Mode=TwoWay}"/>
+
                     <TextBlock Text="Proxy Host" Style="{StaticResource BodyTextBlockStyle}"/>
                     <TextBox x:Name="ProxyHostTextBox" Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay}" PlaceholderText="e.g. 127.0.0.1"/>
 
