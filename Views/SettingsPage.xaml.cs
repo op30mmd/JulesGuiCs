@@ -19,7 +19,8 @@ public sealed partial class SettingsPage : Page
 
     private JulesClient.Services.ProxyMode IntToProxyMode(int val) => (JulesClient.Services.ProxyMode)val;
 
-    private bool IsManualProxy(JulesClient.Services.ProxyMode mode) => mode == JulesClient.Services.ProxyMode.Manual;
+    private Visibility IsManualProxy(JulesClient.Services.ProxyMode mode) =>
+        mode == JulesClient.Services.ProxyMode.Manual ? Visibility.Visible : Visibility.Collapsed;
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
