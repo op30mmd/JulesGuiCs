@@ -10,9 +10,9 @@ namespace JulesClient.Services;
 
 internal static class MdStyles
 {
-    public static Windows.UI.Text.FontWeight Bold => new() { Weight = 700 };
-    public static Windows.UI.Text.FontWeight SemiBold => new() { Weight = 600 };
-    public static Windows.UI.Text.FontWeight Normal => new() { Weight = 400 };
+    public static Microsoft.UI.Text.FontWeight Bold => Microsoft.UI.Xaml.FontWeights.Bold;
+    public static Microsoft.UI.Text.FontWeight SemiBold => Microsoft.UI.Xaml.FontWeights.SemiBold;
+    public static Microsoft.UI.Text.FontWeight Normal => Microsoft.UI.Xaml.FontWeights.Normal;
 }
 
 public static class MarkdownParser

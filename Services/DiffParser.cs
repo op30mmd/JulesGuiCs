@@ -103,7 +103,7 @@ public partial class DiffParser
         return res;
     }
 
-    public static ParsedPatch MergeLatest(IEnumerable<string> patches)
+    public static ParsedPatch Merge(IEnumerable<string> patches)
     {
         var filesMap = new Dictionary<string, ParsedFile>();
         var fileOrder = new List<string>();
@@ -136,6 +136,39 @@ public partial class DiffParser
         return result;
     }
 
+    public static IEnumerable<DiffDisplayItem> Flatten(ParsedPatch patch)
+    {
+        var result = new List<DiffDisplayItem>();
+        foreach (var file in patch.Files)
+        {
+            result.Add(new DiffDisplayItem(
+                DiffLineType.FileHeader,
+                file.NewPath,
+                null, null
+            ));
+
+            foreach (var hunk in file.Hunks)
+            {
+                result.Add(new DiffDisplayItem(
+                    DiffLineType.HunkHeader,
+                    hunk.Header,
+                    null, null
+                ));
+
+                foreach (var line in hunk.Lines)
+                {
+                    result.Add(new DiffDisplayItem(
+                        line.Type,
+                        line.Content,
+                        line.OldLineNumber,
+                        line.NewLineNumber
+                    ));
+                }
+            }
+        }
+        return result;
+    }
+
     public static List<DiffFileNode> BuildFileTree(ParsedPatch patch)
     {
         var result = new List<DiffFileNode>(patch.Files.Count);
@@ -152,6 +185,7 @@ public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new()
 public record ParsedFile { public string OldPath { get; init; } = ""; public string NewPath { get; init; } = ""; public List<ParsedHunk> Hunks { get; init; } = new(); }
 public record ParsedHunk { public string Header { get; init; } = ""; public List<ParsedLine> Lines { get; init; } = new(); }
 public record ParsedLine { public DiffLineType Type { get; init; } public string Content { get; init; } = ""; public int? OldLineNumber { get; init; } public int? NewLineNumber { get; init; } }
+public record DiffDisplayItem(DiffLineType Type, string Content, int? OldLineNumber, int? NewLineNumber);
 public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeader, HunkHeader }
 
 public class DiffFileNode

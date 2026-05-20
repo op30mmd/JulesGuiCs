@@ -48,6 +48,21 @@
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
 
+        <DataTemplate x:Key="DiffDisplayItemTemplate" x:DataType="svc:DiffDisplayItem">
+            <Grid Background="{x:Bind Type, Converter={StaticResource DiffLineTypeToColorConverter}}" Padding="2,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{x:Bind OldLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="0,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBlock Grid.Column="1" Text="{x:Bind NewLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="0,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7"/>
+                <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="ProgressUpdatedTemplate" x:DataType="models:ProgressUpdated">
             <StackPanel Margin="0,1">
                 <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"
@@ -208,10 +223,40 @@
                         <TextBlock Text="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" Opacity="0.7"/>
                     </StackPanel>
 
-                    <Button Content="Approve Plan"
-                            Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
-                            Command="{x:Bind ViewModel.ApprovePlanCommand}"
-                            Style="{StaticResource AccentButtonStyle}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Approve Plan"
+                                Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
+                                Command="{x:Bind ViewModel.ApprovePlanCommand}"
+                                Style="{StaticResource AccentButtonStyle}"/>
+
+                        <Button Content="View Changes"
+                                Visibility="{x:Bind ViewModel.AggregatePatch, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
+                                Style="{StaticResource DefaultButtonStyle}">
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight">
+                                    <Flyout.FlyoutPresenterStyle>
+                                        <Style TargetType="FlyoutPresenter">
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="MinWidth" Value="800"/>
+                                            <Setter Property="MaxWidth" Value="1200"/>
+                                            <Setter Property="MaxHeight" Value="800"/>
+                                        </Style>
+                                    </Flyout.FlyoutPresenterStyle>
+                                    <ListView ItemsSource="{x:Bind ViewModel.FlattenedDiff}"
+                                              ItemTemplate="{StaticResource DiffDisplayItemTemplate}"
+                                              SelectionMode="None">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="MinHeight" Value="0"/>
+                                                <Setter Property="Padding" Value="0"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
 
                 <TabView Grid.Row="1" IsAddTabButtonVisible="False" TabWidthMode="Equal" Padding="8,4,8,0">
@@ -305,74 +350,6 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                    </TabViewItem>
-                    <TabViewItem Header="Diff" Visibility="{x:Bind ViewModel.AggregatePatch, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
-                        <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
-                            <ListView ItemsSource="{x:Bind ViewModel.DiffFiles}"
-                                      SelectionMode="None"
-                                      BorderThickness="0"
-                                      Padding="4">
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                        <Setter Property="Margin" Value="0,2"/>
-                                        <Setter Property="MinHeight" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:DiffFileViewModel">
-                                        <Expander IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Expanding="DiffFileExpander_Expanding" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4">
-                                            <Expander.Header>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Grid.Column="1" Text="{x:Bind Stats}" FontSize="11" Opacity="0.6" Margin="8,0,0,0"/>
-                                                </Grid>
-                                            </Expander.Header>
-                                            <ItemsRepeater ItemsSource="{x:Bind Hunks}">
-                                                <ItemsRepeater.Layout>
-                                                    <StackLayout Orientation="Vertical"/>
-                                                </ItemsRepeater.Layout>
-                                                <ItemsRepeater.ItemTemplate>
-                                                    <DataTemplate x:DataType="vm:DiffHunkViewModel">
-                                                        <StackPanel Orientation="Vertical">
-                                                            <Grid Background="{ThemeResource ControlStrongStrokeColorDefaultBrush}" Opacity="0.1" Padding="8,3">
-                                                                <TextBlock Text="{x:Bind Header}" FontFamily="Consolas" FontSize="10" Opacity="0.7"/>
-                                                            </Grid>
-                                                            <ItemsRepeater ItemsSource="{x:Bind Lines}">
-                                                                <ItemsRepeater.Layout>
-                                                                    <StackLayout Orientation="Vertical"/>
-                                                                </ItemsRepeater.Layout>
-                                                                <ItemsRepeater.ItemTemplate>
-                                                                    <DataTemplate x:DataType="vm:DiffLineViewModel">
-                                                                        <Grid Background="{x:Bind Type, Converter={StaticResource DiffLineTypeToColorConverter}}" Padding="2,1">
-                                                                            <Grid.ColumnDefinitions>
-                                                                                <ColumnDefinition Width="50"/>
-                                                                                <ColumnDefinition Width="50"/>
-                                                                                <ColumnDefinition Width="24"/>
-                                                                                <ColumnDefinition Width="*"/>
-                                                                            </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{x:Bind OldLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                                            <TextBlock Grid.Column="1" Text="{x:Bind NewLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                                            <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7"/>
-                                                                            <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
-                                                                        </Grid>
-                                                                    </DataTemplate>
-                                                                </ItemsRepeater.ItemTemplate>
-                                                            </ItemsRepeater>
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsRepeater.ItemTemplate>
-                                            </ItemsRepeater>
-                                        </Expander>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </Grid>
                     </TabViewItem>
                 </TabView>
             </Grid>
