@@ -45,7 +45,7 @@
                     </ComboBox>
                 </StackPanel>
 
-                <StackPanel Spacing="8" Visibility="{x:Bind IsManualProxy(ViewModel.ProxyMode), Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Spacing="8" Visibility="{x:Bind IsManualProxy(ViewModel.ProxyMode), Mode=OneWay}">
                     <CheckBox Content="Bypass proxy for local addresses" IsChecked="{x:Bind ViewModel.ProxyBypassLocal, Mode=TwoWay}"/>
 
                     <TextBlock Text="Proxy Host" Style="{StaticResource BodyTextBlockStyle}"/>
