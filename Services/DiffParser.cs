@@ -169,6 +169,16 @@ public partial class DiffParser
         return result;
     }
 
+    public static List<DiffFileNode> BuildFileTree(ParsedPatch patch)
+    {
+        var result = new List<DiffFileNode>(patch.Files.Count);
+        foreach (var file in patch.Files)
+        {
+            var fileNode = new DiffFileNode(file);
+            result.Add(fileNode);
+        }
+        return result;
+    }
 }
 
 public record ParsedPatch { public List<ParsedFile> Files { get; init; } = new(); }
@@ -177,3 +187,40 @@ public record ParsedHunk { public string Header { get; init; } = ""; public List
 public record ParsedLine { public DiffLineType Type { get; init; } public string Content { get; init; } = ""; public int? OldLineNumber { get; init; } public int? NewLineNumber { get; init; } }
 public record DiffDisplayItem(DiffLineType Type, string Content, int? OldLineNumber, int? NewLineNumber);
 public enum DiffLineType { Added, Removed, Context, Metadata, Unknown, FileHeader, HunkHeader }
+
+public class DiffFileNode
+{
+    public ParsedFile File { get; }
+    public int TotalLines { get; }
+    public int AddedLines { get; }
+    public int RemovedLines { get; }
+
+    public DiffFileNode(ParsedFile file)
+    {
+        File = file;
+        int total = 0, added = 0, removed = 0;
+        foreach (var hunk in file.Hunks)
+        {
+            foreach (var line in hunk.Lines)
+            {
+                total++;
+                if (line.Type == DiffLineType.Added) added++;
+                else if (line.Type == DiffLineType.Removed) removed++;
+            }
+        }
+        TotalLines = total;
+        AddedLines = added;
+        RemovedLines = removed;
+    }
+
+    public string DisplayName
+    {
+        get
+        {
+            if (File.OldPath == File.NewPath) return File.NewPath;
+            return $"{File.OldPath} → {File.NewPath}";
+        }
+    }
+
+    public string Stats => $"+{AddedLines} -{RemovedLines}";
+}

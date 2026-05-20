@@ -365,6 +365,74 @@
                             </ListView.ItemTemplate>
                         </ListView>
                     </TabViewItem>
+                    <TabViewItem Header="Diff" Visibility="{x:Bind ViewModel.AggregatePatch, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                        <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+                            <ListView ItemsSource="{x:Bind ViewModel.DiffFiles}"
+                                      SelectionMode="None"
+                                      BorderThickness="0"
+                                      Padding="4">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Margin" Value="0,2"/>
+                                        <Setter Property="MinHeight" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:DiffFileViewModel">
+                                        <Expander IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Expanding="DiffFileExpander_Expanding" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                                            <Expander.Header>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Grid.Column="1" Text="{x:Bind Stats}" FontSize="11" Opacity="0.6" Margin="8,0,0,0"/>
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsRepeater ItemsSource="{x:Bind Hunks}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Vertical"/>
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:DiffHunkViewModel">
+                                                        <StackPanel Orientation="Vertical">
+                                                            <Grid Background="{ThemeResource ControlStrongStrokeColorDefaultBrush}" Opacity="0.1" Padding="8,3">
+                                                                <TextBlock Text="{x:Bind Header}" FontFamily="Consolas" FontSize="10" Opacity="0.7"/>
+                                                            </Grid>
+                                                            <ItemsRepeater ItemsSource="{x:Bind Lines}">
+                                                                <ItemsRepeater.Layout>
+                                                                    <StackLayout Orientation="Vertical"/>
+                                                                </ItemsRepeater.Layout>
+                                                                <ItemsRepeater.ItemTemplate>
+                                                                    <DataTemplate x:DataType="vm:DiffLineViewModel">
+                                                                        <Grid Background="{x:Bind Type, Converter={StaticResource DiffLineTypeToColorConverter}}" Padding="2,1">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="50"/>
+                                                                                <ColumnDefinition Width="50"/>
+                                                                                <ColumnDefinition Width="24"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Text="{x:Bind OldLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                            <TextBlock Grid.Column="1" Text="{x:Bind NewLineNumber}" FontFamily="Consolas" FontSize="11" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0,6,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                            <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7"/>
+                                                                            <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
+                                                                        </Grid>
+                                                                    </DataTemplate>
+                                                                </ItemsRepeater.ItemTemplate>
+                                                            </ItemsRepeater>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </Expander>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Grid>
+                    </TabViewItem>
                 </TabView>
             </Grid>
 
