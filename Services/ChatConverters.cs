@@ -130,6 +130,23 @@ public class OriginatorToColorConverter : IValueConverter
         }
     }
 
+    private static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
+    {
+        try
+        {
+            if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
+            {
+                if (res is Brush brush) return brush;
+                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
+            }
+        }
+        catch { }
+        return new SolidColorBrush(fallback);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
 public class OriginatorToMaxWidthConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
@@ -149,22 +166,5 @@ public class OriginatorToBorderThicknessConverter : IValueConverter
         if (value is string s && string.Equals(s, "review", StringComparison.OrdinalIgnoreCase)) return _one;
         return _zero;
     }
-    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
-}
-
-    private static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
-    {
-        try
-        {
-            if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
-            {
-                if (res is Brush brush) return brush;
-                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
-            }
-        }
-        catch { }
-        return new SolidColorBrush(fallback);
-    }
-
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
