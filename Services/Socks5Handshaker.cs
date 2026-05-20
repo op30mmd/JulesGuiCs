@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -41,11 +42,33 @@ public static class Socks5Handshaker
         }
 
         // 3. Connect
-        // Ver: 5, Cmd: 1 (Connect), Rsv: 0, AType: 3 (Domain), Len, Host, Port
-        var connectReq = new List<byte> { 5, 1, 0, 3 };
-        byte[] hostBytes = Encoding.UTF8.GetBytes(targetHost);
-        connectReq.Add((byte)hostBytes.Length);
-        connectReq.AddRange(hostBytes);
+        // Ver: 5, Cmd: 1 (Connect), Rsv: 0, AType: 1 (IPv4), 3 (Domain), or 4 (IPv6)
+        var connectReq = new List<byte> { 5, 1, 0 };
+        if (IPAddress.TryParse(targetHost, out var ip))
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                connectReq.Add(1); // IPv4
+                connectReq.AddRange(ip.GetAddressBytes());
+            }
+            else if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                connectReq.Add(4); // IPv6
+                connectReq.AddRange(ip.GetAddressBytes());
+            }
+            else
+            {
+                throw new NotSupportedException($"Address family {ip.AddressFamily} is not supported");
+            }
+        }
+        else
+        {
+            connectReq.Add(3); // Domain name
+            byte[] hostBytes = Encoding.UTF8.GetBytes(targetHost);
+            connectReq.Add((byte)hostBytes.Length);
+            connectReq.AddRange(hostBytes);
+        }
+
         connectReq.Add((byte)(targetPort >> 8));
         connectReq.Add((byte)(targetPort & 0xFF));
 
@@ -55,7 +78,22 @@ public static class Socks5Handshaker
         byte[] connectRes = new byte[4];
         await ReadExactAsync(stream, connectRes, ct);
         if (connectRes[0] != 5) throw new Exception($"Invalid SOCKS version in connect response: {connectRes[0]}");
-        if (connectRes[1] != 0) throw new Exception($"SOCKS5 connect failed with code {connectRes[1]}");
+        if (connectRes[1] != 0)
+        {
+            string error = connectRes[1] switch
+            {
+                1 => "general SOCKS server failure",
+                2 => "connection not allowed by ruleset",
+                3 => "network unreachable",
+                4 => "host unreachable",
+                5 => "connection refused",
+                6 => "TTL expired",
+                7 => "command not supported",
+                8 => "address type not supported",
+                _ => "unknown error"
+            };
+            throw new Exception($"SOCKS5 connect failed: {error} (code {connectRes[1]})");
+        }
 
         byte aType = connectRes[3];
         if (aType == 1) await ReadExactAsync(stream, new byte[6], ct); // IPv4 + Port
