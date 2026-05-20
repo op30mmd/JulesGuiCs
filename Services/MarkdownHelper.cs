@@ -5,14 +5,15 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
 using System.Text;
+using Windows.UI.Text;
 
 namespace JulesClient.Services;
 
 internal static class MdStyles
 {
-    public static Microsoft.UI.Text.FontWeight Bold => Microsoft.UI.Xaml.FontWeights.Bold;
-    public static Microsoft.UI.Text.FontWeight SemiBold => Microsoft.UI.Xaml.FontWeights.SemiBold;
-    public static Microsoft.UI.Text.FontWeight Normal => Microsoft.UI.Xaml.FontWeights.Normal;
+    public static FontWeight Bold => Microsoft.UI.Text.FontWeights.Bold;
+    public static FontWeight SemiBold => Microsoft.UI.Text.FontWeights.SemiBold;
+    public static FontWeight Normal => Microsoft.UI.Text.FontWeights.Normal;
 }
 
 public static class MarkdownParser

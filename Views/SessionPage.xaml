@@ -5,6 +5,7 @@
     xmlns:models="using:JulesClient.Models"
     xmlns:vm="using:JulesClient.ViewModels"
     xmlns:converters="using:JulesClient.Services"
+    xmlns:svc="using:JulesClient.Services"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
