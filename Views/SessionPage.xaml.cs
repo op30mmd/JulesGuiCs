@@ -42,12 +42,4 @@ public sealed partial class SessionsPage : Page
         ViewModel.Cleanup();
         ViewModel.Activities.CollectionChanged -= OnActivitiesChanged;
     }
-
-    private void DiffFileExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
-    {
-        if (sender.DataContext is DiffFileViewModel vm)
-        {
-            vm.LoadHunks();
-        }
-    }
 }
