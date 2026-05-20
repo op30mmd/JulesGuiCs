@@ -142,8 +142,8 @@ public static class MarkdownParser
                     run.FontSize = fontSize;
                     run.FontWeight = weight;
                 }
-                textBlock.Inlines.Add(inline);
             }
+            textBlock.Inlines.Add(span);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -220,13 +220,11 @@ public static class MarkdownParser
 
                 var content = ExtractListItemContent(current);
                 var bulletRun = new Run { Text = "\u2022  ", FontWeight = MdStyles.Bold };
-                textBlock.Inlines.Add(bulletRun);
-
                 var contentSpan = CreateInlineSpan(textBlock, content);
-                foreach (var inline in contentSpan.Inlines)
-                {
-                    textBlock.Inlines.Add(inline);
-                }
+                var containerSpan = new Span();
+                containerSpan.Inlines.Add(bulletRun);
+                containerSpan.Inlines.Add(contentSpan);
+                textBlock.Inlines.Add(containerSpan);
                 textBlock.Inlines.Add(new LineBreak());
                 index++;
             }
@@ -266,13 +264,11 @@ public static class MarkdownParser
 
                 var content = ExtractOrderedItemContent(current);
                 var numRun = new Run { Text = $"{itemNum}.  ", FontWeight = MdStyles.SemiBold };
-                textBlock.Inlines.Add(numRun);
-
                 var contentSpan = CreateInlineSpan(textBlock, content);
-                foreach (var inline in contentSpan.Inlines)
-                {
-                    textBlock.Inlines.Add(inline);
-                }
+                var containerSpan = new Span();
+                containerSpan.Inlines.Add(numRun);
+                containerSpan.Inlines.Add(contentSpan);
+                textBlock.Inlines.Add(containerSpan);
                 textBlock.Inlines.Add(new LineBreak());
                 itemNum++;
                 index++;
@@ -400,10 +396,7 @@ public static class MarkdownParser
         try
         {
             var span = CreateInlineSpan(textBlock, line);
-            foreach (var inline in span.Inlines)
-            {
-                textBlock.Inlines.Add(inline);
-            }
+            textBlock.Inlines.Add(span);
             if (addNewline) textBlock.Inlines.Add(new LineBreak());
         }
         catch
@@ -546,7 +539,14 @@ public class MarkdownHelper
     {
         if (d is TextBlock tb && e.NewValue is string text)
         {
-            MarkdownParser.ParseInto(tb, text);
+            if (tb.DispatcherQueue?.HasThreadAccess == true)
+            {
+                MarkdownParser.ParseInto(tb, text);
+            }
+            else
+            {
+                tb.DispatcherQueue?.TryEnqueue(() => MarkdownParser.ParseInto(tb, text));
+            }
         }
     }
 }
