@@ -37,6 +37,8 @@
 
         <converters:OriginatorToAlignmentConverter x:Key="OriginatorToAlignmentConverter"/>
         <converters:OriginatorToColorConverter x:Key="OriginatorToColorConverter"/>
+        <converters:OriginatorToMaxWidthConverter x:Key="OriginatorToMaxWidthConverter"/>
+        <converters:OriginatorToBorderThicknessConverter x:Key="OriginatorToBorderThicknessConverter"/>
         <converters:Base64ToImageSourceConverter x:Key="Base64ToImageSourceConverter"/>
         <converters:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
@@ -218,10 +220,13 @@
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:Activity">
-                                    <Grid Margin="16,1" HorizontalAlignment="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToAlignmentConverter}}"
-                                          Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
-                                        <Border CornerRadius="12" Padding="12,10" MaxWidth="700"
-                                                Background="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToColorConverter}}">
+                                    <Grid Margin="16,1" Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                                        <Border CornerRadius="12" Padding="12,10"
+                                                HorizontalAlignment="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToAlignmentConverter}}"
+                                                Background="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToColorConverter}}"
+                                                MaxWidth="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToMaxWidthConverter}}"
+                                                BorderThickness="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToBorderThicknessConverter}}"
+                                                BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}">
                                             <StackPanel Spacing="4">
                                                 <TextBlock Text="{x:Bind EffectiveOriginator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
 
@@ -230,15 +235,16 @@
                                                            Visibility="{x:Bind IsReview, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
 
                                                 <Expander IsExpanded="True" Visibility="{x:Bind IsReview, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
-                                                          HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
+                                                          HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0"
+                                                          Background="Transparent" BorderThickness="0">
                                                     <Expander.Header>
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                                             <SymbolIcon Symbol="Accept" Foreground="{ThemeResource SystemAccentColor}"/>
-                                                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="14" Foreground="{ThemeResource SystemAccentColor}" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="15" Foreground="{ThemeResource SystemAccentColor}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Expander.Header>
-                                                    <StackPanel Spacing="8">
-                                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14"/>
+                                                    <StackPanel Spacing="12" Margin="0,8,0,0">
+                                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14" FontWeight="SemiBold"/>
                                                         <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="models:ReviewComment">
