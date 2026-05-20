@@ -49,6 +49,7 @@
         <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
         <converters:DiffLineTypeToColorConverter x:Key="DiffLineTypeToColorConverter"/>
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
+        <converters:DiffLineTypeToFontWeightConverter x:Key="DiffLineTypeToFontWeightConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
 
         <DataTemplate x:Key="DiffDisplayItemTemplate" x:DataType="svc:DiffDisplayItem">
