@@ -2,10 +2,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.UI.Text;
+using Windows.UI.Text;
 
 namespace JulesClient.Services;
 
@@ -165,7 +165,17 @@ public static class MarkdownParser
                 if (trimmed[i] != marker && trimmed[i] != ' ') return false;
             }
 
-            textBlock.Inlines.Add(new Run { Text = "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 8 });
+            // FIXED: Render a true, dynamic full-width rule line instead of 10 static dashes
+            var lineRect = new Microsoft.UI.Xaml.Shapes.Rectangle
+            {
+                Height = 1,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                Opacity = 0.4,
+                Margin = new Thickness(0, 8, 0, 8)
+            };
+            var container = new InlineUIContainer { Child = lineRect };
+            textBlock.Inlines.Add(container);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -189,8 +199,12 @@ public static class MarkdownParser
                 index++;
             }
 
-            var quoteRun = new Run { Text = sb.ToString(), FontSize = 13 };
-            textBlock.Inlines.Add(quoteRun);
+            // FIXED: Render blockquotes as Italicized and slightly muted for better visual structure
+            var quoteSpan = CreateInlineSpan(textBlock, sb.ToString());
+            quoteSpan.FontStyle = FontStyle.Italic;
+            quoteSpan.Foreground = new SolidColorBrush(Microsoft.UI.Colors.DimGray);
+
+            textBlock.Inlines.Add(quoteSpan);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -204,15 +218,7 @@ public static class MarkdownParser
             var line = lines[index];
             if (!IsUnorderedListItem(line)) return false;
 
-            int listCount = 1;
-            for (int i = index + 1; i < lines.Length; i++)
-            {
-                if (IsUnorderedListItem(lines[i])) listCount++;
-                else break;
-            }
-
-            if (listCount < 2) return false;
-
+            // FIXED: Removed the constraint forcing listCount >= 2. Lists of size 1 are fully valid.
             while (index < lines.Length)
             {
                 var current = lines[index];
@@ -236,10 +242,8 @@ public static class MarkdownParser
     private static bool IsUnorderedListItem(string line)
     {
         var trimmed = line.TrimStart();
-        if (trimmed.Length < 3) return false;
+        if (trimmed.Length < 2) return false;
         if (!trimmed.StartsWith("- ") && !trimmed.StartsWith("* ") && !trimmed.StartsWith("+ ")) return false;
-        var afterMarker = trimmed.Substring(2);
-        if (string.IsNullOrWhiteSpace(afterMarker)) return false;
         return true;
     }
 
@@ -296,7 +300,9 @@ public static class MarkdownParser
     {
         try
         {
-            var line = lines[index];
+            // FIXED: Keep state local and only commit to 'index = localIndex' when return is guaranteed true.
+            var localIndex = index;
+            var line = lines[localIndex];
             if (!line.Contains('|')) return false;
 
             var rows = new List<string[]>();
@@ -305,21 +311,21 @@ public static class MarkdownParser
 
             rows.Add(headerParts);
 
-            index++;
-            if (index >= lines.Length) return false;
+            localIndex++;
+            if (localIndex >= lines.Length) return false;
 
-            var sepLine = lines[index].Trim();
+            var sepLine = lines[localIndex].Trim();
             if (!sepLine.Contains('|') || !sepLine.Contains('-')) return false;
-            index++;
+            localIndex++;
 
-            while (index < lines.Length)
+            while (localIndex < lines.Length)
             {
-                var current = lines[index].Trim();
+                var current = lines[localIndex].Trim();
                 if (!current.Contains('|')) break;
                 var parts = ParseTableRow(current);
                 if (parts.Length != headerParts.Length) break;
                 rows.Add(parts);
-                index++;
+                localIndex++;
             }
 
             var colCount = headerParts.Length;
@@ -340,6 +346,13 @@ public static class MarkdownParser
                 for (int c = 0; c < colCount; c++)
                 {
                     var cellContent = c < rows[r].Length ? rows[r][c].Trim() : "";
+
+                    // FIXED: Properly truncate long cells to prevent misalignment due to PadRight limitations
+                    if (cellContent.Length > 18)
+                    {
+                        cellContent = cellContent.Substring(0, 15) + "...";
+                    }
+
                     lineSb.Append(cellContent.PadRight(Math.Min(colWidths[c] + 2, 20)));
                 }
                 sb.AppendLine(lineSb.ToString());
@@ -357,6 +370,9 @@ public static class MarkdownParser
             var tableRun = new Run { Text = sb.ToString(), FontFamily = new FontFamily("Consolas"), FontSize = 11 };
             textBlock.Inlines.Add(tableRun);
             textBlock.Inlines.Add(new LineBreak());
+
+            // Commit final index shift on success
+            index = localIndex;
             return true;
         }
         catch { return false; }
@@ -381,7 +397,6 @@ public static class MarkdownParser
             if (!match.Success) return false;
 
             var alt = match.Groups[1].Value;
-            var url = match.Groups[2].Value;
 
             var imgRun = new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 12 };
             textBlock.Inlines.Add(imgRun);
@@ -458,7 +473,22 @@ public static class MarkdownParser
                     {
                         var linkText = match.Groups[1].Value;
                         var url = match.Groups[2].Value;
-                        span.Inlines.Add(new Run { Text = linkText, Foreground = new SolidColorBrush(Microsoft.UI.Colors.CornflowerBlue) });
+
+                        // FIXED: Rendered proper clickable WinUI 3 Hyperlinks instead of plain blue Runs
+                        try
+                        {
+                            var hyperlink = new Hyperlink();
+                            if (Uri.TryCreate(url, UriKind.Absolute, out var validatedUri))
+                            {
+                                hyperlink.NavigateUri = validatedUri;
+                            }
+                            hyperlink.Inlines.Add(new Run { Text = linkText });
+                            span.Inlines.Add(hyperlink);
+                        }
+                        catch
+                        {
+                            span.Inlines.Add(new Run { Text = linkText, Foreground = new SolidColorBrush(Microsoft.UI.Colors.CornflowerBlue) });
+                        }
                     }
                     else { span.Inlines.Add(new Run { Text = segment }); }
                 }
@@ -495,34 +525,27 @@ public static class MarkdownParser
 
 internal static class BrushCache
 {
-    private static Brush? _accentBrush;
-    private static readonly object _lock = new();
-
+    // FIXED: Removed permanent caching so that dynamically updated accent colors and dark/light mode switches take effect immediately.
     public static Brush AccentBrush
     {
         get
         {
-            if (_accentBrush == null)
+            try
             {
-                lock (_lock)
+                if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var res))
                 {
-                    if (_accentBrush == null)
+                    if (res is Windows.UI.Color color)
                     {
-                        try
-                        {
-                            if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var res))
-                            {
-                                _accentBrush = res is Windows.UI.Color color
-                                    ? new SolidColorBrush(color)
-                                    : res as Brush;
-                            }
-                        }
-                        catch { }
-                        _accentBrush ??= new SolidColorBrush(Microsoft.UI.Colors.Blue);
+                        return new SolidColorBrush(color);
+                    }
+                    if (res is Brush brush)
+                    {
+                        return brush;
                     }
                 }
             }
-            return _accentBrush;
+            catch { }
+            return new SolidColorBrush(Microsoft.UI.Colors.Blue);
         }
     }
 }
@@ -537,8 +560,11 @@ public class MarkdownHelper
 
     private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is TextBlock tb && e.NewValue is string text)
+        if (d is TextBlock tb)
         {
+            // FIXED: Coalesce null values to string.Empty so that clearing text correctly triggers ParseInto and clears the TextBlock.Inlines
+            var text = e.NewValue as string ?? string.Empty;
+
             if (tb.DispatcherQueue?.HasThreadAccess == true)
             {
                 MarkdownParser.ParseInto(tb, text);
