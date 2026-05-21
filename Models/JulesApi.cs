@@ -256,7 +256,14 @@ public record Activity(
         {
             if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
 
-            // 1. Check root Title
+            // 1. If a structured review object exists, it is definitely a review
+            if (Review != null)
+            {
+                _cachedIsReview = true;
+                return true;
+            }
+
+            // 2. Check root Title (safeguarded against nulls)
             var title = Title ?? "";
             bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
                 (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
@@ -264,32 +271,22 @@ public record Activity(
                  title.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
                  title.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
 
-            // 2. Check DisplayText
+            // 3. Check DisplayText
             var text = DisplayText ?? "";
             bool textIndicatesReview = !string.IsNullOrWhiteSpace(text) &&
                 (text.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
                  text.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
                  text.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
 
-            // 3. Check ProgressUpdated Title/Description
+            // 4. Check ProgressUpdated Title strictly (NO Description scanning to prevent code diff false positives)
             var progressTitle = ProgressUpdated?.Title ?? "";
             bool progressTitleIndicatesReview = !string.IsNullOrWhiteSpace(progressTitle) &&
                 (progressTitle.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                 progressTitle.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                 progressTitle.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
-                 progressTitle.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+                 progressTitle.Contains("Code Review", StringComparison.OrdinalIgnoreCase));
 
-            var progressDesc = ProgressUpdated?.Description ?? "";
-            bool progressDescIndicatesReview = !string.IsNullOrWhiteSpace(progressDesc) &&
-                (progressDesc.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                 progressDesc.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                 progressDesc.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
-
-            var result = Review != null ||
-                         titleIndicatesReview ||
+            var result = titleIndicatesReview ||
                          textIndicatesReview ||
-                         progressTitleIndicatesReview ||
-                         progressDescIndicatesReview;
+                         progressTitleIndicatesReview;
 
             _cachedIsReview = result;
             return result;
@@ -313,7 +310,10 @@ public record Activity(
         get
         {
             if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
-            if (!string.IsNullOrWhiteSpace(ProgressUpdated?.Description)) return ProgressUpdated.Description;
+
+            // Only pull from ProgressUpdated if this activity has been confirmed as a Review
+            if (IsReview && !string.IsNullOrWhiteSpace(ProgressUpdated?.Description)) return ProgressUpdated.Description;
+
             return DisplayText;
         }
     }
