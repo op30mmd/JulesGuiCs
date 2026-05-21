@@ -90,7 +90,7 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_reviewBrush == null)
                     {
-                        _reviewBrush = ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.LightGray);
+                        _reviewBrush = BrushHelper.ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.LightGray);
                     }
                 }
                 return _reviewBrush;
@@ -105,7 +105,7 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_userBrush == null)
                     {
-                        _userBrush = ResolveBrush("SystemAccentColor", Microsoft.UI.Colors.Blue);
+                        _userBrush = BrushHelper.ResolveBrush("SystemAccentColor", Microsoft.UI.Colors.Blue);
                     }
                 }
                 return _userBrush;
@@ -117,7 +117,7 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_agentBrush == null)
                     {
-                        _agentBrush = ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.Gray);
+                        _agentBrush = BrushHelper.ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.Gray);
                     }
                 }
                 return _agentBrush;
@@ -130,7 +130,12 @@ public class OriginatorToColorConverter : IValueConverter
         }
     }
 
-    private static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+internal static class BrushHelper
+{
+    public static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
     {
         try
         {
@@ -143,6 +148,4 @@ public class OriginatorToColorConverter : IValueConverter
         catch { }
         return new SolidColorBrush(fallback);
     }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }

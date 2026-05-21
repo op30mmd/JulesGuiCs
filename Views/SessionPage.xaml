@@ -39,6 +39,7 @@
         <converters:OriginatorToColorConverter x:Key="OriginatorToColorConverter"/>
         <converters:OriginatorToMaxWidthConverter x:Key="OriginatorToMaxWidthConverter"/>
         <converters:OriginatorToBorderThicknessConverter x:Key="OriginatorToBorderThicknessConverter"/>
+        <converters:OriginatorToBorderBrushConverter x:Key="OriginatorToBorderBrushConverter"/>
         <converters:Base64ToImageSourceConverter x:Key="Base64ToImageSourceConverter"/>
         <converters:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
@@ -227,7 +228,7 @@
                                                 Background="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToColorConverter}}"
                                                 MaxWidth="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToMaxWidthConverter}}"
                                                 BorderThickness="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToBorderThicknessConverter}}"
-                                                BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}">
+                                                BorderBrush="{x:Bind EffectiveOriginator, Converter={StaticResource OriginatorToBorderBrushConverter}}">
                                             <StackPanel Spacing="4">
                                                 <TextBlock Text="{x:Bind EffectiveOriginator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
 
@@ -239,17 +240,19 @@
                                                           HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0"
                                                           Background="Transparent" BorderThickness="0">
                                                     <Expander.Header>
-                                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <SymbolIcon Symbol="Accept" Foreground="{ThemeResource SystemAccentColor}"/>
-                                                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="15" Foreground="{ThemeResource SystemAccentColor}" VerticalAlignment="Center"/>
+                                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                                            <Border Background="{ThemeResource AccentFillColorDefaultBrush}" Padding="8,4" CornerRadius="4" VerticalAlignment="Center">
+                                                                <TextBlock Text="CODE REVIEW" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                                                            </Border>
+                                                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Expander.Header>
-                                                    <StackPanel Spacing="12" Margin="0,8,0,0">
-                                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14" FontWeight="SemiBold"/>
+                                                    <StackPanel Spacing="16" Margin="0,12,0,0">
+                                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="15" FontWeight="SemiBold"/>
                                                         <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="models:ReviewComment">
-                                                                    <StackPanel Margin="0,4" Padding="10" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="6" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                                                                    <StackPanel Margin="0,4" Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                                                                         <TextBlock FontWeight="SemiBold" FontSize="12" Opacity="0.8">
                                                                             <Run Text="{x:Bind FilePath}"/>
                                                                             <Run Text=" : "/>
