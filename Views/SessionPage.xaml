@@ -87,7 +87,7 @@
                             <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7" IsTextSelectionEnabled="True"/>
                         </Expander>
 
-                        <StackPanel Margin="0,1" Visibility="{x:Bind ShowProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                        <StackPanel Margin="0,1" Visibility="{x:Bind ShowProgressBlock, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                             <TextBlock Text="{x:Bind ProgressUpdated.Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"
                                        Visibility="{x:Bind ProgressUpdated.Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                             <TextBlock converters:MarkdownHelper.Text="{x:Bind ProgressUpdated.Description, Mode=OneWay}"
@@ -182,7 +182,7 @@
                             <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14"/>
+                        <TextBlock converters:MarkdownHelper.Text="{x:Bind ReviewDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14"/>
 
                         <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
