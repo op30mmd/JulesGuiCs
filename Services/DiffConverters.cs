@@ -105,9 +105,9 @@ public class DiffPrefixConverter : IValueConverter
 
 public class DiffLineTypeToFontWeightConverter : IValueConverter
 {
-    private static readonly FontWeight _bold = new(700);
-    private static readonly FontWeight _semiBold = new(600);
-    private static readonly FontWeight _normal = new(400);
+    private static readonly FontWeight _bold = FontWeights.Bold;
+    private static readonly FontWeight _semiBold = FontWeights.SemiBold;
+    private static readonly FontWeight _normal = FontWeights.Normal;
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
