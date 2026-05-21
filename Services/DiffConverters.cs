@@ -2,7 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using Windows.UI.Text;
+using Microsoft.UI.Text;
 
 namespace JulesClient.Services;
 

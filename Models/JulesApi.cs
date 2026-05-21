@@ -259,8 +259,16 @@ public record Activity(
             bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
                 (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
                  title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                 title.Contains("Review", StringComparison.OrdinalIgnoreCase));
-            var result = Review != null || titleIndicatesReview;
+                 title.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+
+            var text = DisplayText ?? "";
+            bool textIndicatesReview = !string.IsNullOrWhiteSpace(text) &&
+                (text.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 text.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
+                 text.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+
+            var result = Review != null || titleIndicatesReview || textIndicatesReview;
             _cachedIsReview = result;
             return result;
         }

@@ -90,7 +90,8 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_reviewBrush == null)
                     {
-                        _reviewBrush = BrushHelper.ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.LightGray);
+                        // Use a distinct light blue for reviews
+                        _reviewBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 230, 242, 255)); // #E6F2FF
                     }
                 }
                 return _reviewBrush;
