@@ -5,6 +5,13 @@ namespace JulesClient.Services;
 
 public class DemoJulesApiClient : IJulesApiClient
 {
+    private static readonly System.Text.Json.JsonSerializerOptions _json = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
+
     private readonly List<Session> _sessions;
     private readonly Dictionary<string, List<Activity>> _activities;
 
@@ -29,6 +36,11 @@ public class DemoJulesApiClient : IJulesApiClient
                 State: "COMPLETED"
             )
         };
+
+        foreach (var s in _sessions)
+        {
+            s.RawInfo = System.Text.Json.JsonSerializer.Serialize(s, _json);
+        }
 
         _activities = new Dictionary<string, List<Activity>>
         {

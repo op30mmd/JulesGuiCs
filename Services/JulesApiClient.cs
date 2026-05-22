@@ -30,7 +30,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
-    private static readonly JsonSerializerOptions _debugJson = new(_json);
+    private static readonly JsonSerializerOptions _debugJson = new(_json) { WriteIndented = true };
     private const int MaxRetries = 3;
     private const double RetryBackoffMs = 1000;
 
@@ -140,7 +140,20 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             var q = new List<string> { $"pageSize={pageSize}" }; if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
             var r = await _http.GetAsync($"sessions?{string.Join("&", q)}", token);
             await HandleErrorResponse(r, token);
-            return await r.Content.ReadFromJsonAsync<SessionListResponse>(_json, token) ?? throw new Exception("Parse failed");
+
+            var content = await r.Content.ReadAsStringAsync(token);
+            var resp = JsonSerializer.Deserialize<SessionListResponse>(content, _json) ?? throw new Exception("Parse failed");
+
+            if (resp.Sessions != null)
+            {
+                var nodes = System.Text.Json.Nodes.JsonNode.Parse(content)?["sessions"]?.AsArray();
+                for (int i = 0; i < resp.Sessions.Count; i++)
+                {
+                    if (nodes != null && i < nodes.Count)
+                        resp.Sessions[i].RawInfo = nodes[i]?.ToJsonString(_debugJson);
+                }
+            }
+            return resp;
         }, ct);
     }
     public async Task<Session> GetSessionAsync(string id, CancellationToken ct = default)
@@ -150,7 +163,11 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             ApplyKey();
             var r = await _http.GetAsync(id, token);
             await HandleErrorResponse(r, token);
-            return await r.Content.ReadFromJsonAsync<Session>(_json, token) ?? throw new Exception("Parse failed");
+
+            var content = await r.Content.ReadAsStringAsync(token);
+            var session = JsonSerializer.Deserialize<Session>(content, _json) ?? throw new Exception("Parse failed");
+            session.RawInfo = content;
+            return session;
         }, ct);
     }
     public async Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default)

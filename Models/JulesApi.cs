@@ -40,6 +40,7 @@ public record Session(
 )
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
+    [JsonIgnore] public string? RawInfo { get; set; }
 }
 
 public record SourceContext(

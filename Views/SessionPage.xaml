@@ -355,6 +355,11 @@
                                 Command="{x:Bind ViewModel.ApprovePlanCommand}"
                                 Style="{StaticResource AccentButtonStyle}"/>
 
+                        <Button Command="{x:Bind ViewModel.CopySessionJsonCommand}"
+                                ToolTipService.ToolTip="Copy Session JSON"
+                                Background="Transparent" BorderThickness="0">
+                            <SymbolIcon Symbol="Copy"/>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
 
