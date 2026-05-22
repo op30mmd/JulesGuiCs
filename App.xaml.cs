@@ -43,12 +43,19 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IDemoService, DemoService>();
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IPollingService, PollingService>();
 
         services.AddSingleton<IJulesApiClient>(sp =>
         {
             var settings = sp.GetRequiredService<ISettingsService>();
+            var demo = sp.GetRequiredService<IDemoService>();
+
+            if (demo.IsDemoMode)
+            {
+                return new DemoJulesApiClient();
+            }
 
             var handler = new SocketsHttpHandler
             {

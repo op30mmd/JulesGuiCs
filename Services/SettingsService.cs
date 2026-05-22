@@ -17,6 +17,7 @@ public interface ISettingsService
     string ProxyUsername { get; set; }
     string ProxyPassword { get; set; }
     bool ProxyBypassLocal { get; set; }
+    bool IsDemoMode { get; set; }
 }
 
 public class SettingsService : ISettingsService
@@ -30,6 +31,7 @@ public class SettingsService : ISettingsService
     private const string ProxyUsernameSetting = "ProxyUsername";
     private const string ProxyPasswordSetting = "ProxyPassword";
     private const string ProxyBypassLocalSetting = "ProxyBypassLocal";
+    private const string IsDemoModeSetting = "IsDemoMode";
 
     private readonly Windows.Storage.ApplicationDataContainer _localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -89,6 +91,12 @@ public class SettingsService : ISettingsService
         get => _localSettings.Values[ProxyBypassLocalSetting] as bool? ?? true;
         set => _localSettings.Values[ProxyBypassLocalSetting] = value;
     }
+
+    public bool IsDemoMode
+    {
+        get => _localSettings.Values[IsDemoModeSetting] as bool? ?? false;
+        set => _localSettings.Values[IsDemoModeSetting] = value;
+    }
 #else
     public string ApiKey { get; set; } = string.Empty;
     public ProxyMode ProxyMode { get; set; } = ProxyMode.None;
@@ -98,5 +106,6 @@ public class SettingsService : ISettingsService
     public string ProxyUsername { get; set; } = string.Empty;
     public string ProxyPassword { get; set; } = string.Empty;
     public bool ProxyBypassLocal { get; set; } = true;
+    public bool IsDemoMode { get; set; } = false;
 #endif
 }
