@@ -65,41 +65,22 @@
                         <TextBlock Text="{x:Bind EffectiveOriginator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
 
                         <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
-                                   TextWrapping="WrapWholeWords" FontSize="14"/>
+                                   TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
 
-                        <Expander Visibility="{x:Bind HasDebugInfo, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
-                                  HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
-                            <Expander.Header>
-                                <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Debug Info" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}"
-                                            Padding="4" Margin="8,0,0,0" ToolTipService.ToolTip="Copy JSON"
-                                            Command="{Binding ElementName=RootPage, Path=ViewModel.CopyToClipboardCommand}"
-                                            CommandParameter="{x:Bind RawInfo}">
-                                        <SymbolIcon Symbol="Copy"/>
-                                    </Button>
-                                </Grid>
-                            </Expander.Header>
-                            <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7" IsTextSelectionEnabled="True"/>
-                        </Expander>
 
                         <StackPanel Margin="0,1" Visibility="{x:Bind ShowProgressBlock, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
-                            <TextBlock Text="{x:Bind ProgressUpdated.Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14"
+                            <TextBlock Text="{x:Bind ProgressUpdated.Title, Mode=OneWay}" FontWeight="Bold" TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
                                        Visibility="{x:Bind ProgressUpdated.Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                             <TextBlock converters:MarkdownHelper.Text="{x:Bind ProgressUpdated.Description, Mode=OneWay}"
-                                       TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
+                                       TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
                                        Visibility="{x:Bind ProgressUpdated.Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                         </StackPanel>
 
                         <StackPanel Margin="0,1" Visibility="{x:Bind ShowPlan, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
-                            <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="13" Opacity="0.8"/>
-                            <TextBlock Text="{x:Bind PlanGenerated.Plan.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14"
+                            <TextBlock Text="Proposed Plan" FontWeight="Bold" Foreground="{ThemeResource SystemAccentColor}" FontSize="13" Opacity="0.8" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                            <TextBlock Text="{x:Bind PlanGenerated.Plan.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
                                        Visibility="{x:Bind PlanGenerated.Plan.Title, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                            <TextBlock converters:MarkdownHelper.Text="{x:Bind PlanGenerated.Plan.Description, Mode=OneWay}" TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14"
+                            <TextBlock converters:MarkdownHelper.Text="{x:Bind PlanGenerated.Plan.Description, Mode=OneWay}" TextWrapping="WrapWholeWords" Opacity="0.9" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
                                        Visibility="{x:Bind PlanGenerated.Plan.Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
                             <ItemsControl ItemsSource="{x:Bind PlanGenerated.Plan.Steps, Mode=OneWay}" Margin="0,4,0,0"
@@ -107,8 +88,8 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:PlanStep">
                                         <StackPanel Margin="0,2" Spacing="0">
-                                            <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" FontSize="12" Opacity="0.8"
+                                            <TextBlock Text="{x:Bind Title, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                                            <TextBlock converters:MarkdownHelper.Text="{x:Bind Description, Mode=OneWay}" FontSize="12" Opacity="0.8" LineHeight="20" LineStackingStrategy="MaxHeight"
                                                        Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                                         </StackPanel>
                                     </DataTemplate>
@@ -121,8 +102,8 @@
                            <StackPanel Orientation="Horizontal" Spacing="12">
                                <SymbolIcon Symbol="Important" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                                <StackPanel>
-                                   <TextBlock Text="Session Failed" FontWeight="Bold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="14"/>
-                                   <TextBlock Text="{x:Bind SessionFailed.Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9"
+                                   <TextBlock Text="Session Failed" FontWeight="Bold" Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                                   <TextBlock Text="{x:Bind SessionFailed.Reason, Mode=OneWay}" TextWrapping="Wrap" FontSize="13" Opacity="0.9" LineHeight="20" LineStackingStrategy="MaxHeight"
                                               Visibility="{x:Bind SessionFailed.Reason, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                                </StackPanel>
                            </StackPanel>
@@ -139,9 +120,9 @@
 
                         <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
                                     Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}">
-                            <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
-                            <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                            <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                            <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                            <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                            <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                         </StackPanel>
 
                         <Image Source="{x:Bind Media.Data, Converter={StaticResource Base64ToImageSourceConverter}, Mode=OneWay}"
@@ -153,7 +134,7 @@
                            <StackPanel Orientation="Horizontal" Spacing="12">
                                <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
                                <StackPanel>
-                                   <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14"/>
+                                   <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                                    <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind PullRequest.Url, Mode=OneWay}" Padding="0" FontSize="13"/>
                                </StackPanel>
                            </StackPanel>
@@ -179,45 +160,26 @@
                             <Border Background="{ThemeResource SystemAccentColor}" Padding="8,4" CornerRadius="4">
                                 <TextBlock Text="CODE REVIEW" FontSize="11" FontWeight="Bold" Foreground="White"/>
                             </Border>
-                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                         </StackPanel>
 
-                        <TextBlock converters:MarkdownHelper.Text="{x:Bind ReviewDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14"/>
+                        <TextBlock converters:MarkdownHelper.Text="{x:Bind ReviewDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
 
                         <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="models:ReviewComment">
                                     <StackPanel Margin="0,4" Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="6" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
-                                        <TextBlock FontWeight="SemiBold" FontSize="12" Opacity="0.8" Foreground="{ThemeResource SystemAccentColor}">
+                                        <TextBlock FontWeight="SemiBold" FontSize="12" Opacity="0.8" Foreground="{ThemeResource SystemAccentColor}" LineHeight="20" LineStackingStrategy="MaxHeight">
                                             <Run Text="{x:Bind FilePath}"/>
                                             <Run Text=" : "/>
                                             <Run Text="{x:Bind LineNumber}"/>
                                         </TextBlock>
-                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind Comment}" TextWrapping="Wrap" FontSize="13" Margin="0,4,0,0"/>
+                                        <TextBlock converters:MarkdownHelper.Text="{x:Bind Comment}" TextWrapping="Wrap" FontSize="13" Margin="0,4,0,0" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Expander Visibility="{x:Bind HasDebugInfo, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
-                                  HorizontalAlignment="Stretch" Padding="4" Margin="0,4,0,0">
-                            <Expander.Header>
-                                <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Debug Info" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}"
-                                            Padding="4" Margin="8,0,0,0" ToolTipService.ToolTip="Copy JSON"
-                                            Command="{Binding ElementName=RootPage, Path=ViewModel.CopyToClipboardCommand}"
-                                            CommandParameter="{x:Bind RawInfo}">
-                                        <SymbolIcon Symbol="Copy"/>
-                                    </Button>
-                                </Grid>
-                            </Expander.Header>
-                            <TextBlock Text="{x:Bind RawInfo, Mode=OneWay}" TextWrapping="Wrap" FontSize="10" FontFamily="Consolas" Opacity="0.7" IsTextSelectionEnabled="True"/>
-                        </Expander>
 
                         <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
                     </StackPanel>
@@ -257,9 +219,9 @@
 
                 <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
                             Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}">
-                    <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
-                    <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                    <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                    <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                 </StackPanel>
 
                 <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1"
@@ -267,7 +229,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
                         <StackPanel>
-                            <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                             <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind PullRequest.Url, Mode=OneWay}" Padding="0" FontSize="13"/>
                         </StackPanel>
                     </StackPanel>

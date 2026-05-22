@@ -254,7 +254,6 @@ public record Activity(
             else if (Artifacts?.Any(a => a.HasData) == true) result = true;
             else if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) result = true;
             else if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) result = true;
-            else if (HasDebugInfo) result = true;
             else result = false;
 
             _cachedHasContent = result;
