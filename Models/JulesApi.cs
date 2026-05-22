@@ -28,6 +28,7 @@ public record Session(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("id")] string? Id = null,
     [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("createTime")] string? CreateTime = null,
@@ -40,21 +41,33 @@ public record Session(
 )
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
+    [JsonIgnore] public string? RawInfo { get; set; }
 }
 
 public record SourceContext(
     [property: JsonPropertyName("source")] string? Source = null,
+    [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext = null,
+    [property: JsonPropertyName("environmentVariablesEnabled")] bool? EnvironmentVariablesEnabled = null
+)
+{
+    [JsonIgnore] public string? StartingBranch => GitHubRepoContext?.StartingBranch;
+}
+
+public record GitHubRepoContext(
     [property: JsonPropertyName("startingBranch")] string? StartingBranch = null
 );
 
 public record SessionOutput(
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet = null
 );
 
 public record PullRequest(
     [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("title")] string? Title = null,
-    [property: JsonPropertyName("description")] string? Description = null
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("baseRef")] string? BaseRef = null,
+    [property: JsonPropertyName("headRef")] string? HeadRef = null
 );
 
 public record CreateSessionRequest(
@@ -109,6 +122,7 @@ public record Activity(
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
     [property: JsonPropertyName("title")] string? Title = null
 )
 {
@@ -255,6 +269,15 @@ public record Activity(
         get
         {
             if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
+
+            // 1. If a structured review object exists, it is definitely a review
+            if (Review != null)
+            {
+                _cachedIsReview = true;
+                return true;
+            }
+
+            // 2. Check root Title (safeguarded against nulls)
             var title = Title ?? "";
             bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
                 (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
@@ -262,13 +285,23 @@ public record Activity(
                  title.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
                  title.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
 
+            // 3. Check DisplayText
             var text = DisplayText ?? "";
             bool textIndicatesReview = !string.IsNullOrWhiteSpace(text) &&
                 (text.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
                  text.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
                  text.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
 
-            var result = Review != null || titleIndicatesReview || textIndicatesReview;
+            // 4. Check ProgressUpdated Title strictly (NO Description scanning to prevent code diff false positives)
+            var progressTitle = ProgressUpdated?.Title ?? "";
+            bool progressTitleIndicatesReview = !string.IsNullOrWhiteSpace(progressTitle) &&
+                (progressTitle.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 progressTitle.Contains("Code Review", StringComparison.OrdinalIgnoreCase));
+
+            var result = titleIndicatesReview ||
+                         textIndicatesReview ||
+                         progressTitleIndicatesReview;
+
             _cachedIsReview = result;
             return result;
         }
@@ -279,12 +312,30 @@ public record Activity(
         get
         {
             if (!string.IsNullOrWhiteSpace(Title)) return Title;
+            if (!string.IsNullOrWhiteSpace(ProgressUpdated?.Title)) return ProgressUpdated.Title;
             if (Review?.Summary != null) return "Code Review";
             return "Code Review";
         }
     }
 
+    // Resolves the Markdown text to render inside the Code Review card
+    [JsonIgnore] public string? ReviewDisplayText
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
+
+            // Only pull from ProgressUpdated if this activity has been confirmed as a Review
+            if (IsReview && !string.IsNullOrWhiteSpace(ProgressUpdated?.Description)) return ProgressUpdated.Description;
+
+            return DisplayText;
+        }
+    }
+
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
+
+    // Prevents double-rendering progress text in standard bubbles if it's already a Review
+    [JsonIgnore] public bool ShowProgressBlock => ShowProgress && !IsReview;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
 

@@ -255,6 +255,15 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void CopySessionJson()
+    {
+        if (SelectedSession != null && !string.IsNullOrEmpty(SelectedSession.RawInfo))
+        {
+            CopyToClipboard(SelectedSession.RawInfo);
+        }
+    }
+
     private string _lastPatchSignature = string.Empty;
 
     private void UpdateAggregatePatch()
