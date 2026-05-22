@@ -1,5 +1,5 @@
 using Microsoft.UI;
-using FontWeight = Windows.UI.Text.FontWeight;
+using FontWeight = FontWeight;
 using FontWeights = Microsoft.UI.Text.FontWeights;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

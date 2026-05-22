@@ -2,7 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using FontWeight = Windows.UI.Text.FontWeight;
+using FontWeight = FontWeight;
 using FontWeights = Microsoft.UI.Text.FontWeights;
 
 namespace JulesClient.Services;

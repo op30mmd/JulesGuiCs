@@ -41,7 +41,8 @@ public record Session(
 )
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
-    [JsonIgnore] public string? RawInfo { get; set; }
+    [JsonIgnore]
+    public string? RawInfo { get; set; }
 }
 
 public record SourceContext(
@@ -50,7 +51,8 @@ public record SourceContext(
     [property: JsonPropertyName("environmentVariablesEnabled")] bool? EnvironmentVariablesEnabled = null
 )
 {
-    [JsonIgnore] public string? StartingBranch => GitHubRepoContext?.StartingBranch;
+    [JsonIgnore]
+    public string? StartingBranch => GitHubRepoContext?.StartingBranch;
 }
 
 public record GitHubRepoContext(
@@ -126,19 +128,25 @@ public record Activity(
     [property: JsonPropertyName("title")] string? Title = null
 )
 {
-    [JsonIgnore] private string? _rawInfo;
-    [JsonIgnore] private string? _cachedOriginator;
-    [JsonIgnore] private string? _cachedDisplayText;
-    [JsonIgnore] private bool? _cachedHasContent;
-    [JsonIgnore] private bool? _cachedIsReview;
+    [JsonIgnore]
+    private string? _rawInfo;
+    [JsonIgnore]
+    private string? _cachedOriginator;
+    [JsonIgnore]
+    private string? _cachedDisplayText;
+    [JsonIgnore]
+    private bool? _cachedHasContent;
+    [JsonIgnore]
+    private bool? _cachedIsReview;
 
-    [JsonIgnore] public string? RawInfo
+    [JsonIgnore]
+    public string? RawInfo
     {
         get => _rawInfo;
         set { _rawInfo = value; _cachedOriginator = null; _cachedDisplayText = null; _cachedHasContent = null; _cachedIsReview = null; }
     }
-
-    [JsonIgnore] public string? EffectiveOriginator
+    [JsonIgnore]
+    public string? EffectiveOriginator
     {
         get
         {
@@ -172,7 +180,8 @@ public record Activity(
         }
     }
 
-    [JsonIgnore] public bool IsDuplicateUserMessage
+    [JsonIgnore]
+    public bool IsDuplicateUserMessage
     {
         get
         {
@@ -263,7 +272,8 @@ public record Activity(
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
-    [JsonIgnore] public bool IsReview
+    [JsonIgnore]
+    public bool IsReview
     {
         get
         {
@@ -306,7 +316,8 @@ public record Activity(
         }
     }
 
-    [JsonIgnore] public string? ReviewDisplayTitle
+    [JsonIgnore]
+    public string? ReviewDisplayTitle
     {
         get
         {
@@ -318,7 +329,8 @@ public record Activity(
     }
 
     // Resolves the Markdown text to render inside the Code Review card
-    [JsonIgnore] public string? ReviewDisplayText
+    [JsonIgnore]
+    public string? ReviewDisplayText
     {
         get
         {
@@ -331,11 +343,14 @@ public record Activity(
         }
     }
 
-    [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
+    [JsonIgnore]
+    public bool ShowProgress => ProgressUpdated?.HasData == true;
 
     // Prevents double-rendering progress text in standard bubbles if it's already a Review
-    [JsonIgnore] public bool ShowProgressBlock => ShowProgress && !IsReview;
-    [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
+    [JsonIgnore]
+    public bool ShowProgressBlock => ShowProgress && !IsReview;
+    [JsonIgnore]
+    public bool ShowPlan => PlanGenerated?.HasData == true;
 }
 
 public record UserMessage(
