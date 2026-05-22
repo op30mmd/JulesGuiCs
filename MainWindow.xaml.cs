@@ -23,6 +23,7 @@ public sealed partial class MainWindow : Window
                 if (ContentFrame.Content?.GetType() != typeof(Views.SettingsPage))
                 {
                     ContentFrame.Navigate(typeof(Views.SettingsPage));
+                    SyncNavSelection(null);
                 }
                 return;
             }
@@ -41,7 +42,21 @@ public sealed partial class MainWindow : Window
             {
                 System.Diagnostics.Debug.WriteLine($"[NAV] Navigating to {pageType.Name}");
                 ContentFrame.Navigate(pageType);
+                SyncNavSelection(tag);
             }
+        };
+
+        ContentFrame.Navigated += (s, e) =>
+        {
+            var page = e.Content;
+            var tag = page switch
+            {
+                Views.SourcesPage => "Sources",
+                Views.SessionsPage => "Sessions",
+                Views.SettingsPage => null,
+                _ => null
+            };
+            SyncNavSelection(tag);
         };
 
         // Load default page on startup
@@ -54,7 +69,26 @@ public sealed partial class MainWindow : Window
         else
         {
             ContentFrame.Navigate(typeof(Views.SourcesPage));
+            SyncNavSelection("Sources");
             System.Diagnostics.Debug.WriteLine("[NAV] Loaded default: SourcesPage");
+        }
+    }
+
+    private void SyncNavSelection(string? tag)
+    {
+        if (string.IsNullOrEmpty(tag))
+        {
+            Nav.SelectedItem = null;
+            return;
+        }
+
+        foreach (var item in Nav.MenuItems)
+        {
+            if (item is NavigationViewItem nvi && nvi.Tag?.ToString() == tag)
+            {
+                Nav.SelectedItem = nvi;
+                return;
+            }
         }
     }
 }

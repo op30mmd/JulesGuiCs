@@ -28,6 +28,7 @@ public record Session(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("id")] string? Id = null,
     [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("createTime")] string? CreateTime = null,
@@ -40,21 +41,33 @@ public record Session(
 )
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
+    [JsonIgnore] public string? RawInfo { get; set; }
 }
 
 public record SourceContext(
     [property: JsonPropertyName("source")] string? Source = null,
+    [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext = null,
+    [property: JsonPropertyName("environmentVariablesEnabled")] bool? EnvironmentVariablesEnabled = null
+)
+{
+    [JsonIgnore] public string? StartingBranch => GitHubRepoContext?.StartingBranch;
+}
+
+public record GitHubRepoContext(
     [property: JsonPropertyName("startingBranch")] string? StartingBranch = null
 );
 
 public record SessionOutput(
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet = null
 );
 
 public record PullRequest(
     [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("title")] string? Title = null,
-    [property: JsonPropertyName("description")] string? Description = null
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("baseRef")] string? BaseRef = null,
+    [property: JsonPropertyName("headRef")] string? HeadRef = null
 );
 
 public record CreateSessionRequest(
@@ -108,45 +121,221 @@ public record Activity(
     [property: JsonPropertyName("review")] Review? Review = null,
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
-    [property: JsonPropertyName("description")] string? Description = null
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
+    [property: JsonPropertyName("title")] string? Title = null
 )
 {
-    [JsonIgnore] public string? RawInfo { get; set; }
+    [JsonIgnore] private string? _rawInfo;
+    [JsonIgnore] private string? _cachedOriginator;
+    [JsonIgnore] private string? _cachedDisplayText;
+    [JsonIgnore] private bool? _cachedHasContent;
+    [JsonIgnore] private bool? _cachedIsReview;
 
-    public string? DisplayText =>
-        !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ? UserMessage.Prompt :
-        !string.IsNullOrWhiteSpace(UserMessage?.Text) ? UserMessage.Text :
-        !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage) ? UserMessaged.UserMessage :
-        !string.IsNullOrWhiteSpace(Review?.Summary) ? Review.Summary :
-        !string.IsNullOrWhiteSpace(AgentMessage?.Message) ? AgentMessage.Message :
-        !string.IsNullOrWhiteSpace(AgentMessage?.Text) ? AgentMessage.Text :
-        !string.IsNullOrWhiteSpace(Text) ? Text :
-        !string.IsNullOrWhiteSpace(Prompt) ? Prompt :
-        !string.IsNullOrWhiteSpace(Description) && ProgressUpdated == null && PlanGenerated == null ? Description :
-        !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ? SessionFailed.Reason :
-        PlanApproved != null ? "Plan Approved" :
-        SessionCompleted != null ? "Session Completed" :
-        null;
+    [JsonIgnore] public string? RawInfo
+    {
+        get => _rawInfo;
+        set { _rawInfo = value; _cachedOriginator = null; _cachedDisplayText = null; _cachedHasContent = null; _cachedIsReview = null; }
+    }
+
+    [JsonIgnore] public string? EffectiveOriginator
+    {
+        get
+        {
+            if (_cachedOriginator != null) return _cachedOriginator;
+
+            if (IsReview) return _cachedOriginator = "review";
+
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null ||
+                                   ProgressUpdated?.HasData == true ||
+                                   PlanGenerated?.HasData == true ||
+                                   BashOutput != null ||
+                                   ChangeSet != null ||
+                                   Media != null ||
+                                   PullRequest != null ||
+                                   Artifacts?.Any(a => a.HasData) == true;
+
+            if (hasAgentContent) return _cachedOriginator = "agent";
+
+            if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage))
+            {
+                return _cachedOriginator = "user";
+            }
+            return _cachedOriginator = Originator;
+        }
+    }
+
+    [JsonIgnore] public bool IsDuplicateUserMessage
+    {
+        get
+        {
+            bool hasUserContent = !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                                  !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                                  !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage);
+
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null ||
+                                   ProgressUpdated?.HasData == true ||
+                                   PlanGenerated?.HasData == true ||
+                                   BashOutput != null ||
+                                   ChangeSet != null ||
+                                   Media != null ||
+                                   PullRequest != null ||
+                                   Artifacts?.Any(a => a.HasData) == true;
+
+            return hasUserContent && !hasAgentContent && !string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    public string? DisplayText
+    {
+        get
+        {
+            if (_cachedDisplayText != null) return _cachedDisplayText;
+
+            bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(Review?.Summary) ||
+                                   !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
+                                   !string.IsNullOrWhiteSpace(Text) ||
+                                   !string.IsNullOrWhiteSpace(Description) ||
+                                   PlanApproved != null ||
+                                   SessionCompleted != null;
+
+            if (hasAgentContent)
+            {
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Message)) return _cachedDisplayText = AgentMessage.Message;
+                if (!string.IsNullOrWhiteSpace(AgentMessage?.Text)) return _cachedDisplayText = AgentMessage.Text;
+                if (!string.IsNullOrWhiteSpace(Review?.Summary)) return _cachedDisplayText = Review.Summary;
+                if (!string.IsNullOrWhiteSpace(SessionFailed?.Reason)) return _cachedDisplayText = SessionFailed.Reason;
+                if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
+                if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
+                if (PlanApproved != null) return _cachedDisplayText = "Plan Approved";
+                if (SessionCompleted != null) return _cachedDisplayText = "Session Completed";
+            }
+
+            bool isUser = string.Equals(Originator, "user", StringComparison.OrdinalIgnoreCase);
+            if (isUser)
+            {
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Prompt)) return _cachedDisplayText = UserMessage.Prompt;
+                if (!string.IsNullOrWhiteSpace(UserMessage?.Text)) return _cachedDisplayText = UserMessage.Text;
+                if (!string.IsNullOrWhiteSpace(UserMessaged?.UserMessage)) return _cachedDisplayText = UserMessaged.UserMessage;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Text)) return _cachedDisplayText = Text;
+            if (!string.IsNullOrWhiteSpace(Description)) return _cachedDisplayText = Description;
+
+            return _cachedDisplayText = null;
+        }
+    }
 
     public bool HasContent
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(DisplayText)) return true;
-            if (ProgressUpdated?.HasData == true) return true;
-            if (PlanGenerated?.HasData == true) return true;
-            if (Artifacts?.Any(a => a.HasData) == true) return true;
-            if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) return true;
-            if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) return true;
-            if (HasDebugInfo) return true;
-            return false;
+            if (_cachedHasContent.HasValue) return _cachedHasContent.Value;
+
+            bool result;
+            if (IsDuplicateUserMessage) result = false;
+            else if (!string.IsNullOrWhiteSpace(DisplayText)) result = true;
+            else if (ProgressUpdated?.HasData == true) result = true;
+            else if (PlanGenerated?.HasData == true) result = true;
+            else if (Artifacts?.Any(a => a.HasData) == true) result = true;
+            else if (PlanApproved != null || SessionCompleted != null || SessionFailed != null) result = true;
+            else if (BashOutput != null || ChangeSet != null || Media != null || PullRequest != null) result = true;
+            else if (HasDebugInfo) result = true;
+            else result = false;
+
+            _cachedHasContent = result;
+            return result;
         }
     }
 
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
-    [JsonIgnore] public bool IsReview => Review != null || (Originator == "agent" && (DisplayText?.Contains("review", StringComparison.OrdinalIgnoreCase) == true || DisplayText?.Length > 500));
+    [JsonIgnore] public bool IsReview
+    {
+        get
+        {
+            if (_cachedIsReview.HasValue) return _cachedIsReview.Value;
+
+            // 1. If a structured review object exists, it is definitely a review
+            if (Review != null)
+            {
+                _cachedIsReview = true;
+                return true;
+            }
+
+            // 2. Check root Title (safeguarded against nulls)
+            var title = Title ?? "";
+            bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
+                (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
+                 title.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+
+            // 3. Check DisplayText
+            var text = DisplayText ?? "";
+            bool textIndicatesReview = !string.IsNullOrWhiteSpace(text) &&
+                (text.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 text.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
+                 text.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+
+            // 4. Check ProgressUpdated Title strictly (NO Description scanning to prevent code diff false positives)
+            var progressTitle = ProgressUpdated?.Title ?? "";
+            bool progressTitleIndicatesReview = !string.IsNullOrWhiteSpace(progressTitle) &&
+                (progressTitle.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
+                 progressTitle.Contains("Code Review", StringComparison.OrdinalIgnoreCase));
+
+            var result = titleIndicatesReview ||
+                         textIndicatesReview ||
+                         progressTitleIndicatesReview;
+
+            _cachedIsReview = result;
+            return result;
+        }
+    }
+
+    [JsonIgnore] public string? ReviewDisplayTitle
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Title)) return Title;
+            if (!string.IsNullOrWhiteSpace(ProgressUpdated?.Title)) return ProgressUpdated.Title;
+            if (Review?.Summary != null) return "Code Review";
+            return "Code Review";
+        }
+    }
+
+    // Resolves the Markdown text to render inside the Code Review card
+    [JsonIgnore] public string? ReviewDisplayText
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Review?.Summary)) return Review.Summary;
+
+            // Only pull from ProgressUpdated if this activity has been confirmed as a Review
+            if (IsReview && !string.IsNullOrWhiteSpace(ProgressUpdated?.Description)) return ProgressUpdated.Description;
+
+            return DisplayText;
+        }
+    }
+
     [JsonIgnore] public bool ShowProgress => ProgressUpdated?.HasData == true;
+
+    // Prevents double-rendering progress text in standard bubbles if it's already a Review
+    [JsonIgnore] public bool ShowProgressBlock => ShowProgress && !IsReview;
     [JsonIgnore] public bool ShowPlan => PlanGenerated?.HasData == true;
 }
 

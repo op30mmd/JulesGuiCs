@@ -2,17 +2,17 @@ using System.Collections.ObjectModel;
 using JulesClient.Models;
 using JulesClient.Services;
 using System.Diagnostics;
+using Microsoft.UI.Dispatching;
 
 namespace JulesClient.ViewModels;
 
 public partial class SessionsViewModel : ObservableObject
 {
-    private readonly IJulesApiClient _api;
+    private readonly ICachedJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
-    private readonly SynchronizationContext? _syncContext = SynchronizationContext.Current;
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<JulesClient.Models.Activity>> _activitiesCache = new();
-    private static List<Session>? _sessionsCache;
+    private readonly DispatcherQueue _dispatcher;
+    private readonly HashSet<string> _loadedActivityIds = new();
 
     [ObservableProperty]
     private bool _isLoading;
@@ -29,52 +29,43 @@ public partial class SessionsViewModel : ObservableObject
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
     public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
+    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
 
     public SessionsViewModel()
     {
-        _api = App.Current.Services.GetRequiredService<IJulesApiClient>();
+        _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
     }
 
     [RelayCommand]
     public async Task RefreshAllDataAsync()
     {
-        _sessionsCache = null;
-        _activitiesCache.Clear();
+        await _api.InvalidateAllAsync();
+        _loadedActivityIds.Clear();
         await LoadSessionsAsync();
     }
 
     [RelayCommand]
     public async Task LoadSessionsAsync()
     {
-        if (_sessionsCache != null)
-        {
-            Sessions.Clear();
-            foreach (var s in _sessionsCache) Sessions.Add(s);
-        }
-
         IsLoading = true;
         try
         {
             Debug.WriteLine("[VM] Loading sessions...");
-            var sessions = new List<Session>();
+            var allSessions = new List<Session>();
             string? pageToken = null;
             do
             {
                 var response = await _api.ListSessionsAsync(pageToken: pageToken);
-                if (response.Sessions != null) sessions.AddRange(response.Sessions);
+                if (response.Sessions != null) allSessions.AddRange(response.Sessions);
                 pageToken = response.NextPageToken;
             } while (pageToken != null);
 
-            _sessionsCache = sessions;
-            _syncContext?.Post(_ =>
+            _dispatcher.TryEnqueue(() =>
             {
-                Sessions.Clear();
-                foreach (var session in sessions)
-                {
-                    Sessions.Add(session);
-                }
-            }, null);
+                SyncSessions(allSessions);
+            });
         }
         catch (Exception ex)
         {
@@ -86,43 +77,71 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    private void SyncSessions(List<Session> freshSessions)
+    {
+        var existingIds = Sessions.Select(s => s.Name).ToHashSet();
+        var freshIds = freshSessions.Select(s => s.Name).ToHashSet();
+
+        foreach (var session in Sessions.Where(s => !freshIds.Contains(s.Name)).ToList())
+        {
+            Sessions.Remove(session);
+        }
+
+        foreach (var fresh in freshSessions)
+        {
+            var existing = Sessions.FirstOrDefault(s => s.Name == fresh.Name);
+            if (existing == null)
+            {
+                Sessions.Add(fresh);
+            }
+            else
+            {
+                var idx = Sessions.IndexOf(existing);
+                Sessions[idx] = fresh;
+                if (SelectedSession?.Name == fresh.Name)
+                {
+                    SelectedSession = fresh;
+                }
+            }
+        }
+    }
+
     partial void OnSelectedSessionChanged(Session? value)
     {
         _pollingSubscription?.Dispose();
-        _syncContext?.Post(_ =>
+        _loadedActivityIds.Clear();
+        _dispatcher.TryEnqueue(() =>
         {
             Activities.Clear();
             DiffFiles.Clear();
+            FlattenedDiff.Clear();
             AggregatePatch = null;
             _lastPatchSignature = string.Empty;
-        }, null);
+        });
 
         if (value != null)
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
-
-            if (_activitiesCache.TryGetValue(value.Name, out var cached))
-            {
-                foreach (var a in cached.OrderBy(a => a.CreateTime ?? string.Empty)) Activities.Add(a);
-            }
-
             _ = LoadActivitiesAsync(value.Name);
             _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
-                _syncContext?.Post(_ =>
+                _dispatcher.TryEnqueue(() =>
                 {
                     bool changed = false;
                     if (resp.Activities != null)
                     {
                         foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
                         {
-                            if (!Activities.Any(a => a.Name == activity.Name))
+                            if (_loadedActivityIds.Add(activity.Name))
                             {
-                                // Remove optimistic message if this activity is its server-side counterpart
                                 if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
                                 {
                                     var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                                    if (local != null) Activities.Remove(local);
+                                    if (local != null)
+                                    {
+                                        Activities.Remove(local);
+                                        _loadedActivityIds.Remove(local.Name);
+                                    }
                                 }
 
                                 Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
@@ -132,7 +151,7 @@ public partial class SessionsViewModel : ObservableObject
                         }
                         if (changed) UpdateAggregatePatch();
                     }
-                }, null);
+                });
             });
         }
     }
@@ -151,25 +170,26 @@ public partial class SessionsViewModel : ObservableObject
                 pageToken = response.NextPageToken;
             } while (pageToken != null);
 
-            _activitiesCache[sessionId] = allActivities;
-
-            _syncContext?.Post(_ =>
+            _dispatcher.TryEnqueue(() =>
             {
                 foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? string.Empty))
                 {
-                    if (!Activities.Any(a => a.Name == activity.Name))
+                    if (_loadedActivityIds.Add(activity.Name))
                     {
-                        // Remove optimistic message
                         if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
                         {
                             var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                            if (local != null) Activities.Remove(local);
+                            if (local != null)
+                            {
+                                Activities.Remove(local);
+                                _loadedActivityIds.Remove(local.Name);
+                            }
                         }
                         Activities.Add(activity);
                     }
                 }
                 UpdateAggregatePatch();
-            }, null);
+            });
         }
         catch (Exception ex)
         {
@@ -184,7 +204,6 @@ public partial class SessionsViewModel : ObservableObject
         var msg = ChatInput;
         ChatInput = string.Empty;
 
-        // Optimistic UI update
         var localMsg = new JulesClient.Models.Activity(
             Name: $"local_{Guid.NewGuid()}",
             Id: null,
@@ -228,11 +247,20 @@ public partial class SessionsViewModel : ObservableObject
         {
             await _api.ApprovePlanAsync(SelectedSession.Name);
             var updated = await _api.GetSessionAsync(SelectedSession.Name);
-            _syncContext?.Post(_ => SelectedSession = updated, null);
+            _dispatcher.TryEnqueue(() => SelectedSession = updated);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void CopySessionJson()
+    {
+        if (SelectedSession != null && !string.IsNullOrEmpty(SelectedSession.RawInfo))
+        {
+            CopyToClipboard(SelectedSession.RawInfo);
         }
     }
 
@@ -244,6 +272,7 @@ public partial class SessionsViewModel : ObservableObject
             .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
             .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
             .Where(p => !string.IsNullOrEmpty(p))
+            .Cast<string>()
             .ToList();
 
         if (allPatches.Count == 0) return;
@@ -252,20 +281,24 @@ public partial class SessionsViewModel : ObservableObject
         if (signature == _lastPatchSignature) return;
         _lastPatchSignature = signature;
 
-        var merged = DiffParser.MergeLatest(allPatches);
+        var merged = DiffParser.Merge(allPatches);
         var fileTree = DiffParser.BuildFileTree(merged);
+        var flattened = DiffParser.Flatten(merged);
 
         Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
 
-        _syncContext?.Post(_ =>
+        AggregatePatch = merged;
+        DiffFiles.Clear();
+        foreach (var fileNode in fileTree)
         {
-            AggregatePatch = merged;
-            DiffFiles.Clear();
-            foreach (var fileNode in fileTree)
-            {
-                DiffFiles.Add(new DiffFileViewModel(fileNode));
-            }
-        }, null);
+            DiffFiles.Add(new DiffFileViewModel(fileNode));
+        }
+
+        FlattenedDiff.Clear();
+        foreach (var item in flattened)
+        {
+            FlattenedDiff.Add(item);
+        }
     }
 
     [RelayCommand]

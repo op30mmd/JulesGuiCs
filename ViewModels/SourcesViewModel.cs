@@ -8,7 +8,7 @@ namespace JulesClient.ViewModels;
 
 public partial class SourcesViewModel : ObservableObject
 {
-    private readonly IJulesApiClient _api;
+    private readonly ICachedJulesApiClient _api;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -23,7 +23,7 @@ public partial class SourcesViewModel : ObservableObject
     private string _newSessionTitle = string.Empty;
 
     [ObservableProperty]
-    private string _newSessionBranch = "main";
+    private string _newSessionBranch = string.Empty;
 
     [ObservableProperty]
     private bool _requirePlanApproval = true;
@@ -35,10 +35,8 @@ public partial class SourcesViewModel : ObservableObject
 
     public SourcesViewModel()
     {
-        _api = App.Current.Services.GetRequiredService<IJulesApiClient>();
+        _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
     }
-
-    private readonly SynchronizationContext? _syncContext = SynchronizationContext.Current;
 
     [RelayCommand]
     public async Task LoadSourcesAsync()
@@ -48,17 +46,14 @@ public partial class SourcesViewModel : ObservableObject
         try
         {
             var response = await _api.ListSourcesAsync();
-            _syncContext?.Post(_ =>
+            Sources.Clear();
+            if (response.Sources != null)
             {
-                Sources.Clear();
-                if (response.Sources != null)
+                foreach (var source in response.Sources)
                 {
-                    foreach (var source in response.Sources)
-                    {
-                        Sources.Add(source);
-                    }
+                    Sources.Add(source);
                 }
-            }, null);
+            }
         }
         catch (Exception ex)
         {
@@ -78,7 +73,10 @@ public partial class SourcesViewModel : ObservableObject
         try
         {
             var req = new CreateSessionRequest(
-                new SourceContext(source.Name, NewSessionBranch),
+                new SourceContext(
+                    source.Name,
+                    new GitHubRepoContext(string.IsNullOrWhiteSpace(NewSessionBranch) ? null : NewSessionBranch)
+                ),
                 NewSessionPrompt,
                 RequirePlanApproval,
                 AutomationMode: AutoCreatePR ? AutomationModes.AutoCreatePR : null,
@@ -86,10 +84,9 @@ public partial class SourcesViewModel : ObservableObject
             );
             await _api.CreateSessionAsync(req);
 
-            // Reset fields
             NewSessionPrompt = string.Empty;
             NewSessionTitle = string.Empty;
-            NewSessionBranch = "main";
+            NewSessionBranch = string.Empty;
             RequirePlanApproval = true;
             AutoCreatePR = false;
 

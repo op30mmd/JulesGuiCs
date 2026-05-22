@@ -26,15 +26,37 @@ public sealed partial class SourcesPage : Page
         {
             ViewModel.NewSessionTitle = $"Session with {source.GitHubRepo?.Repo ?? "Repository"}";
             ViewModel.NewSessionPrompt = "";
+            ViewModel.NewSessionBranch = "";
 
-            CreateSessionDialog.XamlRoot = this.XamlRoot;
-            var result = await CreateSessionDialog.ShowAsync();
+            var titleBox = new TextBox { Header = "Session Title (Optional)", PlaceholderText = "e.g. Fix login bug", Text = ViewModel.NewSessionTitle };
+            var branchBox = new TextBox { Header = "Starting Branch (Optional)", PlaceholderText = "e.g. main or feature-branch", Text = ViewModel.NewSessionBranch };
+            var promptBox = new TextBox { Header = "Goal / Prompt", PlaceholderText = "What should Jules do?", AcceptsReturn = true, Height = 100, Text = ViewModel.NewSessionPrompt };
+            var approvalCheck = new CheckBox { Content = "Require Plan Approval", IsChecked = ViewModel.RequirePlanApproval };
+            var prCheck = new CheckBox { Content = "Auto-Create Pull Request", IsChecked = ViewModel.AutoCreatePR };
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Create New Session",
+                PrimaryButtonText = "Create",
+                SecondaryButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                Content = new StackPanel { Spacing = 12, Width = 400, Children = { titleBox, branchBox, promptBox, approvalCheck, prCheck } }
+            };
+
+            var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
+                ViewModel.NewSessionTitle = titleBox.Text;
+                ViewModel.NewSessionBranch = branchBox.Text;
+                ViewModel.NewSessionPrompt = promptBox.Text;
+                ViewModel.RequirePlanApproval = approvalCheck.IsChecked == true;
+                ViewModel.AutoCreatePR = prCheck.IsChecked == true;
+
                 bool success = await ViewModel.CreateSessionAsync(source);
-                if (success)
+                if (success && this.Parent is Frame parentFrame)
                 {
-                    Frame.Navigate(typeof(SessionsPage));
+                    parentFrame.Navigate(typeof(SessionsPage));
                 }
             }
         }

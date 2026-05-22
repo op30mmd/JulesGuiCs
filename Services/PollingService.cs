@@ -14,76 +14,63 @@ public interface IPollingService
 
 public class PollingService : ObservableObject, IPollingService, IDisposable
 {
-    private readonly IJulesApiClient _api;
+    private readonly ICachedJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
     private readonly Dictionary<string, string> _lastTimestamps = new();
-    private readonly TimeSpan _def = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
-    public PollingService(IJulesApiClient api) => _api = api;
+    public PollingService(ICachedJulesApiClient api) => _api = api;
 
     public IDisposable StartPolling(string sid, Action<ActivityListResponse> onRecv, TimeSpan? iv = null)
     {
         StopPolling(sid);
         var i = iv ?? _def;
 
-        var p = Observable.Create<ActivityListResponse>(async (observer, ct) =>
+        var p = Observable.Interval(i)
+            .SelectMany(_ => Observable.FromAsync(async ct =>
             {
-                while (!ct.IsCancellationRequested)
+                try
                 {
-                    try
+                    string? last = null;
+                    _lastTimestamps.TryGetValue(sid, out last);
+
+                    ActivityListResponse? firstResp = null;
+                    string? pageToken = null;
+                    var allActivities = new List<JulesClient.Models.Activity>();
+
+                    do
                     {
-                        string? last = null;
-                        _lastTimestamps.TryGetValue(sid, out last);
+                        string? filter = last != null ? $"create_time > \"{last}\"" : null;
+                        var resp = await _api.ListActivitiesAsync(sid, 10, pageToken: pageToken, filter: filter, ct: ct);
+                        if (firstResp == null) firstResp = resp;
 
-                        ActivityListResponse? firstResp = null;
-                        string? pageToken = null;
-                        var allActivities = new List<JulesClient.Models.Activity>();
-
-                        do
+                        if (resp?.Activities != null)
                         {
-                            string? filter = last != null ? $"create_time > \"{last}\"" : null;
-                            var resp = await _api.ListActivitiesAsync(sid, 30, pageToken: pageToken, filter: filter, ct: ct);
-                            if (firstResp == null) firstResp = resp;
-
-                            if (resp?.Activities != null)
-                            {
-                                allActivities.AddRange(resp.Activities);
-                            }
-                            pageToken = resp?.NextPageToken;
-                        } while (pageToken != null && !ct.IsCancellationRequested);
-
-                        if (allActivities.Any())
-                        {
-                            var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
-                            if (!string.IsNullOrEmpty(maxTime))
-                            {
-                                _lastTimestamps[sid] = maxTime;
-                            }
+                            allActivities.AddRange(resp.Activities);
                         }
+                        pageToken = resp?.NextPageToken;
+                    } while (pageToken != null && !ct.IsCancellationRequested);
 
-                        if (firstResp != null)
+                    if (allActivities.Any())
+                    {
+                        var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
+                        if (!string.IsNullOrEmpty(maxTime))
                         {
-                            observer.OnNext(firstResp with { Activities = allActivities });
+                            _lastTimestamps[sid] = maxTime;
                         }
                     }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
-                    {
-                        Debug.WriteLine($"[POLLING] Error for {sid}: {ex}");
-                    }
 
-                    try
-                    {
-                        await Task.Delay(i, ct);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
+                    return firstResp != null ? firstResp with { Activities = allActivities } : null;
                 }
-            })
-            .ObserveOn(SynchronizationContext.Current!)
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Debug.WriteLine($"[POLLING] Error for {sid}: {ex}");
+                    return null;
+                }
+            }))
+            .Where(resp => resp != null)
             .Subscribe(
-                onNext: onRecv!,
+                onNext: resp => onRecv(resp!),
                 onError: e => Debug.WriteLine($"[POLLING] Fatal error: {e}")
             );
 
