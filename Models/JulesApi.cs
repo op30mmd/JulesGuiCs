@@ -28,6 +28,7 @@ public record Session(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("id")] string? Id = null,
     [property: JsonPropertyName("title")] string? Title = null,
+    [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("createTime")] string? CreateTime = null,
@@ -45,17 +46,28 @@ public record Session(
 
 public record SourceContext(
     [property: JsonPropertyName("source")] string? Source = null,
+    [property: JsonPropertyName("githubRepoContext")] GitHubRepoContext? GitHubRepoContext = null,
+    [property: JsonPropertyName("environmentVariablesEnabled")] bool? EnvironmentVariablesEnabled = null
+)
+{
+    [JsonIgnore] public string? StartingBranch => GitHubRepoContext?.StartingBranch;
+}
+
+public record GitHubRepoContext(
     [property: JsonPropertyName("startingBranch")] string? StartingBranch = null
 );
 
 public record SessionOutput(
-    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null
+    [property: JsonPropertyName("pullRequest")] PullRequest? PullRequest = null,
+    [property: JsonPropertyName("changeSet")] ChangeSet? ChangeSet = null
 );
 
 public record PullRequest(
     [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("title")] string? Title = null,
-    [property: JsonPropertyName("description")] string? Description = null
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("baseRef")] string? BaseRef = null,
+    [property: JsonPropertyName("headRef")] string? HeadRef = null
 );
 
 public record CreateSessionRequest(
@@ -110,6 +122,7 @@ public record Activity(
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
     [property: JsonPropertyName("title")] string? Title = null
 )
 {

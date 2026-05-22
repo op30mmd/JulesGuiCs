@@ -73,7 +73,10 @@ public partial class SourcesViewModel : ObservableObject
         try
         {
             var req = new CreateSessionRequest(
-                new SourceContext(source.Name, string.IsNullOrWhiteSpace(NewSessionBranch) ? null : NewSessionBranch),
+                new SourceContext(
+                    source.Name,
+                    new GitHubRepoContext(string.IsNullOrWhiteSpace(NewSessionBranch) ? null : NewSessionBranch)
+                ),
                 NewSessionPrompt,
                 RequirePlanApproval,
                 AutomationMode: AutoCreatePR ? AutomationModes.AutoCreatePR : null,
