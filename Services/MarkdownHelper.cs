@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
 using System.Text;
-using Windows.UI.Text;
 
 namespace JulesClient.Services;
 

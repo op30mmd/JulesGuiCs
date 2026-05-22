@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI.Text;
+using FontWeights = Microsoft.UI.Text.FontWeights;
 
 namespace JulesClient.Services;
 
