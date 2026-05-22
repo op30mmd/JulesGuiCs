@@ -29,6 +29,7 @@ public partial class SessionsViewModel : ObservableObject
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
     public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
+    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
 
     public SessionsViewModel()
     {
@@ -113,6 +114,7 @@ public partial class SessionsViewModel : ObservableObject
         {
             Activities.Clear();
             DiffFiles.Clear();
+            FlattenedDiff.Clear();
             AggregatePatch = null;
             _lastPatchSignature = string.Empty;
         });
@@ -253,6 +255,15 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void CopySessionJson()
+    {
+        if (SelectedSession != null && !string.IsNullOrEmpty(SelectedSession.RawInfo))
+        {
+            CopyToClipboard(SelectedSession.RawInfo);
+        }
+    }
+
     private string _lastPatchSignature = string.Empty;
 
     private void UpdateAggregatePatch()
@@ -270,8 +281,9 @@ public partial class SessionsViewModel : ObservableObject
         if (signature == _lastPatchSignature) return;
         _lastPatchSignature = signature;
 
-        var merged = DiffParser.MergeLatest(allPatches);
+        var merged = DiffParser.Merge(allPatches);
         var fileTree = DiffParser.BuildFileTree(merged);
+        var flattened = DiffParser.Flatten(merged);
 
         Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
 
@@ -280,6 +292,12 @@ public partial class SessionsViewModel : ObservableObject
         foreach (var fileNode in fileTree)
         {
             DiffFiles.Add(new DiffFileViewModel(fileNode));
+        }
+
+        FlattenedDiff.Clear();
+        foreach (var item in flattened)
+        {
+            FlattenedDiff.Add(item);
         }
     }
 

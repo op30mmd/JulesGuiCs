@@ -54,12 +54,14 @@ public class OriginatorToAlignmentConverter : IValueConverter
 {
     private static readonly object _right = HorizontalAlignment.Right;
     private static readonly object _left = HorizontalAlignment.Left;
+    private static readonly object _stretch = HorizontalAlignment.Stretch;
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         try
         {
             string? originator = value as string;
+            if (string.Equals(originator, "review", StringComparison.OrdinalIgnoreCase)) return _stretch;
             bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
             return isUser ? _right : _left;
         }
@@ -73,6 +75,7 @@ public class OriginatorToColorConverter : IValueConverter
 {
     private static Brush? _userBrush;
     private static Brush? _agentBrush;
+    private static Brush? _reviewBrush;
     private static readonly object _lock = new();
 
     public object? Convert(object value, Type targetType, object parameter, string language)
@@ -80,6 +83,20 @@ public class OriginatorToColorConverter : IValueConverter
         try
         {
             string? originator = value as string;
+            if (string.Equals(originator, "review", StringComparison.OrdinalIgnoreCase))
+            {
+                if (_reviewBrush != null) return _reviewBrush;
+                lock (_lock)
+                {
+                    if (_reviewBrush == null)
+                    {
+                        // Use a distinct light blue for reviews
+                        _reviewBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 230, 242, 255)); // #E6F2FF
+                    }
+                }
+                return _reviewBrush;
+            }
+
             bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
 
             if (isUser)
@@ -89,7 +106,7 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_userBrush == null)
                     {
-                        _userBrush = ResolveBrush("SystemAccentColor", Microsoft.UI.Colors.Blue);
+                        _userBrush = BrushHelper.ResolveBrush("SystemAccentColor", Microsoft.UI.Colors.Blue);
                     }
                 }
                 return _userBrush;
@@ -101,7 +118,7 @@ public class OriginatorToColorConverter : IValueConverter
                 {
                     if (_agentBrush == null)
                     {
-                        _agentBrush = ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.Gray);
+                        _agentBrush = BrushHelper.ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.Gray);
                     }
                 }
                 return _agentBrush;
@@ -114,7 +131,12 @@ public class OriginatorToColorConverter : IValueConverter
         }
     }
 
-    private static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+internal static class BrushHelper
+{
+    public static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
     {
         try
         {
@@ -127,6 +149,4 @@ public class OriginatorToColorConverter : IValueConverter
         catch { }
         return new SolidColorBrush(fallback);
     }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }

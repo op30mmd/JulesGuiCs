@@ -1,3 +1,4 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
@@ -5,14 +6,15 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
 using System.Text;
+using Windows.UI.Text;
 
 namespace JulesClient.Services;
 
 internal static class MdStyles
 {
-    public static Windows.UI.Text.FontWeight Bold => new() { Weight = 700 };
-    public static Windows.UI.Text.FontWeight SemiBold => new() { Weight = 600 };
-    public static Windows.UI.Text.FontWeight Normal => new() { Weight = 400 };
+    public static FontWeight Bold => FontWeights.Bold;
+    public static FontWeight SemiBold => FontWeights.SemiBold;
+    public static FontWeight Normal => FontWeights.Normal;
 }
 
 public static class MarkdownParser
@@ -92,7 +94,7 @@ public static class MarkdownParser
 
             if (!string.IsNullOrEmpty(lang))
             {
-                var langRun = new Run { Text = $"// {lang}", FontSize = 10, Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) };
+                var langRun = new Run { Text = $"// {lang}", FontSize = 10, Foreground = new SolidColorBrush(Colors.Gray) };
                 textBlock.Inlines.Add(langRun);
                 textBlock.Inlines.Add(new LineBreak());
             }
@@ -141,8 +143,8 @@ public static class MarkdownParser
                     run.FontSize = fontSize;
                     run.FontWeight = weight;
                 }
-                textBlock.Inlines.Add(inline);
             }
+            textBlock.Inlines.Add(span);
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -164,7 +166,7 @@ public static class MarkdownParser
                 if (trimmed[i] != marker && trimmed[i] != ' ') return false;
             }
 
-            textBlock.Inlines.Add(new Run { Text = "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 8 });
+            textBlock.Inlines.Add(new Run { Text = "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", Foreground = new SolidColorBrush(Colors.Gray), FontSize = 8 });
             textBlock.Inlines.Add(new LineBreak());
             return true;
         }
@@ -219,13 +221,11 @@ public static class MarkdownParser
 
                 var content = ExtractListItemContent(current);
                 var bulletRun = new Run { Text = "\u2022  ", FontWeight = MdStyles.Bold };
-                textBlock.Inlines.Add(bulletRun);
-
                 var contentSpan = CreateInlineSpan(textBlock, content);
-                foreach (var inline in contentSpan.Inlines)
-                {
-                    textBlock.Inlines.Add(inline);
-                }
+                var containerSpan = new Span();
+                containerSpan.Inlines.Add(bulletRun);
+                containerSpan.Inlines.Add(contentSpan);
+                textBlock.Inlines.Add(containerSpan);
                 textBlock.Inlines.Add(new LineBreak());
                 index++;
             }
@@ -265,13 +265,11 @@ public static class MarkdownParser
 
                 var content = ExtractOrderedItemContent(current);
                 var numRun = new Run { Text = $"{itemNum}.  ", FontWeight = MdStyles.SemiBold };
-                textBlock.Inlines.Add(numRun);
-
                 var contentSpan = CreateInlineSpan(textBlock, content);
-                foreach (var inline in contentSpan.Inlines)
-                {
-                    textBlock.Inlines.Add(inline);
-                }
+                var containerSpan = new Span();
+                containerSpan.Inlines.Add(numRun);
+                containerSpan.Inlines.Add(contentSpan);
+                textBlock.Inlines.Add(containerSpan);
                 textBlock.Inlines.Add(new LineBreak());
                 itemNum++;
                 index++;
@@ -386,7 +384,7 @@ public static class MarkdownParser
             var alt = match.Groups[1].Value;
             var url = match.Groups[2].Value;
 
-            var imgRun = new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray), FontSize = 12 };
+            var imgRun = new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Colors.Gray), FontSize = 12 };
             textBlock.Inlines.Add(imgRun);
             textBlock.Inlines.Add(new LineBreak());
             return true;
@@ -399,10 +397,7 @@ public static class MarkdownParser
         try
         {
             var span = CreateInlineSpan(textBlock, line);
-            foreach (var inline in span.Inlines)
-            {
-                textBlock.Inlines.Add(inline);
-            }
+            textBlock.Inlines.Add(span);
             if (addNewline) textBlock.Inlines.Add(new LineBreak());
         }
         catch
@@ -441,7 +436,7 @@ public static class MarkdownParser
                 }
                 else if (segment.StartsWith("~~") && segment.EndsWith("~~") && segment.Length > 4)
                 {
-                    span.Inlines.Add(new Run { Text = segment.Substring(2, segment.Length - 4), Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) });
+                    span.Inlines.Add(new Run { Text = segment.Substring(2, segment.Length - 4), Foreground = new SolidColorBrush(Colors.Gray) });
                 }
                 else if (segment.StartsWith("`") && segment.EndsWith("`") && segment.Length > 2)
                 {
@@ -453,7 +448,7 @@ public static class MarkdownParser
                     if (match.Success)
                     {
                         var alt = match.Groups[1].Value;
-                        span.Inlines.Add(new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray) });
+                        span.Inlines.Add(new Run { Text = $"[Image: {alt}]", Foreground = new SolidColorBrush(Colors.Gray) });
                     }
                     else { span.Inlines.Add(new Run { Text = segment }); }
                 }
@@ -464,7 +459,7 @@ public static class MarkdownParser
                     {
                         var linkText = match.Groups[1].Value;
                         var url = match.Groups[2].Value;
-                        span.Inlines.Add(new Run { Text = linkText, Foreground = new SolidColorBrush(Microsoft.UI.Colors.CornflowerBlue) });
+                        span.Inlines.Add(new Run { Text = linkText, Foreground = new SolidColorBrush(Colors.CornflowerBlue) });
                     }
                     else { span.Inlines.Add(new Run { Text = segment }); }
                 }
@@ -524,7 +519,7 @@ internal static class BrushCache
                             }
                         }
                         catch { }
-                        _accentBrush ??= new SolidColorBrush(Microsoft.UI.Colors.Blue);
+                        _accentBrush ??= new SolidColorBrush(Colors.Blue);
                     }
                 }
             }
@@ -545,7 +540,14 @@ public class MarkdownHelper
     {
         if (d is TextBlock tb && e.NewValue is string text)
         {
-            MarkdownParser.ParseInto(tb, text);
+            if (tb.DispatcherQueue?.HasThreadAccess == true)
+            {
+                MarkdownParser.ParseInto(tb, text);
+            }
+            else
+            {
+                tb.DispatcherQueue?.TryEnqueue(() => MarkdownParser.ParseInto(tb, text));
+            }
         }
     }
 }

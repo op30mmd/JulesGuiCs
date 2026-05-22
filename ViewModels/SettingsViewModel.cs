@@ -27,6 +27,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _proxyPassword = string.Empty;
 
+    [ObservableProperty]
+    private bool _isDemoMode;
+
     public SettingsViewModel()
     {
         _settings = App.Current.Services.GetRequiredService<ISettingsService>();
@@ -37,6 +40,7 @@ public partial class SettingsViewModel : ObservableObject
         _proxyPort = _settings.ProxyPort;
         _proxyUsername = _settings.ProxyUsername;
         _proxyPassword = _settings.ProxyPassword;
+        _isDemoMode = _settings.IsDemoMode;
     }
 
     public void Save()
@@ -48,5 +52,6 @@ public partial class SettingsViewModel : ObservableObject
         _settings.ProxyPort = (int)ProxyPort;
         _settings.ProxyUsername = ProxyUsername;
         _settings.ProxyPassword = ProxyPassword;
+        _settings.IsDemoMode = IsDemoMode;
     }
 }
