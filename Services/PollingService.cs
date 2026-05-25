@@ -71,8 +71,8 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                         }
                         else if (firstResp != null)
                         {
-                             // Also emit if we got a response even if no new activities (important for first poll)
-                             obs.OnNext(firstResp);
+                            // Also emit if we got a response even if no new activities (important for first poll)
+                            obs.OnNext(firstResp);
                         }
                     }
                     catch (OperationCanceledException) { }
