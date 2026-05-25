@@ -114,8 +114,13 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    private string? _lastSelectedSessionName;
+
     partial void OnSelectedSessionChanged(Session? value)
     {
+        if (value?.Name == _lastSelectedSessionName) return;
+        _lastSelectedSessionName = value?.Name;
+
         _pollingSubscription?.Dispose();
         _loadedActivityIds.Clear();
         _seenArtifactIds.Clear();
