@@ -53,6 +53,41 @@
         <converters:DiffLineTypeToFontWeightConverter x:Key="DiffLineTypeToFontWeightConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
 
+        <DataTemplate x:Key="ArtifactsTemplate" x:DataType="models:Artifact">
+            <StackPanel Margin="0,4,0,0">
+                <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
+                            Visibility="{x:Bind BashOutput.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                    <TextBlock Text="{x:Bind BashOutput.Command, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Opacity="0.7" Visibility="{x:Bind BashOutput.Command, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock Text="{x:Bind BashOutput.Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"
+                                Visibility="{x:Bind BashOutput.Output, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock Text="{x:Bind BashOutput.ExitCode, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"
+                                Visibility="{x:Bind BashOutput.ExitCode, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
+                </StackPanel>
+
+                <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
+                            Visibility="{x:Bind ChangeSet.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                    <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                    <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                    <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                </StackPanel>
+
+                <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1"
+                        Visibility="{x:Bind PullRequest.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
+                        <StackPanel>
+                            <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                            <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind PullRequest.Url, Mode=OneWay}" Padding="0" FontSize="13"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Image Source="{x:Bind Media.Data, Converter={StaticResource Base64ToImageSourceConverter}, Mode=OneWay}"
+                        Visibility="{x:Bind Media.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                        MaxHeight="400" Stretch="Uniform" Margin="0,4"/>
+            </StackPanel>
+        </DataTemplate>
+
         <DataTemplate x:Key="DefaultMessageTemplate" x:DataType="models:Activity">
             <Grid Margin="16,1" Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                 <Border CornerRadius="12" Padding="12,10"
@@ -65,7 +100,8 @@
                         <TextBlock Text="{x:Bind EffectiveOriginator}" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="Bold" Opacity="0.5" Margin="0,0,0,1" FontSize="11"/>
 
                         <TextBlock converters:MarkdownHelper.Text="{x:Bind DisplayText, Mode=OneWay}"
-                                   TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                                   TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
+                                   Visibility="{x:Bind DisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
 
                         <StackPanel Margin="0,1" Visibility="{x:Bind ShowProgressBlock, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
@@ -110,7 +146,7 @@
                        </Border>
 
                         <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
-                                    Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}">
+                                    Visibility="{x:Bind BashOutput.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                             <TextBlock Text="{x:Bind BashOutput.Command, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Opacity="0.7" Visibility="{x:Bind BashOutput.Command, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                             <TextBlock Text="{x:Bind BashOutput.Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"
                                         Visibility="{x:Bind BashOutput.Output, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
@@ -119,18 +155,18 @@
                         </StackPanel>
 
                         <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
-                                    Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}">
+                                    Visibility="{x:Bind ChangeSet.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                             <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                             <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                             <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                         </StackPanel>
 
                         <Image Source="{x:Bind Media.Data, Converter={StaticResource Base64ToImageSourceConverter}, Mode=OneWay}"
-                                Visibility="{x:Bind Media, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"
+                                Visibility="{x:Bind Media.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                                 MaxHeight="400" Stretch="Uniform" Margin="0,4"/>
 
                         <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1"
-                                Visibility="{x:Bind PullRequest, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}">
+                                Visibility="{x:Bind PullRequest.HasData, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                            <StackPanel Orientation="Horizontal" Spacing="12">
                                <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
                                <StackPanel>
@@ -149,7 +185,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="CodeReviewTemplate" x:DataType="models:Activity">
-            <Grid Margin="16,6">
+            <Grid Margin="16,6" Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
                 <Border CornerRadius="8" Padding="16"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource SystemAccentColor}"
@@ -163,7 +199,8 @@
                             <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" LineHeight="20" LineStackingStrategy="MaxHeight"/>
                         </StackPanel>
 
-                        <TextBlock converters:MarkdownHelper.Text="{x:Bind ReviewDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
+                        <TextBlock converters:MarkdownHelper.Text="{x:Bind ReviewDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"
+                                   Visibility="{x:Bind ReviewDisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
 
                         <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
@@ -204,41 +241,6 @@
                 <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7"/>
                 <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
             </Grid>
-        </DataTemplate>
-
-        <DataTemplate x:Key="ArtifactsTemplate" x:DataType="models:Artifact">
-            <StackPanel Margin="0,4,0,0">
-                <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
-                            Visibility="{x:Bind BashOutput, Converter={StaticResource NullToVisibilityConverter}}">
-                    <TextBlock Text="{x:Bind BashOutput.Command, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Opacity="0.7" Visibility="{x:Bind BashOutput.Command, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                    <TextBlock Text="{x:Bind BashOutput.Output, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,2"
-                                Visibility="{x:Bind BashOutput.Output, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                    <TextBlock Text="{x:Bind BashOutput.ExitCode, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"
-                                Visibility="{x:Bind BashOutput.ExitCode, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}"/>
-                </StackPanel>
-
-                <StackPanel Margin="0,2" Padding="8" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4"
-                            Visibility="{x:Bind ChangeSet, Converter={StaticResource NullToVisibilityConverter}}">
-                    <TextBlock Text="Code Changes Applied" FontWeight="Bold" FontSize="13" Margin="0,0,0,4" LineHeight="20" LineStackingStrategy="MaxHeight"/>
-                    <TextBlock Text="{x:Bind ChangeSet.Source, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.Source, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                    <TextBlock converters:MarkdownHelper.Text="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Mode=OneWay}" TextWrapping="Wrap" Opacity="0.8" FontSize="12" LineHeight="20" LineStackingStrategy="MaxHeight" Visibility="{x:Bind ChangeSet.GitPatch.SuggestedCommitMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-                </StackPanel>
-
-                <Border Margin="0,2" Padding="12" CornerRadius="8" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="1"
-                        Visibility="{x:Bind PullRequest, Converter={StaticResource NullToVisibilityConverter}}">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}"/>
-                        <StackPanel>
-                            <TextBlock Text="{x:Bind PullRequest.Title, Mode=OneWay}" FontWeight="Bold" FontSize="14" LineHeight="20" LineStackingStrategy="MaxHeight"/>
-                            <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind PullRequest.Url, Mode=OneWay}" Padding="0" FontSize="13"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <Image Source="{x:Bind Media.Data, Converter={StaticResource Base64ToImageSourceConverter}, Mode=OneWay}"
-                        Visibility="{x:Bind Media, Converter={StaticResource NullToVisibilityConverter}}"
-                        MaxHeight="400" Stretch="Uniform" Margin="0,4"/>
-            </StackPanel>
         </DataTemplate>
 
     </Page.Resources>
