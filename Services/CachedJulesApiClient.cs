@@ -127,7 +127,10 @@ public class CachedJulesApiClient : ICachedJulesApiClient, IDisposable
         } while (token != null);
 
         var merged = new ActivityListResponse { Activities = allActivities, NextPageToken = null };
-        await _cache.SetAsync(cacheKey, merged, _activitiesTtl, ct);
+        if (allActivities.Any())
+        {
+            await _cache.SetAsync(cacheKey, merged, _activitiesTtl, ct);
+        }
         return merged;
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -117,7 +118,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         return await ExecuteWithRetryAsync(async (token) =>
         {
             ApplyKey();
-            var r = await _http.GetAsync("sources" + (pageToken != null ? $"?pageToken={Uri.EscapeDataString(pageToken)}" : ""), token);
+            var url = "sources" + (pageToken != null ? $"?pageToken={Uri.EscapeDataString(pageToken)}" : "");
+            Debug.WriteLine($"[API] GET {url}");
+            var r = await _http.GetAsync(url, token);
             await HandleErrorResponse(r, token);
             return await r.Content.ReadFromJsonAsync<SourceListResponse>(_json, token) ?? throw new Exception("Parse failed");
         }, ct);
@@ -127,6 +130,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         return await ExecuteWithRetryAsync(async (token) =>
         {
             ApplyKey();
+            Debug.WriteLine($"[API] POST sessions (Title: {req.Title})");
             var r = await _http.PostAsJsonAsync("sessions", req, _json, token);
             await HandleErrorResponse(r, token);
             return await r.Content.ReadFromJsonAsync<Session>(_json, token) ?? throw new Exception("Parse failed");
@@ -138,7 +142,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         {
             ApplyKey();
             var q = new List<string> { $"pageSize={pageSize}" }; if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
-            var r = await _http.GetAsync($"sessions?{string.Join("&", q)}", token);
+            var url = $"sessions?{string.Join("&", q)}";
+            Debug.WriteLine($"[API] GET {url}");
+            var r = await _http.GetAsync(url, token);
             await HandleErrorResponse(r, token);
 
             var content = await r.Content.ReadAsStringAsync(token);
@@ -161,6 +167,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         return await ExecuteWithRetryAsync(async (token) =>
         {
             ApplyKey();
+            Debug.WriteLine($"[API] GET {id}");
             var r = await _http.GetAsync(id, token);
             await HandleErrorResponse(r, token);
 
@@ -175,6 +182,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         return await ExecuteWithRetryAsync(async (token) =>
         {
             ApplyKey();
+            Debug.WriteLine($"[API] POST {id}:approvePlan");
             var r = await _http.PostAsync($"{id}:approvePlan", null, token);
             await HandleErrorResponse(r, token);
             return await r.Content.ReadFromJsonAsync<ApprovePlanResponse>(_json, token) ?? new ApprovePlanResponse();
@@ -188,7 +196,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             var q = new List<string> { $"pageSize={pageSize}" };
             if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
             if (filter != null) q.Add($"filter={Uri.EscapeDataString(filter)}");
-            var r = await _http.GetAsync($"{sid}/activities?{string.Join("&", q)}", token);
+            var url = $"{sid}/activities?{string.Join("&", q)}";
+            Debug.WriteLine($"[API] GET {url}");
+            var r = await _http.GetAsync(url, token);
             await HandleErrorResponse(r, token);
 
             var content = await r.Content.ReadAsStringAsync(token);
@@ -212,6 +222,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         {
             ApplyKey();
             var req = new { prompt };
+            Debug.WriteLine($"[API] POST {sid}:sendMessage");
             var r = await _http.PostAsJsonAsync($"{sid}:sendMessage", req, _json, token);
             await HandleErrorResponse(r, token);
             return new SendMessageResponse { Success = true };

@@ -14,65 +14,89 @@ public interface IPollingService
 
 public class PollingService : ObservableObject, IPollingService, IDisposable
 {
-    private readonly ICachedJulesApiClient _api;
+    private readonly IJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
-    private readonly Dictionary<string, DateTime> _lastTimestamps = new();
     private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
-    public PollingService(ICachedJulesApiClient api) => _api = api;
+    public PollingService(IJulesApiClient api) => _api = api;
 
     public IDisposable StartPolling(string sid, Action<ActivityListResponse> onRecv, TimeSpan? iv = null)
     {
         StopPolling(sid);
         var i = iv ?? _def;
+        Debug.WriteLine($"[POLLING] Starting poll for {sid} every {i.TotalSeconds}s");
 
-        var p = Observable.Interval(i)
-            .SelectMany(_ => Observable.FromAsync(async ct =>
+        var p = Observable.Create<ActivityListResponse>(obs =>
+        {
+            var cts = new CancellationTokenSource();
+            DateTime lastTimestamp = DateTime.MinValue;
+
+            var loop = Task.Run(async () =>
             {
-                try
+                while (!cts.Token.IsCancellationRequested)
                 {
-                    DateTime last = DateTime.MinValue;
-                    bool hasLast = _lastTimestamps.TryGetValue(sid, out last);
-
-                    ActivityListResponse? firstResp = null;
-                    string? pageToken = null;
-                    var allActivities = new List<JulesClient.Models.Activity>();
-
-                    do
+                    try
                     {
-                        string? filter = hasLast ? $"create_time > \"{last:yyyy-MM-ddTHH:mm:ss.fffZ}\"" : null;
-                        var resp = await _api.ListActivitiesAsync(sid, 10, pageToken: pageToken, filter: filter, ct: ct);
-                        if (firstResp == null) firstResp = resp;
+                        string? pageToken = null;
+                        var allActivities = new List<JulesClient.Models.Activity>();
+                        ActivityListResponse? firstResp = null;
 
-                        if (resp?.Activities != null)
+                        do
                         {
-                            allActivities.AddRange(resp.Activities);
+                            string? filter = lastTimestamp != DateTime.MinValue
+                                ? $"create_time > \"{lastTimestamp:yyyy-MM-ddTHH:mm:ss.fffZ}\""
+                                : null;
+
+                            Debug.WriteLine($"[POLLING] Requesting activities for {sid} (filter: {filter ?? "none"})");
+                            var resp = await _api.ListActivitiesAsync(sid, 20, pageToken: pageToken, filter: filter, ct: cts.Token);
+
+                            if (firstResp == null) firstResp = resp;
+                            if (resp?.Activities != null)
+                            {
+                                allActivities.AddRange(resp.Activities);
+                            }
+                            pageToken = resp?.NextPageToken;
+                        } while (pageToken != null && !cts.Token.IsCancellationRequested);
+
+                        if (allActivities.Any())
+                        {
+                            var maxTime = allActivities.Where(a => a.CreateTime.HasValue).Max(a => a.CreateTime);
+                            if (maxTime.HasValue)
+                            {
+                                lastTimestamp = maxTime.Value;
+                            }
+
+                            Debug.WriteLine($"[POLLING] Received {allActivities.Count} new activities for {sid}. New lastTimestamp: {lastTimestamp:HH:mm:ss.fff}");
+                            obs.OnNext(firstResp! with { Activities = allActivities });
                         }
-                        pageToken = resp?.NextPageToken;
-                    } while (pageToken != null && !ct.IsCancellationRequested);
-
-                    if (allActivities.Any())
-                    {
-                        var maxTime = allActivities.Where(a => a.CreateTime.HasValue).Max(a => a.CreateTime);
-                        if (maxTime.HasValue)
+                        else if (firstResp != null)
                         {
-                            _lastTimestamps[sid] = maxTime.Value;
+                            // Also emit if we got a response even if no new activities (important for first poll)
+                            obs.OnNext(firstResp);
                         }
                     }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[POLLING] Error for {sid}: {ex.Message}");
+                    }
 
-                    return firstResp != null ? firstResp with { Activities = allActivities } : null;
+                    try { await Task.Delay(i, cts.Token); }
+                    catch (OperationCanceledException) { break; }
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    Debug.WriteLine($"[POLLING] Error for {sid}: {ex}");
-                    return null;
-                }
-            }))
-            .Where(resp => resp != null)
-            .Subscribe(
-                onNext: resp => onRecv(resp!),
-                onError: e => Debug.WriteLine($"[POLLING] Fatal error: {e}")
-            );
+                Debug.WriteLine($"[POLLING] Polling loop ended for {sid}");
+            });
+
+            return () =>
+            {
+                Debug.WriteLine($"[POLLING] Stopping poll for {sid}");
+                cts.Cancel();
+                cts.Dispose();
+            };
+        }).Subscribe(
+            onNext: resp => onRecv(resp),
+            onError: e => Debug.WriteLine($"[POLLING] Fatal error: {e}")
+        );
 
         _pollers[sid] = p;
         OnPropertyChanged(nameof(IsPolling));
@@ -81,7 +105,6 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 
     public void StopPolling(string sid)
     {
-        _lastTimestamps.Remove(sid);
         if (_pollers.Remove(sid, out var p))
         {
             p.Dispose();
@@ -95,7 +118,6 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
     {
         foreach (var p in _pollers.Values) p.Dispose();
         _pollers.Clear();
-        _lastTimestamps.Clear();
         OnPropertyChanged(nameof(IsPolling));
     }
 
