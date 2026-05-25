@@ -24,7 +24,7 @@ public class DemoJulesApiClient : IJulesApiClient
                 Id: "demo-1",
                 Title: "Demo: Implement Login Page",
                 Prompt: "Create a modern login page using WinUI 3",
-                CreateTime: DateTime.UtcNow.AddHours(-1).ToString("O"),
+                CreateTime: DateTime.UtcNow.AddHours(-1),
                 State: "ACTIVE"
             ),
             new Session(
@@ -32,7 +32,7 @@ public class DemoJulesApiClient : IJulesApiClient
                 Id: "demo-2",
                 Title: "Demo: Bug Fix in Auth Service",
                 Prompt: "Fix null reference in TokenValidator",
-                CreateTime: DateTime.UtcNow.AddDays(-1).ToString("O"),
+                CreateTime: DateTime.UtcNow.AddDays(-1),
                 State: "COMPLETED"
             )
         };
@@ -49,28 +49,28 @@ public class DemoJulesApiClient : IJulesApiClient
                 new Activity(
                     Name: "activities/1",
                     Id: "1",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-50).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-50),
                     Originator: "user",
                     UserMessage: new UserMessage(Prompt: "Create a modern login page using WinUI 3")
                 ),
                 new Activity(
                     Name: "activities/2",
                     Id: "2",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-45).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-45),
                     Originator: "agent",
                     ProgressUpdated: new ProgressUpdated(Title: "Analyzing project structure", Description: "Scanning Views and ViewModels...")
                 ),
                 new Activity(
                     Name: "activities/3",
                     Id: "3",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-40).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-40),
                     Originator: "agent",
                     ProgressUpdated: new ProgressUpdated(Title: "Code Review", Description: "I have reviewed the current authentication logic. It seems we need a new `LoginPage.xaml` and a corresponding `LoginViewModel.cs`.")
                 ),
                 new Activity(
                     Name: "activities/4",
                     Id: "4",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-35).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-35),
                     Originator: "agent",
                     Review: new Review(
                         Summary: "Detailed Review of UI requirements",
@@ -84,14 +84,14 @@ public class DemoJulesApiClient : IJulesApiClient
                 new Activity(
                     Name: "activities/5",
                     Id: "5",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-30).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-30),
                     Originator: "agent",
                     BashOutput: new BashOutput(Command: "mkdir -p Views ViewModels", Output: "", ExitCode: 0)
                 ),
                 new Activity(
                     Name: "activities/6",
                     Id: "6",
-                    CreateTime: DateTime.UtcNow.AddMinutes(-25).ToString("O"),
+                    CreateTime: DateTime.UtcNow.AddMinutes(-25),
                     Originator: "agent",
                     ChangeSet: new ChangeSet(
                         Source: "Views/LoginPage.xaml",
@@ -120,7 +120,7 @@ public class DemoJulesApiClient : IJulesApiClient
             Id: Guid.NewGuid().ToString(),
             Title: req.Title ?? "New Demo Session",
             Prompt: req.Prompt,
-            CreateTime: DateTime.UtcNow.ToString("O"),
+            CreateTime: DateTime.UtcNow,
             State: "ACTIVE"
         );
         _sessions.Add(session);
@@ -158,7 +158,7 @@ public class DemoJulesApiClient : IJulesApiClient
 
         _activities[sid].Add(new Activity(
             Name: $"activities/{Guid.NewGuid()}",
-            CreateTime: DateTime.UtcNow.ToString("O"),
+            CreateTime: DateTime.UtcNow,
             Originator: "user",
             UserMessage: new UserMessage(Prompt: prompt)
         ));
@@ -166,7 +166,7 @@ public class DemoJulesApiClient : IJulesApiClient
         // Simulate agent response
         _activities[sid].Add(new Activity(
             Name: $"activities/{Guid.NewGuid()}",
-            CreateTime: DateTime.UtcNow.AddSeconds(2).ToString("O"),
+            CreateTime: DateTime.UtcNow.AddSeconds(2),
             Originator: "agent",
             Text: "This is a demo response to your message."
         ));

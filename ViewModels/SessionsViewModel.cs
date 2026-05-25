@@ -140,7 +140,7 @@ public partial class SessionsViewModel : ObservableObject
                     bool changed = false;
                     if (resp.Activities != null)
                     {
-                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? string.Empty))
+                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? DateTime.MinValue))
                         {
                             if (_loadedActivityIds.Add(activity.Name))
                             {
@@ -193,7 +193,7 @@ public partial class SessionsViewModel : ObservableObject
 
             _dispatcher.TryEnqueue(() =>
             {
-                foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? string.Empty))
+                foreach (var activity in allActivities.OrderBy(a => a.CreateTime ?? DateTime.MinValue))
                 {
                     if (_loadedActivityIds.Add(activity.Name))
                     {
@@ -325,7 +325,7 @@ public partial class SessionsViewModel : ObservableObject
         ChatInput = string.Empty;
 
         var localMsg = new JulesClient.Models.Activity(
-            Name: $"local_{Guid.NewGuid()}", Id: null, CreateTime: DateTime.UtcNow.ToString("O"), Originator: "user",
+            Name: $"local_{Guid.NewGuid()}", Id: null, CreateTime: DateTime.UtcNow, Originator: "user",
             ProgressUpdated: null, PlanGenerated: null, PlanApproved: null, SessionCompleted: null, SessionFailed: null,
             BashOutput: null, ChangeSet: null, Media: null, PullRequest: null, Artifacts: null,
             UserMessage: new UserMessage(Prompt: msg, Text: null), AgentMessage: null, UserMessaged: null, Review: null,
