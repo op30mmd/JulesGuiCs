@@ -30,7 +30,7 @@ public class CacheService : ICacheService
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
-    private const long MaxCacheSizeBytes = 50 * 1024 * 1024;
+    private const long MaxCacheSizeBytes = 500 * 1024 * 1024;
 
 #if WINDOWS
     private readonly Windows.Storage.StorageFolder _localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;

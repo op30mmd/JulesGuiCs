@@ -12,10 +12,10 @@ public class CachedJulesApiClient : ICachedJulesApiClient, IDisposable
 {
     private readonly IJulesApiClient _inner;
     private readonly ICacheService _cache;
-    private readonly TimeSpan _sourcesTtl = TimeSpan.FromMinutes(15);
-    private readonly TimeSpan _sessionsTtl = TimeSpan.FromMinutes(5);
-    private readonly TimeSpan _activitiesTtl = TimeSpan.FromMinutes(2);
-    private readonly TimeSpan _sessionDetailTtl = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _sourcesTtl = TimeSpan.FromHours(24);
+    private readonly TimeSpan _sessionsTtl = TimeSpan.FromHours(24);
+    private readonly TimeSpan _activitiesTtl = TimeSpan.FromHours(24);
+    private readonly TimeSpan _sessionDetailTtl = TimeSpan.FromHours(24);
 
     public CachedJulesApiClient(IJulesApiClient inner, ICacheService cache)
     {
