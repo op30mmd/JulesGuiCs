@@ -26,7 +26,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
         StopPolling(sid);
         var i = iv ?? _def;
 
-        var p = Observable.Interval(i)
+        var p = Observable.Timer(TimeSpan.Zero, i)
             .SelectMany(_ => Observable.FromAsync(async ct =>
             {
                 try

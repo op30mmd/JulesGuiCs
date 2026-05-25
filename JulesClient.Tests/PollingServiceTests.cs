@@ -40,4 +40,25 @@ public class PollingServiceTests
         mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, null, It.IsAny<CancellationToken>()), Times.AtLeastOnce());
         mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, $"create_time > \"{timestampStr}\"", It.IsAny<CancellationToken>()), Times.AtLeastOnce());
     }
+
+    [Fact]
+    public async Task PollingService_StartsImmediately()
+    {
+        var mockApi = new Mock<ICachedJulesApiClient>();
+        var sessionId = "sessions/immediate";
+
+        mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 10, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ActivityListResponse(new List<Activity>(), null));
+
+        var pollingService = new PollingService(mockApi.Object);
+        var called = false;
+
+        using var subscription = pollingService.StartPolling(sessionId, _ => called = true, TimeSpan.FromSeconds(60));
+
+        // Wait a very short time to allow the first immediate execution to happen
+        await Task.Delay(100);
+
+        Assert.True(called, "Polling should have started immediately without waiting for the interval.");
+        mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, null, It.IsAny<CancellationToken>()), Times.Once());
+    }
 }
