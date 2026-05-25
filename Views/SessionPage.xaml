@@ -48,6 +48,7 @@
         <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+        <converters:DateTimeToTimeConverter x:Key="DateTimeToTimeConverter"/>
         <converters:DiffLineTypeToColorConverter x:Key="DiffLineTypeToColorConverter"/>
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
         <converters:DiffLineTypeToFontWeightConverter x:Key="DiffLineTypeToFontWeightConverter"/>
@@ -135,7 +136,7 @@
                         <!-- All artifacts now rendered via this ItemsControl for consistency and deduplication -->
                         <ItemsControl ItemsSource="{x:Bind Artifacts, Mode=OneWay}" ItemTemplate="{StaticResource ArtifactsTemplate}" HorizontalContentAlignment="Stretch" Visibility="{x:Bind Artifacts, Converter={StaticResource CollectionToVisibilityConverter}, Mode=OneWay}"/>
 
-                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
+                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay, Converter={StaticResource DateTimeToTimeConverter}}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -175,7 +176,7 @@
                         </ItemsControl>
 
 
-                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
+                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay, Converter={StaticResource DateTimeToTimeConverter}}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" Opacity="0.4" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>

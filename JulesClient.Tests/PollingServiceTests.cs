@@ -11,7 +11,8 @@ public class PollingServiceTests
     {
         var mockApi = new Mock<ICachedJulesApiClient>();
         var sessionId = "sessions/123";
-        var timestamp = "2024-01-15T10:30:00Z";
+        var timestamp = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+        var timestampStr = timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
         var initialResponse = new ActivityListResponse(
             new List<Activity>
@@ -26,7 +27,7 @@ public class PollingServiceTests
         mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 10, null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(initialResponse);
 
-        mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 10, null, $"create_time > \"{timestamp}\"", It.IsAny<CancellationToken>()))
+        mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 10, null, $"create_time > \"{timestampStr}\"", It.IsAny<CancellationToken>()))
             .ReturnsAsync(secondResponse);
 
         var pollingService = new PollingService(mockApi.Object);
@@ -37,6 +38,6 @@ public class PollingServiceTests
         await Task.Delay(500);
 
         mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, null, It.IsAny<CancellationToken>()), Times.AtLeastOnce());
-        mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, $"create_time > \"{timestamp}\"", It.IsAny<CancellationToken>()), Times.AtLeastOnce());
+        mockApi.Verify(a => a.ListActivitiesAsync(sessionId, 10, null, $"create_time > \"{timestampStr}\"", It.IsAny<CancellationToken>()), Times.AtLeastOnce());
     }
 }

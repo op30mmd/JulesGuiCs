@@ -16,7 +16,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 {
     private readonly ICachedJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
-    private readonly Dictionary<string, string> _lastTimestamps = new();
+    private readonly Dictionary<string, DateTime> _lastTimestamps = new();
     private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
     public PollingService(ICachedJulesApiClient api) => _api = api;
@@ -31,8 +31,8 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
             {
                 try
                 {
-                    string? last = null;
-                    _lastTimestamps.TryGetValue(sid, out last);
+                    DateTime last = DateTime.MinValue;
+                    bool hasLast = _lastTimestamps.TryGetValue(sid, out last);
 
                     ActivityListResponse? firstResp = null;
                     string? pageToken = null;
@@ -40,7 +40,7 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 
                     do
                     {
-                        string? filter = last != null ? $"create_time > \"{last}\"" : null;
+                        string? filter = hasLast ? $"create_time > \"{last:yyyy-MM-ddTHH:mm:ss.fffZ}\"" : null;
                         var resp = await _api.ListActivitiesAsync(sid, 10, pageToken: pageToken, filter: filter, ct: ct);
                         if (firstResp == null) firstResp = resp;
 
@@ -53,10 +53,10 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 
                     if (allActivities.Any())
                     {
-                        var maxTime = allActivities.Max(a => a.CreateTime ?? string.Empty);
-                        if (!string.IsNullOrEmpty(maxTime))
+                        var maxTime = allActivities.Where(a => a.CreateTime.HasValue).Max(a => a.CreateTime);
+                        if (maxTime.HasValue)
                         {
-                            _lastTimestamps[sid] = maxTime;
+                            _lastTimestamps[sid] = maxTime.Value;
                         }
                     }
 

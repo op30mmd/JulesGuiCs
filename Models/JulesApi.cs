@@ -11,8 +11,8 @@ public record Source(
     [property: JsonPropertyName("name")] string? Name = null,
     [property: JsonPropertyName("id")] string? Id = null,
     [property: JsonPropertyName("githubRepo")] GitHubRepo? GitHubRepo = null,
-    [property: JsonPropertyName("createTime")] string? CreateTime = null,
-    [property: JsonPropertyName("updateTime")] string? UpdateTime = null
+    [property: JsonPropertyName("createTime")] DateTime? CreateTime = null,
+    [property: JsonPropertyName("updateTime")] DateTime? UpdateTime = null
 );
 
 public record GitHubRepo(
@@ -32,8 +32,8 @@ public record Session(
     [property: JsonPropertyName("url")] string? Url = null,
     [property: JsonPropertyName("sourceContext")] SourceContext? SourceContext = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
-    [property: JsonPropertyName("createTime")] string? CreateTime = null,
-    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
+    [property: JsonPropertyName("createTime")] DateTime? CreateTime = null,
+    [property: JsonPropertyName("updateTime")] DateTime? UpdateTime = null,
     [property: JsonPropertyName("state")] string? State = null,
     [property: JsonPropertyName("plan")] Plan? Plan = null,
     [property: JsonPropertyName("pendingPlan")] Plan? PendingPlan = null,
@@ -111,7 +111,7 @@ public record ActivityListResponse(
 public record Activity(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("id")] string? Id = null,
-    [property: JsonPropertyName("createTime")] string? CreateTime = null,
+    [property: JsonPropertyName("createTime")] DateTime? CreateTime = null,
     [property: JsonPropertyName("originator")] string? Originator = null,
     [property: JsonPropertyName("progressUpdated")] ProgressUpdated? ProgressUpdated = null,
     [property: JsonPropertyName("planGenerated")] PlanGenerated? PlanGenerated = null,
@@ -130,7 +130,7 @@ public record Activity(
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
     [property: JsonPropertyName("description")] string? Description = null,
-    [property: JsonPropertyName("updateTime")] string? UpdateTime = null,
+    [property: JsonPropertyName("updateTime")] DateTime? UpdateTime = null,
     [property: JsonPropertyName("title")] string? Title = null
 )
 {
