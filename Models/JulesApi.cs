@@ -75,7 +75,7 @@ public record PullRequest(
 )
 {
     [JsonIgnore]
-    public bool HasData => !string.IsNullOrWhiteSpace(Url) || !string.IsNullOrWhiteSpace(Title);
+    public bool HasData => !string.IsNullOrWhiteSpace(Url);
 }
 
 public record CreateSessionRequest(
@@ -534,7 +534,7 @@ public record BashOutput(
 )
 {
     [JsonIgnore]
-    public bool HasData => !string.IsNullOrWhiteSpace(Command) || !string.IsNullOrWhiteSpace(Output);
+    public bool HasData => !string.IsNullOrWhiteSpace(Output);
 }
 
 public record ChangeSet(
@@ -543,7 +543,7 @@ public record ChangeSet(
 )
 {
     [JsonIgnore]
-    public bool HasData => !string.IsNullOrWhiteSpace(GitPatch?.UnidiffPatch);
+    public bool HasData => false;
 }
 
 public record GitPatch(

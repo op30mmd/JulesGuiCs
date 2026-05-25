@@ -13,6 +13,8 @@ public partial class SessionsViewModel : ObservableObject
     private IDisposable? _pollingSubscription;
     private readonly DispatcherQueue _dispatcher;
     private readonly HashSet<string> _loadedActivityIds = new();
+    private readonly HashSet<string> _seenArtifactIds = new();
+    private readonly List<string> _allSessionPatches = new();
 
     [ObservableProperty]
     private bool _isLoading;
@@ -43,6 +45,8 @@ public partial class SessionsViewModel : ObservableObject
     {
         await _api.InvalidateAllAsync();
         _loadedActivityIds.Clear();
+        _seenArtifactIds.Clear();
+        _allSessionPatches.Clear();
         await LoadSessionsAsync();
     }
 
@@ -58,9 +62,13 @@ public partial class SessionsViewModel : ObservableObject
             do
             {
                 var response = await _api.ListSessionsAsync(pageToken: pageToken);
-                if (response.Sessions != null) allSessions.AddRange(response.Sessions);
+                if (response.Sessions != null)
+                {
+                    allSessions.AddRange(response.Sessions);
+                }
                 pageToken = response.NextPageToken;
-            } while (pageToken != null);
+            }
+            while (pageToken != null);
 
             _dispatcher.TryEnqueue(() =>
             {
@@ -110,6 +118,8 @@ public partial class SessionsViewModel : ObservableObject
     {
         _pollingSubscription?.Dispose();
         _loadedActivityIds.Clear();
+        _seenArtifactIds.Clear();
+        _allSessionPatches.Clear();
         _dispatcher.TryEnqueue(() =>
         {
             Activities.Clear();
@@ -134,22 +144,29 @@ public partial class SessionsViewModel : ObservableObject
                         {
                             if (_loadedActivityIds.Add(activity.Name))
                             {
-                                if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
+                                var processed = ProcessActivity(activity);
+                                if (processed != null)
                                 {
-                                    var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                                    if (local != null)
+                                    if (processed.Originator == "user" && !string.IsNullOrEmpty(processed.UserMessage?.Prompt))
                                     {
-                                        Activities.Remove(local);
-                                        _loadedActivityIds.Remove(local.Name);
+                                        var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == processed.UserMessage.Prompt);
+                                        if (local != null)
+                                        {
+                                            Activities.Remove(local);
+                                            _loadedActivityIds.Remove(local.Name);
+                                        }
                                     }
-                                }
 
-                                Debug.WriteLine($"[VM] New activity: {activity.Name} from {activity.Originator}");
-                                Activities.Add(activity);
-                                changed = true;
+                                    Debug.WriteLine($"[VM] New activity: {processed.Name} from {processed.Originator}");
+                                    Activities.Add(processed);
+                                    changed = true;
+                                }
                             }
                         }
-                        if (changed) UpdateAggregatePatch();
+                        if (changed)
+                        {
+                            UpdateAggregatePatch();
+                        }
                     }
                 });
             });
@@ -166,9 +183,13 @@ public partial class SessionsViewModel : ObservableObject
             do
             {
                 var response = await _api.ListActivitiesAsync(sessionId, pageToken: pageToken);
-                if (response.Activities != null) allActivities.AddRange(response.Activities);
+                if (response.Activities != null)
+                {
+                    allActivities.AddRange(response.Activities);
+                }
                 pageToken = response.NextPageToken;
-            } while (pageToken != null);
+            }
+            while (pageToken != null);
 
             _dispatcher.TryEnqueue(() =>
             {
@@ -176,16 +197,20 @@ public partial class SessionsViewModel : ObservableObject
                 {
                     if (_loadedActivityIds.Add(activity.Name))
                     {
-                        if (activity.Originator == "user" && !string.IsNullOrEmpty(activity.UserMessage?.Prompt))
+                        var processed = ProcessActivity(activity);
+                        if (processed != null)
                         {
-                            var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == activity.UserMessage.Prompt);
-                            if (local != null)
+                            if (processed.Originator == "user" && !string.IsNullOrEmpty(processed.UserMessage?.Prompt))
                             {
-                                Activities.Remove(local);
-                                _loadedActivityIds.Remove(local.Name);
+                                var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == processed.UserMessage.Prompt);
+                                if (local != null)
+                                {
+                                    Activities.Remove(local);
+                                    _loadedActivityIds.Remove(local.Name);
+                                }
                             }
+                            Activities.Add(processed);
                         }
-                        Activities.Add(activity);
                     }
                 }
                 UpdateAggregatePatch();
@@ -197,6 +222,101 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
+    private JulesClient.Models.Activity? ProcessActivity(JulesClient.Models.Activity a)
+    {
+        // Always extract patches for the Diff tab, even if the activity or artifact is filtered out of the chat.
+        ExtractPatches(a);
+
+        var flatArts = new List<Artifact>();
+
+        void AddIfUnique(Artifact art)
+        {
+            bool isUnique = false;
+
+            if (art.PullRequest?.HasData == true && !string.IsNullOrEmpty(art.PullRequest.Url))
+            {
+                if (_seenArtifactIds.Add(art.PullRequest.Url))
+                {
+                    isUnique = true;
+                }
+            }
+            else if (art.BashOutput?.HasData == true)
+            {
+                var sig = $"bash_{art.BashOutput.Command}_{art.BashOutput.Output}";
+                if (_seenArtifactIds.Add(sig))
+                {
+                    isUnique = true;
+                }
+            }
+            else if (art.Media?.HasData == true)
+            {
+                var sig = $"media_{art.Media.Data?.GetHashCode()}";
+                if (_seenArtifactIds.Add(sig))
+                {
+                    isUnique = true;
+                }
+            }
+
+            if (isUnique)
+            {
+                flatArts.Add(art);
+            }
+        }
+
+        // Unpack root artifacts
+        if (a.BashOutput != null) AddIfUnique(new Artifact(BashOutput: a.BashOutput));
+        if (a.Media != null) AddIfUnique(new Artifact(Media: a.Media));
+        if (a.PullRequest != null) AddIfUnique(new Artifact(PullRequest: a.PullRequest));
+
+        // Unpack nested artifacts
+        if (a.Artifacts != null)
+        {
+            foreach (var art in a.Artifacts)
+            {
+                if (art.BashOutput != null) AddIfUnique(new Artifact(BashOutput: art.BashOutput));
+                if (art.Media != null) AddIfUnique(new Artifact(Media: art.Media));
+                if (art.PullRequest != null) AddIfUnique(new Artifact(PullRequest: art.PullRequest));
+            }
+        }
+
+        bool hasUniqueContent = !string.IsNullOrWhiteSpace(a.DisplayText) ||
+                                 a.ProgressUpdated?.HasData == true ||
+                                 a.PlanGenerated?.HasData == true ||
+                                 a.SessionFailed != null ||
+                                 a.SessionCompleted != null ||
+                                 a.PlanApproved != null ||
+                                 flatArts.Count > 0;
+
+        if (!hasUniqueContent)
+        {
+            return null;
+        }
+
+        return a with
+        {
+            Artifacts = flatArts.Count > 0 ? flatArts : null,
+            BashOutput = null,
+            ChangeSet = null,
+            Media = null,
+            PullRequest = null
+        };
+    }
+
+    private void ExtractPatches(JulesClient.Models.Activity a)
+    {
+        var patch = a.ChangeSet?.GitPatch?.UnidiffPatch;
+        if (!string.IsNullOrEmpty(patch)) _allSessionPatches.Add(patch);
+
+        if (a.Artifacts != null)
+        {
+            foreach (var art in a.Artifacts)
+            {
+                var p = art.ChangeSet?.GitPatch?.UnidiffPatch;
+                if (!string.IsNullOrEmpty(p)) _allSessionPatches.Add(p);
+            }
+        }
+    }
+
     [RelayCommand]
     public async Task SendMessageAsync()
     {
@@ -205,38 +325,16 @@ public partial class SessionsViewModel : ObservableObject
         ChatInput = string.Empty;
 
         var localMsg = new JulesClient.Models.Activity(
-            Name: $"local_{Guid.NewGuid()}",
-            Id: null,
-            CreateTime: DateTime.UtcNow.ToString("O"),
-            Originator: "user",
-            ProgressUpdated: null,
-            PlanGenerated: null,
-            PlanApproved: null,
-            SessionCompleted: null,
-            SessionFailed: null,
-            BashOutput: null,
-            ChangeSet: null,
-            Media: null,
-            PullRequest: null,
-            Artifacts: null,
-            UserMessage: new UserMessage(Prompt: msg, Text: null),
-            AgentMessage: null,
-            UserMessaged: null,
-            Review: null,
-            Text: null,
-            Prompt: null,
-            Description: null
+            Name: $"local_{Guid.NewGuid()}", Id: null, CreateTime: DateTime.UtcNow.ToString("O"), Originator: "user",
+            ProgressUpdated: null, PlanGenerated: null, PlanApproved: null, SessionCompleted: null, SessionFailed: null,
+            BashOutput: null, ChangeSet: null, Media: null, PullRequest: null, Artifacts: null,
+            UserMessage: new UserMessage(Prompt: msg, Text: null), AgentMessage: null, UserMessaged: null, Review: null,
+            Text: null, Prompt: null, Description: null
         );
         Activities.Add(localMsg);
 
-        try
-        {
-            await _api.SendMessageAsync(SelectedSession.Name, msg);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[VM] Failed to send message: {ex.Message}");
-        }
+        try { await _api.SendMessageAsync(SelectedSession.Name, msg); }
+        catch (Exception ex) { Debug.WriteLine($"[VM] Failed to send message: {ex.Message}"); }
     }
 
     [RelayCommand]
@@ -249,56 +347,35 @@ public partial class SessionsViewModel : ObservableObject
             var updated = await _api.GetSessionAsync(SelectedSession.Name);
             _dispatcher.TryEnqueue(() => SelectedSession = updated);
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}");
-        }
+        catch (Exception ex) { Debug.WriteLine($"[VM] Failed to approve plan: {ex.Message}"); }
     }
 
     [RelayCommand]
     public void CopySessionJson()
     {
-        if (SelectedSession != null && !string.IsNullOrEmpty(SelectedSession.RawInfo))
-        {
-            CopyToClipboard(SelectedSession.RawInfo);
-        }
+        if (SelectedSession?.RawInfo != null) CopyToClipboard(SelectedSession.RawInfo);
     }
 
     private string _lastPatchSignature = string.Empty;
 
     private void UpdateAggregatePatch()
     {
-        var allPatches = Activities
-            .SelectMany(a => (a.Artifacts ?? new()).Concat(new List<Artifact> { new(a.BashOutput, a.ChangeSet, a.Media, a.PullRequest) }))
-            .Select(art => art?.ChangeSet?.GitPatch?.UnidiffPatch)
-            .Where(p => !string.IsNullOrEmpty(p))
-            .Cast<string>()
-            .ToList();
+        if (_allSessionPatches.Count == 0) return;
 
-        if (allPatches.Count == 0) return;
-
-        var signature = allPatches.Count + ":" + allPatches[^1].Length;
+        var signature = _allSessionPatches.Count + ":" + _allSessionPatches[^1].Length;
         if (signature == _lastPatchSignature) return;
         _lastPatchSignature = signature;
 
-        var merged = DiffParser.Merge(allPatches);
+        var merged = DiffParser.Merge(_allSessionPatches);
         var fileTree = DiffParser.BuildFileTree(merged);
         var flattened = DiffParser.Flatten(merged);
 
-        Debug.WriteLine($"[VM] Diff: {allPatches.Count} sources -> {merged.Files.Count} unique files");
-
         AggregatePatch = merged;
         DiffFiles.Clear();
-        foreach (var fileNode in fileTree)
-        {
-            DiffFiles.Add(new DiffFileViewModel(fileNode));
-        }
+        foreach (var fileNode in fileTree) DiffFiles.Add(new DiffFileViewModel(fileNode));
 
         FlattenedDiff.Clear();
-        foreach (var item in flattened)
-        {
-            FlattenedDiff.Add(item);
-        }
+        foreach (var item in flattened) FlattenedDiff.Add(item);
     }
 
     [RelayCommand]
@@ -310,8 +387,5 @@ public partial class SessionsViewModel : ObservableObject
         Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
     }
 
-    public void Cleanup()
-    {
-        _pollingSubscription?.Dispose();
-    }
+    public void Cleanup() => _pollingSubscription?.Dispose();
 }
