@@ -17,6 +17,8 @@ public interface IJulesApiClient
     Task<SessionListResponse> ListSessionsAsync(int pageSize = 5, string? pageToken = null, CancellationToken ct = default);
     Task<Session> GetSessionAsync(string id, CancellationToken ct = default);
     Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default);
+    Task PauseSessionAsync(string id, CancellationToken ct = default);
+    Task ResumeSessionAsync(string id, CancellationToken ct = default);
     Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default);
     Task<SendMessageResponse> SendMessageAsync(string sid, string prompt, CancellationToken ct = default);
     IObservable<ActivityListResponse> PollActivitiesAsync(string sid, TimeSpan interval, CancellationToken ct = default);
@@ -56,7 +58,10 @@ public class JulesApiClient : IJulesApiClient, IDisposable
 
                 if (_settings.BandwidthMode == BandwidthMode.Auto)
                 {
-                    _settings.BandwidthSavingEnabled = IsSlowConnection;
+                    if (_settings.BandwidthSavingEnabled != IsSlowConnection)
+                    {
+                        _settings.BandwidthSavingEnabled = IsSlowConnection;
+                    }
                 }
             }
         }
@@ -65,9 +70,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     private async Task<T> ExecuteWithRetryAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
     {
         int attempt = 0;
-        var sw = Stopwatch.StartNew();
         while (true)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
                 var result = await operation(ct);
@@ -217,6 +222,28 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             var r = await _http.PostAsync($"{id}:approvePlan", null, token);
             await HandleErrorResponse(r, token);
             return await r.Content.ReadFromJsonAsync<ApprovePlanResponse>(_json, token) ?? new ApprovePlanResponse();
+        }, ct);
+    }
+    public async Task PauseSessionAsync(string id, CancellationToken ct = default)
+    {
+        await ExecuteWithRetryAsync<object?>(async (token) =>
+        {
+            ApplyKey();
+            Debug.WriteLine($"[API] POST {id}:pause");
+            var r = await _http.PostAsync($"{id}:pause", null, token);
+            await HandleErrorResponse(r, token);
+            return null;
+        }, ct);
+    }
+    public async Task ResumeSessionAsync(string id, CancellationToken ct = default)
+    {
+        await ExecuteWithRetryAsync<object?>(async (token) =>
+        {
+            ApplyKey();
+            Debug.WriteLine($"[API] POST {id}:resume");
+            var r = await _http.PostAsync($"{id}:resume", null, token);
+            await HandleErrorResponse(r, token);
+            return null;
         }, ct);
     }
     public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default)

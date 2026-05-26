@@ -11,6 +11,7 @@ public partial class SessionsViewModel : ObservableObject
     private readonly ICachedJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
+    private Microsoft.UI.Xaml.DispatcherTimer? _slowConnectionTimer;
     private readonly DispatcherQueue _dispatcher;
     private readonly HashSet<string> _loadedActivityIds = new();
     private readonly HashSet<string> _seenArtifactIds = new();
@@ -47,7 +48,7 @@ public partial class SessionsViewModel : ObservableObject
     private string _chatInput = string.Empty;
 
     [ObservableProperty]
-    private bool _isPollingEnabled = true;
+    private bool _isSessionActive = true;
 
     [ObservableProperty]
     private ParsedPatch? _aggregatePatch;
@@ -69,27 +70,36 @@ public partial class SessionsViewModel : ObservableObject
         // Simple polling to update the slow connection indicator
         _dispatcher.TryEnqueue(() =>
         {
-            var timer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            timer.Tick += (s, e) => IsSlowConnection = _api.IsSlowConnection;
-            timer.Start();
+            _slowConnectionTimer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _slowConnectionTimer.Tick += (s, e) => IsSlowConnection = _api.IsSlowConnection;
+            _slowConnectionTimer.Start();
         });
     }
 
     [RelayCommand]
-    public void TogglePolling()
+    public async Task ToggleSession()
     {
-        IsPollingEnabled = !IsPollingEnabled;
-        if (SelectedSession != null)
+        if (SelectedSession == null) return;
+
+        try
         {
-            if (IsPollingEnabled)
+            if (IsSessionActive)
             {
-                StartPolling(SelectedSession.Name);
-            }
-            else
-            {
+                await _api.PauseSessionAsync(SelectedSession.Name);
+                IsSessionActive = false;
                 _pollingSubscription?.Dispose();
                 _pollingSubscription = null;
             }
+            else
+            {
+                await _api.ResumeSessionAsync(SelectedSession.Name);
+                IsSessionActive = true;
+                StartPolling(SelectedSession.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VM] Failed to toggle session state: {ex.Message}");
         }
     }
 
@@ -174,6 +184,8 @@ public partial class SessionsViewModel : ObservableObject
         if (value?.Name == _lastSelectedSessionName) return;
         _lastSelectedSessionName = value?.Name;
 
+        IsSessionActive = value?.State != "PAUSED";
+
         _pollingSubscription?.Dispose();
         _loadedActivityIds.Clear();
         _seenArtifactIds.Clear();
@@ -191,8 +203,10 @@ public partial class SessionsViewModel : ObservableObject
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
             _ = LoadActivitiesAsync(value.Name);
-            IsPollingEnabled = true;
-            StartPolling(value.Name);
+            if (IsSessionActive)
+            {
+                StartPolling(value.Name);
+            }
         }
     }
 
@@ -463,5 +477,9 @@ public partial class SessionsViewModel : ObservableObject
         Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
     }
 
-    public void Cleanup() => _pollingSubscription?.Dispose();
+    public void Cleanup()
+    {
+        _pollingSubscription?.Dispose();
+        _slowConnectionTimer?.Stop();
+    }
 }

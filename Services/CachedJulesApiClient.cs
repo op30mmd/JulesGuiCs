@@ -105,6 +105,20 @@ public class CachedJulesApiClient : ICachedJulesApiClient, IDisposable
         return result;
     }
 
+    public async Task PauseSessionAsync(string id, CancellationToken ct = default)
+    {
+        await _inner.PauseSessionAsync(id, ct);
+        await _cache.RemoveAsync($"session:{id}", ct);
+        await _cache.RemoveAsync("sessions:all", ct);
+    }
+
+    public async Task ResumeSessionAsync(string id, CancellationToken ct = default)
+    {
+        await _inner.ResumeSessionAsync(id, ct);
+        await _cache.RemoveAsync($"session:{id}", ct);
+        await _cache.RemoveAsync("sessions:all", ct);
+    }
+
     public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default)
     {
         if (pageToken != null || filter != null)

@@ -318,10 +318,10 @@
                                 Command="{x:Bind ViewModel.ApprovePlanCommand}"
                                 Style="{StaticResource AccentButtonStyle}"/>
 
-                        <Button Command="{x:Bind ViewModel.TogglePollingCommand}"
-                                ToolTipService.ToolTip="{x:Bind ViewModel.IsPollingEnabled, Mode=OneWay, Converter={StaticResource PollingToTooltipConverter}}"
+                        <Button Command="{x:Bind ViewModel.ToggleSessionCommand}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.IsSessionActive, Mode=OneWay, Converter={StaticResource PollingToTooltipConverter}}"
                                 Background="Transparent" BorderThickness="0">
-                            <SymbolIcon Symbol="{x:Bind ViewModel.IsPollingEnabled, Mode=OneWay, Converter={StaticResource PollingToIconConverter}}"/>
+                            <SymbolIcon Symbol="{x:Bind ViewModel.IsSessionActive, Mode=OneWay, Converter={StaticResource PollingToIconConverter}}"/>
                         </Button>
 
                         <Button Command="{x:Bind ViewModel.CopySessionJsonCommand}"
