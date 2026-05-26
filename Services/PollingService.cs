@@ -88,7 +88,11 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                         Debug.WriteLine($"[POLLING] Error for {sid}: {ex.Message}");
                     }
 
-                    try { await Task.Delay(i, cts.Token); }
+                    try
+                    {
+                        var dynamicInterval = iv ?? (_settings.BandwidthSavingEnabled ? _slow : _def);
+                        await Task.Delay(dynamicInterval, cts.Token);
+                    }
                     catch (OperationCanceledException) { break; }
                 }
                 Debug.WriteLine($"[POLLING] Polling loop ended for {sid}");
