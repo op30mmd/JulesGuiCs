@@ -23,6 +23,8 @@ public class CachedJulesApiClient : ICachedJulesApiClient, IDisposable
         _cache = cache;
     }
 
+    public bool IsSlowConnection => _inner.IsSlowConnection;
+
     public async Task<SourceListResponse> ListSourcesAsync(string? pageToken = null, CancellationToken ct = default)
     {
         if (pageToken != null)

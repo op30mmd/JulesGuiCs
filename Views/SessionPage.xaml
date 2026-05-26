@@ -53,6 +53,8 @@
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
         <converters:DiffLineTypeToFontWeightConverter x:Key="DiffLineTypeToFontWeightConverter"/>
         <converters:DiffPrefixConverter x:Key="DiffPrefixConverter"/>
+        <converters:PollingToIconConverter x:Key="PollingToIconConverter"/>
+        <converters:PollingToTooltipConverter x:Key="PollingToTooltipConverter"/>
 
         <DataTemplate x:Key="ArtifactsTemplate" x:DataType="models:Artifact">
             <StackPanel Margin="0,1,0,0">
@@ -186,7 +188,7 @@
             DefaultMessageTemplate="{StaticResource DefaultMessageTemplate}"
             CodeReviewTemplate="{StaticResource CodeReviewTemplate}"/>
 
-        <DataTemplate x:Key="DiffDisplayItemTemplate" x:DataType="svc:DiffDisplayItem">
+        <DataTemplate x:Key="DiffLineTemplate" x:DataType="vm:DiffLineViewModel">
             <Grid Background="{x:Bind Type, Converter={StaticResource DiffLineTypeToColorConverter}}" Padding="2,1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
@@ -199,6 +201,33 @@
                 <TextBlock Grid.Column="2" Text="{x:Bind Type, Converter={StaticResource DiffPrefixConverter}}" FontFamily="Consolas" FontSize="11" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7"/>
                 <TextBlock Grid.Column="3" Text="{x:Bind Content}" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" FontWeight="{x:Bind Type, Converter={StaticResource DiffLineTypeToFontWeightConverter}}" Foreground="{x:Bind Type, Converter={StaticResource DiffLineTypeToForegroundConverter}}" VerticalAlignment="Center"/>
             </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DiffHunkTemplate" x:DataType="vm:DiffHunkViewModel">
+            <StackPanel>
+                <Grid Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}" Padding="4,2">
+                    <TextBlock Text="{x:Bind Header}" FontFamily="Consolas" FontSize="11" Opacity="0.6"/>
+                </Grid>
+                <ItemsControl ItemsSource="{x:Bind Lines}" ItemTemplate="{StaticResource DiffLineTemplate}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DiffFileTemplate" x:DataType="vm:DiffFileViewModel">
+            <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,2">
+                <Expander.Header>
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="1" Text="{x:Bind Stats}" Foreground="{ThemeResource SystemAccentColor}" Margin="12,0,0,0"/>
+                    </Grid>
+                </Expander.Header>
+                <Expander.Content>
+                    <ItemsControl ItemsSource="{x:Bind Hunks}" ItemTemplate="{StaticResource DiffHunkTemplate}"/>
+                </Expander.Content>
+            </Expander>
         </DataTemplate>
 
     </Page.Resources>
@@ -266,9 +295,21 @@
                 <StackPanel Grid.Row="0" Padding="16,12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Spacing="8">
                     <TextBlock Text="{x:Bind ViewModel.SelectedSession.Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Visibility="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
-                        <SymbolIcon Symbol="Map" Foreground="{ThemeResource SystemAccentColor}" Opacity="0.7"/>
-                        <TextBlock Text="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" Opacity="0.7"/>
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="4" Visibility="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                            <SymbolIcon Symbol="Map" Foreground="{ThemeResource SystemAccentColor}" Opacity="0.7"/>
+                            <TextBlock Text="{x:Bind ViewModel.SelectedSession.SourceContext.StartingBranch, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" Opacity="0.7"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="4" Visibility="{x:Bind ViewModel.ActivePullRequest, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                            <SymbolIcon Symbol="Link" Foreground="{ThemeResource SystemAccentColor}" Opacity="0.7"/>
+                            <HyperlinkButton Content="View Pull Request" NavigateUri="{x:Bind ViewModel.ActivePullRequest.Url, Mode=OneWay}" Padding="0" VerticalAlignment="Center" FontSize="12" Opacity="0.8"/>
+                        </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Visibility="{x:Bind ViewModel.IsSlowConnection, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <SymbolIcon Symbol="World" Foreground="Orange" Opacity="0.8"/>
+                        <TextBlock Text="Low Bandwidth Mode" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Orange" VerticalAlignment="Center" Opacity="0.8"/>
+                    </StackPanel>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -276,6 +317,12 @@
                                 Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
                                 Command="{x:Bind ViewModel.ApprovePlanCommand}"
                                 Style="{StaticResource AccentButtonStyle}"/>
+
+                        <Button Command="{x:Bind ViewModel.TogglePollingCommand}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.IsPollingEnabled, Mode=OneWay, Converter={StaticResource PollingToTooltipConverter}}"
+                                Background="Transparent" BorderThickness="0">
+                            <SymbolIcon Symbol="{x:Bind ViewModel.IsPollingEnabled, Mode=OneWay, Converter={StaticResource PollingToIconConverter}}"/>
+                        </Button>
 
                         <Button Command="{x:Bind ViewModel.CopySessionJsonCommand}"
                                 ToolTipService.ToolTip="Copy Session JSON"
@@ -304,8 +351,8 @@
                     </TabViewItem>
                     <TabViewItem Header="Diff" IsClosable="False" Visibility="{x:Bind ViewModel.AggregatePatch, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
                         <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
-                            <ListView ItemsSource="{x:Bind ViewModel.FlattenedDiff}"
-                                      ItemTemplate="{StaticResource DiffDisplayItemTemplate}"
+                            <ListView ItemsSource="{x:Bind ViewModel.DiffFiles}"
+                                      ItemTemplate="{StaticResource DiffFileTemplate}"
                                       SelectionMode="None">
                                 <ListView.ItemContainerStyle>
                                     <Style TargetType="ListViewItem">

@@ -10,6 +10,8 @@ public class PollingServiceTests
     public async Task PollingService_PassesLastTimestampToApi()
     {
         var mockApi = new Mock<IJulesApiClient>();
+        var mockSettings = new Mock<ISettingsService>();
+        mockSettings.Setup(s => s.BandwidthSavingEnabled).Returns(false);
         var sessionId = "sessions/123";
         var timestamp = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         var timestampStr = timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
@@ -30,7 +32,7 @@ public class PollingServiceTests
         mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 20, null, $"create_time > \"{timestampStr}\"", It.IsAny<CancellationToken>()))
             .ReturnsAsync(secondResponse);
 
-        var pollingService = new PollingService(mockApi.Object);
+        var pollingService = new PollingService(mockApi.Object, mockSettings.Object);
 
         var received = new List<ActivityListResponse>();
         using var subscription = pollingService.StartPolling(sessionId, resp => received.Add(resp), TimeSpan.FromMilliseconds(100));
@@ -45,12 +47,14 @@ public class PollingServiceTests
     public async Task PollingService_StartsImmediately()
     {
         var mockApi = new Mock<IJulesApiClient>();
+        var mockSettings = new Mock<ISettingsService>();
+        mockSettings.Setup(s => s.BandwidthSavingEnabled).Returns(false);
         var sessionId = "sessions/immediate";
 
         mockApi.Setup(a => a.ListActivitiesAsync(sessionId, 20, null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ActivityListResponse(new List<Activity>(), null));
 
-        var pollingService = new PollingService(mockApi.Object);
+        var pollingService = new PollingService(mockApi.Object, mockSettings.Object);
         var called = false;
 
         using var subscription = pollingService.StartPolling(sessionId, _ => called = true, TimeSpan.FromSeconds(60));
