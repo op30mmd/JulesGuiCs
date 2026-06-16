@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 
+#pragma warning disable CS1998 // Async method lacks 'await' in non-Windows builds
+
 namespace JulesClient.Services;
 
 public interface ICacheService
