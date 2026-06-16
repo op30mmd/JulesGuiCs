@@ -12,6 +12,8 @@
             <svc:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
             <svc:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <svc:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <svc:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"/>
+            <svc:InvertedStringToVisibilityConverter x:Key="InvertedStringToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

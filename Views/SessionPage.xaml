@@ -9,45 +9,12 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
-        <Style x:Key="SessionItemStyle" TargetType="ListViewItem">
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="2,2,2,2"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListViewItem">
-                        <ListViewItemPresenter
-                            ContentTransitions="{TemplateBinding ContentTransitions}"
-                            SelectionCheckMarkVisualEnabled="False"
-                            CheckMode="Inline"
-                            ContentMargin="{TemplateBinding Padding}"
-                            Control.IsTemplateFocusTarget="True"
-                            FocusVisualMargin="0"
-                            PointerOverBackground="{ThemeResource SystemControlHighlightListLowBrush}"
-                            SelectedBackground="{ThemeResource SystemControlHighlightListAccentLowBrush}"
-                            SelectedPointerOverBackground="{ThemeResource SystemControlHighlightListAccentMediumBrush}"
-                            PressedBackground="{ThemeResource SystemControlHighlightListMediumBrush}"
-                            SelectedPressedBackground="{ThemeResource SystemControlHighlightListAccentHighBrush}"
-                            CornerRadius="{TemplateBinding CornerRadius}"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <converters:OriginatorToAlignmentConverter x:Key="OriginatorToAlignmentConverter"/>
         <converters:OriginatorToColorConverter x:Key="OriginatorToColorConverter"/>
         <converters:OriginatorToMaxWidthConverter x:Key="OriginatorToMaxWidthConverter"/>
         <converters:OriginatorToBorderThicknessConverter x:Key="OriginatorToBorderThicknessConverter"/>
         <converters:OriginatorToBorderBrushConverter x:Key="OriginatorToBorderBrushConverter"/>
         <converters:Base64ToImageSourceConverter x:Key="Base64ToImageSourceConverter"/>
-        <converters:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <converters:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"/>
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-        <converters:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
         <converters:DateTimeToTimeConverter x:Key="DateTimeToTimeConverter"/>
         <converters:DiffLineTypeToColorConverter x:Key="DiffLineTypeToColorConverter"/>
         <converters:DiffLineTypeToForegroundConverter x:Key="DiffLineTypeToForegroundConverter"/>
@@ -228,8 +195,15 @@
             </Grid>
 
             <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Sessions}"
-                      SelectedItem="{x:Bind ViewModel.SelectedSession, Mode=TwoWay}"
-                      ItemContainerStyle="{StaticResource SessionItemStyle}">
+                      SelectedItem="{x:Bind ViewModel.SelectedSession, Mode=TwoWay}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="2,2,2,2"/>
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Session">
                         <Grid Padding="14,10" RowSpacing="2">
