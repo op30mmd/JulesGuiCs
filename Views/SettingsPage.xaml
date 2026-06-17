@@ -41,6 +41,22 @@
 
                 <Rectangle Height="1" Fill="{ThemeResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
 
+                <TextBlock Text="Bandwidth Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Bandwidth Saving Mode" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <ComboBox x:Name="BandwidthModeComboBox" SelectedIndex="{x:Bind BandwidthModeToInt(ViewModel.BandwidthMode), Mode=OneWay}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="Disabled"/>
+                        <ComboBoxItem Content="Manual (Always On)"/>
+                        <ComboBoxItem Content="Auto (Based on Latency)"/>
+                    </ComboBox>
+                    <TextBlock Text="Slow connection detection (average > 2s) will automatically enable bandwidth saving in Auto mode."
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+                </StackPanel>
+
+                <Rectangle Height="1" Fill="{ThemeResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
+
                 <TextBlock Text="Proxy Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
                 <StackPanel Spacing="8">

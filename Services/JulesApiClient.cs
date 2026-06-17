@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Linq;
 using System.Text.Json;
 using JulesClient.Models;
 using System.Reactive.Linq;
@@ -10,11 +11,14 @@ namespace JulesClient.Services;
 
 public interface IJulesApiClient
 {
+    bool IsSlowConnection { get; }
     Task<SourceListResponse> ListSourcesAsync(string? pageToken = null, CancellationToken ct = default);
     Task<Session> CreateSessionAsync(CreateSessionRequest req, CancellationToken ct = default);
     Task<SessionListResponse> ListSessionsAsync(int pageSize = 5, string? pageToken = null, CancellationToken ct = default);
     Task<Session> GetSessionAsync(string id, CancellationToken ct = default);
     Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default);
+    Task PauseSessionAsync(string id, CancellationToken ct = default);
+    Task ResumeSessionAsync(string id, CancellationToken ct = default);
     Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default);
     Task<SendMessageResponse> SendMessageAsync(string sid, string prompt, CancellationToken ct = default);
     IObservable<ActivityListResponse> PollActivitiesAsync(string sid, TimeSpan interval, CancellationToken ct = default);
@@ -35,14 +39,46 @@ public class JulesApiClient : IJulesApiClient, IDisposable
     private const int MaxRetries = 3;
     private const double RetryBackoffMs = 1000;
 
+    public bool IsSlowConnection { get; private set; }
+    private readonly List<long> _latencies = new();
+    private const int LatencyWindow = 5;
+    private const long SlowThresholdMs = 2000;
+
+    private void RecordLatency(long ms)
+    {
+        lock (_latencies)
+        {
+            _latencies.Add(ms);
+            if (_latencies.Count > LatencyWindow) _latencies.RemoveAt(0);
+
+            if (_latencies.Count == LatencyWindow)
+            {
+                var avg = _latencies.Average();
+                IsSlowConnection = avg > SlowThresholdMs;
+
+                if (_settings.BandwidthMode == BandwidthMode.Auto)
+                {
+                    if (_settings.BandwidthSavingEnabled != IsSlowConnection)
+                    {
+                        _settings.BandwidthSavingEnabled = IsSlowConnection;
+                    }
+                }
+            }
+        }
+    }
+
     private async Task<T> ExecuteWithRetryAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
     {
         int attempt = 0;
         while (true)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
-                return await operation(ct);
+                var result = await operation(ct);
+                sw.Stop();
+                RecordLatency(sw.ElapsedMilliseconds);
+                return result;
             }
             catch (Exception ex) when (ex is not OperationCanceledException && attempt < MaxRetries)
             {
@@ -186,6 +222,28 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             var r = await _http.PostAsync($"{id}:approvePlan", null, token);
             await HandleErrorResponse(r, token);
             return await r.Content.ReadFromJsonAsync<ApprovePlanResponse>(_json, token) ?? new ApprovePlanResponse();
+        }, ct);
+    }
+    public async Task PauseSessionAsync(string id, CancellationToken ct = default)
+    {
+        await ExecuteWithRetryAsync<object?>(async (token) =>
+        {
+            ApplyKey();
+            Debug.WriteLine($"[API] POST {id}:pause");
+            var r = await _http.PostAsync($"{id}:pause", null, token);
+            await HandleErrorResponse(r, token);
+            return null;
+        }, ct);
+    }
+    public async Task ResumeSessionAsync(string id, CancellationToken ct = default)
+    {
+        await ExecuteWithRetryAsync<object?>(async (token) =>
+        {
+            ApplyKey();
+            Debug.WriteLine($"[API] POST {id}:resume");
+            var r = await _http.PostAsync($"{id}:resume", null, token);
+            await HandleErrorResponse(r, token);
+            return null;
         }, ct);
     }
     public async Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default)

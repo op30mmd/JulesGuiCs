@@ -15,15 +15,21 @@ public interface IPollingService
 public class PollingService : ObservableObject, IPollingService, IDisposable
 {
     private readonly IJulesApiClient _api;
+    private readonly ISettingsService _settings;
     private readonly Dictionary<string, IDisposable> _pollers = new();
     private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
+    private readonly TimeSpan _slow = TimeSpan.FromSeconds(30);
 
-    public PollingService(IJulesApiClient api) => _api = api;
+    public PollingService(IJulesApiClient api, ISettingsService settings)
+    {
+        _api = api;
+        _settings = settings;
+    }
 
     public IDisposable StartPolling(string sid, Action<ActivityListResponse> onRecv, TimeSpan? iv = null)
     {
         StopPolling(sid);
-        var i = iv ?? _def;
+        var i = iv ?? (_settings.BandwidthSavingEnabled ? _slow : _def);
         Debug.WriteLine($"[POLLING] Starting poll for {sid} every {i.TotalSeconds}s");
 
         var p = Observable.Create<ActivityListResponse>(obs =>
@@ -47,8 +53,9 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                                 ? $"create_time > \"{lastTimestamp:yyyy-MM-ddTHH:mm:ss.fffZ}\""
                                 : null;
 
-                            Debug.WriteLine($"[POLLING] Requesting activities for {sid} (filter: {filter ?? "none"})");
-                            var resp = await _api.ListActivitiesAsync(sid, 20, pageToken: pageToken, filter: filter, ct: cts.Token);
+                            int pageSize = _settings.BandwidthSavingEnabled ? 10 : 20;
+                            Debug.WriteLine($"[POLLING] Requesting activities for {sid} (filter: {filter ?? "none"}, pageSize: {pageSize})");
+                            var resp = await _api.ListActivitiesAsync(sid, pageSize, pageToken: pageToken, filter: filter, ct: cts.Token);
 
                             if (firstResp == null) firstResp = resp;
                             if (resp?.Activities != null)
@@ -81,7 +88,11 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
                         Debug.WriteLine($"[POLLING] Error for {sid}: {ex.Message}");
                     }
 
-                    try { await Task.Delay(i, cts.Token); }
+                    try
+                    {
+                        var dynamicInterval = iv ?? (_settings.BandwidthSavingEnabled ? _slow : _def);
+                        await Task.Delay(dynamicInterval, cts.Token);
+                    }
                     catch (OperationCanceledException) { break; }
                 }
                 Debug.WriteLine($"[POLLING] Polling loop ended for {sid}");

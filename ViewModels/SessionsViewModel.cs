@@ -11,6 +11,7 @@ public partial class SessionsViewModel : ObservableObject
     private readonly ICachedJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
+    private Microsoft.UI.Xaml.DispatcherTimer? _slowConnectionTimer;
     private readonly DispatcherQueue _dispatcher;
     private readonly HashSet<string> _loadedActivityIds = new();
     private readonly HashSet<string> _seenArtifactIds = new();
@@ -20,13 +21,40 @@ public partial class SessionsViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActivePullRequest))]
     private Session? _selectedSession;
+
+    public PullRequest? ActivePullRequest
+    {
+        get
+        {
+            var pr = SelectedSession?.Outputs?.FirstOrDefault(o => o.PullRequest != null)?.PullRequest;
+            if (pr != null) return pr;
+
+            foreach (var a in Activities)
+            {
+                if (a.PullRequest != null) return a.PullRequest;
+                if (a.Artifacts != null)
+                {
+                    var artPr = a.Artifacts.FirstOrDefault(art => art.PullRequest != null)?.PullRequest;
+                    if (artPr != null) return artPr;
+                }
+            }
+            return null;
+        }
+    }
 
     [ObservableProperty]
     private string _chatInput = string.Empty;
 
     [ObservableProperty]
+    private bool _isSessionActive = true;
+
+    [ObservableProperty]
     private ParsedPatch? _aggregatePatch;
+
+    [ObservableProperty]
+    private bool _isSlowConnection;
 
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
@@ -38,6 +66,41 @@ public partial class SessionsViewModel : ObservableObject
         _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
         _dispatcher = DispatcherQueue.GetForCurrentThread();
+
+        // Simple polling to update the slow connection indicator
+        _dispatcher.TryEnqueue(() =>
+        {
+            _slowConnectionTimer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _slowConnectionTimer.Tick += (s, e) => IsSlowConnection = _api.IsSlowConnection;
+            _slowConnectionTimer.Start();
+        });
+    }
+
+    [RelayCommand]
+    public async Task ToggleSession()
+    {
+        if (SelectedSession == null) return;
+
+        try
+        {
+            if (IsSessionActive)
+            {
+                await _api.PauseSessionAsync(SelectedSession.Name);
+                IsSessionActive = false;
+                _pollingSubscription?.Dispose();
+                _pollingSubscription = null;
+            }
+            else
+            {
+                await _api.ResumeSessionAsync(SelectedSession.Name);
+                IsSessionActive = true;
+                StartPolling(SelectedSession.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VM] Failed to toggle session state: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -121,6 +184,8 @@ public partial class SessionsViewModel : ObservableObject
         if (value?.Name == _lastSelectedSessionName) return;
         _lastSelectedSessionName = value?.Name;
 
+        IsSessionActive = value?.State != "PAUSED";
+
         _pollingSubscription?.Dispose();
         _loadedActivityIds.Clear();
         _seenArtifactIds.Clear();
@@ -138,44 +203,58 @@ public partial class SessionsViewModel : ObservableObject
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
             _ = LoadActivitiesAsync(value.Name);
-            _pollingSubscription = _polling.StartPolling(value.Name, resp =>
+            if (IsSessionActive)
             {
-                _dispatcher.TryEnqueue(() =>
-                {
-                    bool changed = false;
-                    if (resp.Activities != null)
-                    {
-                        foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? DateTime.MinValue))
-                        {
-                            if (_loadedActivityIds.Add(activity.Name))
-                            {
-                                var processed = ProcessActivity(activity);
-                                if (processed != null)
-                                {
-                                    if (processed.Originator == "user" && !string.IsNullOrEmpty(processed.UserMessage?.Prompt))
-                                    {
-                                        var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == processed.UserMessage.Prompt);
-                                        if (local != null)
-                                        {
-                                            Activities.Remove(local);
-                                            _loadedActivityIds.Remove(local.Name);
-                                        }
-                                    }
+                StartPolling(value.Name);
+            }
+        }
+    }
 
-                                    Debug.WriteLine($"[VM] New activity: {processed.Name} from {processed.Originator}");
-                                    Activities.Add(processed);
-                                    changed = true;
+    private void StartPolling(string sessionId)
+    {
+        _pollingSubscription?.Dispose();
+        _pollingSubscription = _polling.StartPolling(sessionId, resp =>
+        {
+            _dispatcher.TryEnqueue(() =>
+            {
+                bool changed = false;
+                if (resp.Activities != null)
+                {
+                    foreach (var activity in resp.Activities.OrderBy(a => a.CreateTime ?? DateTime.MinValue))
+                    {
+                        if (_loadedActivityIds.Add(activity.Name))
+                        {
+                            var processed = ProcessActivity(activity);
+                            if (processed != null)
+                            {
+                                if (processed.Originator == "user" && !string.IsNullOrEmpty(processed.UserMessage?.Prompt))
+                                {
+                                    var local = Activities.FirstOrDefault(a => a.Name.StartsWith("local_") && a.UserMessage?.Prompt == processed.UserMessage.Prompt);
+                                    if (local != null)
+                                    {
+                                        Activities.Remove(local);
+                                        _loadedActivityIds.Remove(local.Name);
+                                    }
+                                }
+
+                                Debug.WriteLine($"[VM] New activity: {processed.Name} from {processed.Originator}");
+                                Activities.Add(processed);
+                                changed = true;
+
+                                if (processed.PullRequest != null || processed.Artifacts?.Any(art => art.PullRequest != null) == true)
+                                {
+                                    OnPropertyChanged(nameof(ActivePullRequest));
                                 }
                             }
                         }
-                        if (changed)
-                        {
-                            UpdateAggregatePatch();
-                        }
                     }
-                });
+                    if (changed)
+                    {
+                        UpdateAggregatePatch();
+                    }
+                }
             });
-        }
+        });
     }
 
     private async Task LoadActivitiesAsync(string sessionId)
@@ -218,6 +297,7 @@ public partial class SessionsViewModel : ObservableObject
                         }
                     }
                 }
+                OnPropertyChanged(nameof(ActivePullRequest));
                 UpdateAggregatePatch();
             });
         }
@@ -377,7 +457,12 @@ public partial class SessionsViewModel : ObservableObject
 
         AggregatePatch = merged;
         DiffFiles.Clear();
-        foreach (var fileNode in fileTree) DiffFiles.Add(new DiffFileViewModel(fileNode));
+        foreach (var fileNode in fileTree)
+        {
+            var fileVm = new DiffFileViewModel(fileNode);
+            fileVm.LoadHunks();
+            DiffFiles.Add(fileVm);
+        }
 
         FlattenedDiff.Clear();
         foreach (var item in flattened) FlattenedDiff.Add(item);
@@ -392,5 +477,9 @@ public partial class SessionsViewModel : ObservableObject
         Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
     }
 
-    public void Cleanup() => _pollingSubscription?.Dispose();
+    public void Cleanup()
+    {
+        _pollingSubscription?.Dispose();
+        _slowConnectionTimer?.Stop();
+    }
 }

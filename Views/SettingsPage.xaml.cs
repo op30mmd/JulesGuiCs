@@ -19,6 +19,8 @@ public sealed partial class SettingsPage : Page
 
     private JulesClient.Services.ProxyMode IntToProxyMode(int val) => (JulesClient.Services.ProxyMode)val;
 
+    private int BandwidthModeToInt(JulesClient.Services.BandwidthMode mode) => (int)mode;
+
     private Visibility IsManualProxy(JulesClient.Services.ProxyMode mode) =>
         mode == JulesClient.Services.ProxyMode.Manual ? Visibility.Visible : Visibility.Collapsed;
 
@@ -27,6 +29,7 @@ public sealed partial class SettingsPage : Page
         ViewModel.ApiKey = ApiKeyPasswordBox.Password;
         ViewModel.ProxyPassword = ProxyPasswordBox.Password;
         ViewModel.ProxyMode = (JulesClient.Services.ProxyMode)ProxyModeComboBox.SelectedIndex;
+        ViewModel.BandwidthMode = (JulesClient.Services.BandwidthMode)BandwidthModeComboBox.SelectedIndex;
         ViewModel.Save();
 
         // After saving, we might need to notify the user or restart the client if proxy changed.

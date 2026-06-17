@@ -5,6 +5,8 @@ namespace JulesClient.Services;
 
 public class DemoJulesApiClient : IJulesApiClient
 {
+    public bool IsSlowConnection => false;
+
     private static readonly System.Text.Json.JsonSerializerOptions _json = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -141,6 +143,28 @@ public class DemoJulesApiClient : IJulesApiClient
     public Task<ApprovePlanResponse> ApprovePlanAsync(string id, CancellationToken ct = default)
     {
         return Task.FromResult(new ApprovePlanResponse());
+    }
+
+    public Task PauseSessionAsync(string id, CancellationToken ct = default)
+    {
+        var session = _sessions.FirstOrDefault(s => s.Name == id || s.Id == id);
+        if (session != null)
+        {
+            var idx = _sessions.IndexOf(session);
+            _sessions[idx] = session with { State = "PAUSED" };
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task ResumeSessionAsync(string id, CancellationToken ct = default)
+    {
+        var session = _sessions.FirstOrDefault(s => s.Name == id || s.Id == id);
+        if (session != null)
+        {
+            var idx = _sessions.IndexOf(session);
+            _sessions[idx] = session with { State = "ACTIVE" };
+        }
+        return Task.CompletedTask;
     }
 
     public Task<ActivityListResponse> ListActivitiesAsync(string sid, int pageSize = 10, string? pageToken = null, string? filter = null, CancellationToken ct = default)

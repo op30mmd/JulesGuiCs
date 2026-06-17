@@ -73,6 +73,20 @@ public class CollectionToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
 
+public class PollingToIconConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        (bool)value ? Symbol.Pause : Symbol.Play;
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
+public class PollingToTooltipConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        (bool)value ? "Pause Session" : "Continue Session";
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}
+
 public class DateTimeToTimeConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)

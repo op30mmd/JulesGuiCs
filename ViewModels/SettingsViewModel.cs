@@ -30,6 +30,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDemoMode;
 
+    [ObservableProperty]
+    private BandwidthMode _bandwidthMode;
+
+    [ObservableProperty]
+    private bool _bandwidthSavingEnabled;
+
     public SettingsViewModel()
     {
         _settings = App.Current.Services.GetRequiredService<ISettingsService>();
@@ -41,6 +47,8 @@ public partial class SettingsViewModel : ObservableObject
         _proxyUsername = _settings.ProxyUsername;
         _proxyPassword = _settings.ProxyPassword;
         _isDemoMode = _settings.IsDemoMode;
+        _bandwidthMode = _settings.BandwidthMode;
+        _bandwidthSavingEnabled = _settings.BandwidthSavingEnabled;
     }
 
     public void Save()
@@ -53,5 +61,7 @@ public partial class SettingsViewModel : ObservableObject
         _settings.ProxyUsername = ProxyUsername;
         _settings.ProxyPassword = ProxyPassword;
         _settings.IsDemoMode = IsDemoMode;
+        _settings.BandwidthMode = BandwidthMode;
+        _settings.BandwidthSavingEnabled = BandwidthSavingEnabled;
     }
 }

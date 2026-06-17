@@ -7,6 +7,13 @@ public enum ProxyMode
     System
 }
 
+public enum BandwidthMode
+{
+    None,
+    Manual,
+    Auto
+}
+
 public interface ISettingsService
 {
     string ApiKey { get; set; }
@@ -18,6 +25,8 @@ public interface ISettingsService
     string ProxyPassword { get; set; }
     bool ProxyBypassLocal { get; set; }
     bool IsDemoMode { get; set; }
+    BandwidthMode BandwidthMode { get; set; }
+    bool BandwidthSavingEnabled { get; set; }
 }
 
 public class SettingsService : ISettingsService
@@ -32,6 +41,8 @@ public class SettingsService : ISettingsService
     private const string ProxyPasswordSetting = "ProxyPassword";
     private const string ProxyBypassLocalSetting = "ProxyBypassLocal";
     private const string IsDemoModeSetting = "IsDemoMode";
+    private const string BandwidthModeSetting = "BandwidthMode";
+    private const string BandwidthSavingEnabledSetting = "BandwidthSavingEnabled";
 
     private readonly Windows.Storage.ApplicationDataContainer _localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -97,6 +108,18 @@ public class SettingsService : ISettingsService
         get => _localSettings.Values[IsDemoModeSetting] as bool? ?? false;
         set => _localSettings.Values[IsDemoModeSetting] = value;
     }
+
+    public BandwidthMode BandwidthMode
+    {
+        get => (BandwidthMode)(_localSettings.Values[BandwidthModeSetting] as int? ?? (int)BandwidthMode.None);
+        set => _localSettings.Values[BandwidthModeSetting] = (int)value;
+    }
+
+    public bool BandwidthSavingEnabled
+    {
+        get => _localSettings.Values[BandwidthSavingEnabledSetting] as bool? ?? false;
+        set => _localSettings.Values[BandwidthSavingEnabledSetting] = value;
+    }
 #else
     public string ApiKey { get; set; } = string.Empty;
     public ProxyMode ProxyMode { get; set; } = ProxyMode.None;
@@ -107,5 +130,7 @@ public class SettingsService : ISettingsService
     public string ProxyPassword { get; set; } = string.Empty;
     public bool ProxyBypassLocal { get; set; } = true;
     public bool IsDemoMode { get; set; } = false;
+    public BandwidthMode BandwidthMode { get; set; } = BandwidthMode.None;
+    public bool BandwidthSavingEnabled { get; set; } = false;
 #endif
 }
