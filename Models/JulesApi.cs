@@ -17,7 +17,14 @@ public record Source(
 
 public record GitHubRepo(
     [property: JsonPropertyName("owner")] string? Owner = null,
-    [property: JsonPropertyName("repo")] string? Repo = null
+    [property: JsonPropertyName("repo")] string? Repo = null,
+    [property: JsonPropertyName("isPrivate")] bool? IsPrivate = null,
+    [property: JsonPropertyName("defaultBranch")] GitHubBranch? DefaultBranch = null,
+    [property: JsonPropertyName("branches")] List<GitHubBranch>? Branches = null
+);
+
+public record GitHubBranch(
+    [property: JsonPropertyName("displayName")] string? DisplayName = null
 );
 
 public record SessionListResponse(
@@ -126,6 +133,7 @@ public record Activity(
     [property: JsonPropertyName("userMessage")] UserMessage? UserMessage = null,
     [property: JsonPropertyName("agentMessage")] AgentMessage? AgentMessage = null,
     [property: JsonPropertyName("userMessaged")] UserMessaged? UserMessaged = null,
+    [property: JsonPropertyName("agentMessaged")] AgentMessaged? AgentMessaged = null,
     [property: JsonPropertyName("review")] Review? Review = null,
     [property: JsonPropertyName("text")] string? Text = null,
     [property: JsonPropertyName("prompt")] string? Prompt = null,
@@ -180,6 +188,7 @@ public record Activity(
 
             bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
                                    PlanApproved != null ||
@@ -219,6 +228,7 @@ public record Activity(
 
             bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
                                    PlanApproved != null ||
@@ -247,6 +257,7 @@ public record Activity(
 
             bool hasAgentContent = !string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
                                    !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                                   !string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage) ||
                                    !string.IsNullOrWhiteSpace(Review?.Summary) ||
                                    !string.IsNullOrWhiteSpace(SessionFailed?.Reason) ||
                                    !string.IsNullOrWhiteSpace(Text) ||
@@ -264,6 +275,11 @@ public record Activity(
                 if (!string.IsNullOrWhiteSpace(AgentMessage?.Text))
                 {
                     return _cachedDisplayText = AgentMessage.Text;
+                }
+
+                if (!string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage))
+                {
+                    return _cachedDisplayText = AgentMessaged.AgentMessage;
                 }
 
                 if (!string.IsNullOrWhiteSpace(Review?.Summary))
@@ -492,6 +508,8 @@ public record UserMessage(
 
 public record UserMessaged([property: JsonPropertyName("userMessage")] string? UserMessage = null);
 
+public record AgentMessaged([property: JsonPropertyName("agentMessage")] string? AgentMessage = null);
+
 public record AgentMessage(
     [property: JsonPropertyName("message")] string? Message = null,
     [property: JsonPropertyName("text")] string? Text = null
@@ -543,7 +561,7 @@ public record ChangeSet(
 )
 {
     [JsonIgnore]
-    public bool HasData => false;
+    public bool HasData => !string.IsNullOrWhiteSpace(GitPatch?.UnidiffPatch);
 }
 
 public record GitPatch(
