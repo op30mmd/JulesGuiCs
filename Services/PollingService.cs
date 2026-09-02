@@ -16,14 +16,13 @@ public class PollingService : ObservableObject, IPollingService, IDisposable
 {
     private readonly IJulesApiClient _api;
     private readonly Dictionary<string, IDisposable> _pollers = new();
-    private readonly TimeSpan _def = TimeSpan.FromSeconds(10);
 
     public PollingService(IJulesApiClient api) => _api = api;
 
     public IDisposable StartPolling(string sid, Action<ActivityListResponse> onRecv, TimeSpan? iv = null)
     {
         StopPolling(sid);
-        var i = iv ?? _def;
+        var i = iv ?? TimeSpan.FromSeconds(Math.Clamp(AppSettings.PollingIntervalSeconds, 3, 120));
         Debug.WriteLine($"[POLLING] Starting poll for {sid} every {i.TotalSeconds}s");
 
         var p = Observable.Create<ActivityListResponse>(obs =>

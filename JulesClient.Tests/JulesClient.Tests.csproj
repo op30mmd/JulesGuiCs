@@ -23,7 +23,12 @@
     <Compile Include="../Services/JulesApiClient.cs" Link="Services/JulesApiClient.cs" />
     <Compile Include="../Services/PollingService.cs" Link="Services/PollingService.cs" />
     <Compile Include="../Services/SettingsService.cs" Link="Services/SettingsService.cs" />
+    <Compile Include="../Services/AppSettings.cs" Link="Services/AppSettings.cs" />
     <Compile Include="../Services/CacheService.cs" Link="Services/CacheService.cs" />
+    <Compile Include="../Services/MarkdownInline.cs" Link="Services/MarkdownInline.cs" />
+    <Compile Include="../Services/CodeHighlighter.cs" Link="Services/CodeHighlighter.cs" />
+    <Compile Include="../Services/MarkdownConflict.cs" Link="Services/MarkdownConflict.cs" />
+    <Compile Include="../Services/MarkdownText.cs" Link="Services/MarkdownText.cs" />
     <Compile Include="../Services/CachedJulesApiClient.cs" Link="Services/CachedJulesApiClient.cs" />
     <Compile Include="../Services/DiffParser.cs" Link="Services/DiffParser.cs" />
   </ItemGroup>

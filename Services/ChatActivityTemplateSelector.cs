@@ -8,13 +8,15 @@ public class ChatActivityTemplateSelector : DataTemplateSelector
 {
     public DataTemplate DefaultMessageTemplate { get; set; } = null!;
     public DataTemplate CodeReviewTemplate { get; set; } = null!;
+    public DataTemplate SystemEventTemplate { get; set; } = null!;
 
     protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
     {
         if (item is Activity activity)
         {
-            // Switch styles entirely based on whether it is a Code Review
-            return activity.IsReview ? CodeReviewTemplate : DefaultMessageTemplate;
+            if (activity.IsSystemEvent && SystemEventTemplate != null) return SystemEventTemplate;
+            if (activity.IsReview) return CodeReviewTemplate;
+            return DefaultMessageTemplate;
         }
         return DefaultMessageTemplate;
     }

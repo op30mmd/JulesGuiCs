@@ -28,10 +28,18 @@ public partial class SessionsViewModel : ObservableObject
     [ObservableProperty]
     private ParsedPatch? _aggregatePatch;
 
+    [ObservableProperty]
+    private string _diffSummary = string.Empty;
+
+    [ObservableProperty]
+    private string _diffAddedLabel = string.Empty;
+
+    [ObservableProperty]
+    private string _diffRemovedLabel = string.Empty;
+
     public ObservableCollection<Session> Sessions { get; } = new();
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
     public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
-    public ObservableCollection<DiffDisplayItem> FlattenedDiff { get; } = new();
 
     public SessionsViewModel()
     {
@@ -70,6 +78,12 @@ public partial class SessionsViewModel : ObservableObject
             }
             while (pageToken != null);
 
+            var cap = AppSettings.MaxSessionsShown;
+            if (cap > 0 && allSessions.Count > cap)
+            {
+                allSessions = allSessions.Take(cap).ToList();
+            }
+
             _dispatcher.TryEnqueue(() =>
             {
                 SyncSessions(allSessions);
@@ -87,8 +101,8 @@ public partial class SessionsViewModel : ObservableObject
 
     private void SyncSessions(List<Session> freshSessions)
     {
-        var existingIds = Sessions.Select(s => s.Name).ToHashSet();
         var freshIds = freshSessions.Select(s => s.Name).ToHashSet();
+        var byName = Sessions.ToDictionary(s => s.Name);
 
         foreach (var session in Sessions.Where(s => !freshIds.Contains(s.Name)).ToList())
         {
@@ -97,15 +111,14 @@ public partial class SessionsViewModel : ObservableObject
 
         foreach (var fresh in freshSessions)
         {
-            var existing = Sessions.FirstOrDefault(s => s.Name == fresh.Name);
-            if (existing == null)
+            if (!byName.TryGetValue(fresh.Name, out var existing))
             {
                 Sessions.Add(fresh);
             }
-            else
+            else if (!existing.Equals(fresh))
             {
-                var idx = Sessions.IndexOf(existing);
-                Sessions[idx] = fresh;
+                // Only swap the row (and force a UI rebuild) when data actually changed.
+                Sessions[Sessions.IndexOf(existing)] = fresh;
                 if (SelectedSession?.Name == fresh.Name)
                 {
                     SelectedSession = fresh;
@@ -129,8 +142,10 @@ public partial class SessionsViewModel : ObservableObject
         {
             Activities.Clear();
             DiffFiles.Clear();
-            FlattenedDiff.Clear();
             AggregatePatch = null;
+            DiffSummary = string.Empty;
+            DiffAddedLabel = string.Empty;
+            DiffRemovedLabel = string.Empty;
             _lastPatchSignature = string.Empty;
         });
 
@@ -326,6 +341,9 @@ public partial class SessionsViewModel : ObservableObject
     public async Task SendMessageAsync()
     {
         if (SelectedSession == null || string.IsNullOrWhiteSpace(ChatInput)) return;
+
+        if (AppSettings.ConfirmBeforeSend && !await ConfirmSendAsync()) return;
+
         var msg = ChatInput;
         ChatInput = string.Empty;
 
@@ -340,6 +358,27 @@ public partial class SessionsViewModel : ObservableObject
 
         try { await _api.SendMessageAsync(SelectedSession.Name, msg); }
         catch (Exception ex) { Debug.WriteLine($"[VM] Failed to send message: {ex.Message}"); }
+    }
+
+    private static async Task<bool> ConfirmSendAsync()
+    {
+        try
+        {
+            var root = (App.MainWindow?.Content as Microsoft.UI.Xaml.FrameworkElement)?.XamlRoot;
+            if (root == null) return true;
+
+            var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+            {
+                Title = "Send message?",
+                Content = "Send this message to Jules?",
+                PrimaryButtonText = "Send",
+                CloseButtonText = "Cancel",
+                DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+                XamlRoot = root
+            };
+            return await dialog.ShowAsync() == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary;
+        }
+        catch { return true; }
     }
 
     [RelayCommand]
@@ -373,14 +412,26 @@ public partial class SessionsViewModel : ObservableObject
 
         var merged = DiffParser.Merge(_allSessionPatches);
         var fileTree = DiffParser.BuildFileTree(merged);
-        var flattened = DiffParser.Flatten(merged);
 
         AggregatePatch = merged;
-        DiffFiles.Clear();
-        foreach (var fileNode in fileTree) DiffFiles.Add(new DiffFileViewModel(fileNode));
 
-        FlattenedDiff.Clear();
-        foreach (var item in flattened) FlattenedDiff.Add(item);
+        DiffFiles.Clear();
+        int added = 0, removed = 0;
+        // Auto-open a diff that is a single, reasonably small file; otherwise
+        // start collapsed and let the per-file badges show the shape.
+        bool autoExpand = AppSettings.DiffAutoExpandSingleFile
+                          && fileTree.Count == 1
+                          && fileTree[0].TotalLines <= AppSettings.DiffAutoExpandMaxLines;
+        foreach (var fileNode in fileTree)
+        {
+            added += fileNode.AddedLines;
+            removed += fileNode.RemovedLines;
+            DiffFiles.Add(new DiffFileViewModel(fileNode) { IsExpanded = autoExpand });
+        }
+
+        DiffSummary = fileTree.Count == 1 ? "1 file changed" : $"{fileTree.Count} files changed";
+        DiffAddedLabel = $"+{added}";
+        DiffRemovedLabel = $"−{removed}"; // U+2212
     }
 
     [RelayCommand]

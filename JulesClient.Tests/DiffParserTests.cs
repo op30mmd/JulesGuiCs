@@ -43,22 +43,32 @@ public class DiffParserTests
     }
 
     [Fact]
-    public void Flatten_ParsedPatch_ReturnsFlattenedItems()
+    public void BuildFileTree_ComputesPerFileStats()
     {
         string patch = "diff --git a/file.txt b/file.txt\n" +
-                       "@@ -1,1 +1,1 @@\n" +
+                       "@@ -1,2 +1,3 @@\n" +
+                       " context\n" +
                        "-old\n" +
-                       "+new\n";
-        var parsed = DiffParser.Parse(patch);
+                       "+new1\n" +
+                       "+new2\n";
+        var tree = DiffParser.BuildFileTree(DiffParser.Parse(patch));
 
-        var flattened = DiffParser.Flatten(parsed).ToList();
+        Assert.Single(tree);
+        Assert.Equal("file.txt", tree[0].DisplayName);
+        Assert.Equal(2, tree[0].AddedLines);
+        Assert.Equal(1, tree[0].RemovedLines);
+        Assert.Equal(4, tree[0].TotalLines);
+    }
 
-        // 1 FileHeader, 1 HunkHeader, 2 Lines = 4 total
-        Assert.Equal(4, flattened.Count);
-        Assert.Equal(DiffLineType.FileHeader, flattened[0].Type);
-        Assert.Equal("file.txt", flattened[0].Content);
-        Assert.Equal(DiffLineType.HunkHeader, flattened[1].Type);
-        Assert.Equal(DiffLineType.Removed, flattened[2].Type);
-        Assert.Equal(DiffLineType.Added, flattened[3].Type);
+    [Fact]
+    public void DiffFileNode_ShowsRenameArrow()
+    {
+        string patch = "diff --git a/old/name.txt b/new/name.txt\n" +
+                       "@@ -1,1 +1,1 @@\n" +
+                       "-a\n" +
+                       "+b\n";
+        var tree = DiffParser.BuildFileTree(DiffParser.Parse(patch));
+
+        Assert.Equal("old/name.txt → new/name.txt", tree[0].DisplayName);
     }
 }

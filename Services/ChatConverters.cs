@@ -50,103 +50,46 @@ public class Base64ToImageSourceConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
 
-public class OriginatorToAlignmentConverter : IValueConverter
+// Selects the chat bubble's Style (alignment, background, border, max width) from
+// the message originator - one binding instead of five separate converters.
+public class OriginatorToBubbleStyleConverter : IValueConverter
 {
-    private static readonly object _right = HorizontalAlignment.Right;
-    private static readonly object _left = HorizontalAlignment.Left;
-    private static readonly object _stretch = HorizontalAlignment.Stretch;
-
-    public object Convert(object value, Type targetType, object parameter, string language)
-    {
-        try
-        {
-            string? originator = value as string;
-            if (string.Equals(originator, "review", StringComparison.OrdinalIgnoreCase)) return _stretch;
-            bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
-            return isUser ? _right : _left;
-        }
-        catch { return _left; }
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
-}
-
-public class OriginatorToColorConverter : IValueConverter
-{
-    private static Brush? _userBrush;
-    private static Brush? _agentBrush;
-    private static Brush? _reviewBrush;
-    private static readonly object _lock = new();
-
     public object? Convert(object value, Type targetType, object parameter, string language)
     {
+        var key = (value as string) switch
+        {
+            "user" => "UserBubbleStyle",
+            "review" => "ReviewBubbleStyle",
+            _ => "AgentBubbleStyle"
+        };
+
         try
         {
-            string? originator = value as string;
-            if (string.Equals(originator, "review", StringComparison.OrdinalIgnoreCase))
-            {
-                if (_reviewBrush != null) return _reviewBrush;
-                lock (_lock)
-                {
-                    if (_reviewBrush == null)
-                    {
-                        // Use a distinct light blue for reviews
-                        _reviewBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 230, 242, 255)); // #E6F2FF
-                    }
-                }
-                return _reviewBrush;
-            }
-
-            bool isUser = string.Equals(originator, "user", StringComparison.OrdinalIgnoreCase);
-
-            if (isUser)
-            {
-                if (_userBrush != null) return _userBrush;
-                lock (_lock)
-                {
-                    if (_userBrush == null)
-                    {
-                        _userBrush = BrushHelper.ResolveBrush("SystemAccentColor", Microsoft.UI.Colors.Blue);
-                    }
-                }
-                return _userBrush;
-            }
-            else
-            {
-                if (_agentBrush != null) return _agentBrush;
-                lock (_lock)
-                {
-                    if (_agentBrush == null)
-                    {
-                        _agentBrush = BrushHelper.ResolveBrush("SystemControlBackgroundChromeMediumLowBrush", Microsoft.UI.Colors.Gray);
-                    }
-                }
-                return _agentBrush;
-            }
+            if (Application.Current.Resources.TryGetValue(key, out var style) && style is Style s)
+                return s;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[CONVERTER] OriginatorToColor failed: {ex.Message}");
-            return new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            Debug.WriteLine($"[CONVERTER] OriginatorToBubbleStyle failed: {ex.Message}");
         }
+        return null;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
 
-internal static class BrushHelper
+// Friendly speaker label for the small caption above a bubble.
+public class OriginatorToLabelConverter : IValueConverter
 {
-    public static Brush ResolveBrush(string resourceKey, Windows.UI.Color fallback)
-    {
-        try
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        (value as string) switch
         {
-            if (Application.Current.Resources.TryGetValue(resourceKey, out var res))
-            {
-                if (res is Brush brush) return brush;
-                if (res is Windows.UI.Color color) return new SolidColorBrush(color);
-            }
-        }
-        catch { }
-        return new SolidColorBrush(fallback);
-    }
+            "user" => "You",
+            "agent" => "Jules",
+            "review" => "Code Review",
+            null or "" => string.Empty,
+            var other => char.ToUpperInvariant(other[0]) + other[1..]
+        };
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }

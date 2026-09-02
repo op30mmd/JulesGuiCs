@@ -4,74 +4,153 @@
     xmlns:vm="using:JulesClient.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.Resources>
+        <Style x:Key="SettingsGroupHeader" TargetType="TextBlock" BasedOn="{StaticResource SubtitleTextBlockStyle}">
+            <Setter Property="Margin" Value="0,18,0,4"/>
+        </Style>
+        <Style x:Key="SettingHint" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
+            <Setter Property="Foreground" Value="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+            <Setter Property="Margin" Value="0,-2,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Page.Resources>
+
     <ScrollViewer>
-        <Grid Margin="40">
-            <StackPanel Spacing="20" MaxWidth="500" HorizontalAlignment="Center">
+        <Grid Margin="40,32">
+            <StackPanel Spacing="6" MaxWidth="560" HorizontalAlignment="Center">
                 <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
 
+                <!-- ============ CONNECTION ============ -->
+                <TextBlock Text="Connection" Style="{StaticResource SettingsGroupHeader}"/>
+
                 <InfoBar Title="API Key Required"
-                         Message="Please enter your Jules API key to start using the client."
-                         IsOpen="True"
-                         Severity="Informational"
+                         Message="Enter your Jules API key to start using the client."
+                         IsOpen="True" Severity="Informational"
                          Visibility="{x:Bind ViewModel.ApiKey, Converter={StaticResource InvertedStringToVisibilityConverter}, Mode=OneWay}"
-                         Margin="0,0,0,10" />
+                         Margin="0,4"/>
 
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Jules API Key" Style="{StaticResource BodyTextBlockStyle}"/>
-                    <PasswordBox x:Name="ApiKeyPasswordBox"
-                                PlaceholderText="Enter your API key here"
-                                PasswordRevealMode="Peek"/>
-                    <TextBlock Text="The API key is stored locally in application settings."
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+                <TextBlock Text="Jules API key"/>
+                <PasswordBox x:Name="ApiKeyPasswordBox" PlaceholderText="Enter your API key" PasswordRevealMode="Peek"/>
+                <TextBlock Text="Stored locally in application settings." Style="{StaticResource SettingHint}"/>
+
+                <TextBlock Text="Request timeout (seconds)" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.RequestTimeoutSeconds, Mode=TwoWay}" Minimum="5" Maximum="120" StepFrequency="5" TickFrequency="15" TickPlacement="Outside"/>
+
+                <TextBlock Text="Retry attempts on failure" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.MaxRetries, Mode=TwoWay}" Minimum="0" Maximum="6" StepFrequency="1" TickFrequency="1" TickPlacement="Outside"/>
+
+                <!-- ============ APPEARANCE ============ -->
+                <TextBlock Text="Appearance" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <TextBlock Text="Theme"/>
+                <ComboBox SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Use system setting"/>
+                    <ComboBoxItem Content="Light"/>
+                    <ComboBoxItem Content="Dark"/>
+                </ComboBox>
+                <TextBlock Text="Applied immediately." Style="{StaticResource SettingHint}"/>
+
+                <!-- ============ CHAT & TEXT ============ -->
+                <TextBlock Text="Chat &amp; Text" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <TextBlock Text="Message font"/>
+                <TextBox Text="{x:Bind ViewModel.ChatFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Segoe UI Variable Text, Segoe UI"/>
+                <TextBlock Text="A comma-separated font stack; the first installed one is used. e.g. &quot;Segoe UI&quot;, &quot;Sitka Text, Georgia&quot;, &quot;Comic Sans MS&quot;." Style="{StaticResource SettingHint}"/>
+
+                <TextBlock Text="Message font size" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.ChatFontSize, Mode=TwoWay}" Minimum="11" Maximum="22" StepFrequency="0.5" TickFrequency="1" TickPlacement="Outside"/>
+
+                <TextBlock Text="Line spacing" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.ChatLineHeight, Mode=TwoWay}" Minimum="1.1" Maximum="2.2" StepFrequency="0.05" TickFrequency="0.1" TickPlacement="Outside"/>
+
+                <TextBlock Text="Code font" Margin="0,8,0,0"/>
+                <TextBox Text="{x:Bind ViewModel.CodeFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Consolas, Cascadia Mono, Courier New"/>
+
+                <TextBlock Text="Code font size" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.CodeFontSize, Mode=TwoWay}" Minimum="9" Maximum="18" StepFrequency="0.5" TickFrequency="1" TickPlacement="Outside"/>
+
+                <ToggleSwitch Header="Render Markdown" IsOn="{x:Bind ViewModel.MarkdownEnabled, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Syntax highlight code blocks" IsOn="{x:Bind ViewModel.SyntaxHighlighting, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Show code block language label" IsOn="{x:Bind ViewModel.ShowCodeLanguageLabel, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Show speaker labels" IsOn="{x:Bind ViewModel.ShowOriginatorLabels, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Show timestamps" IsOn="{x:Bind ViewModel.ShowTimestamps, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Auto-scroll to newest message" IsOn="{x:Bind ViewModel.AutoScrollChat, Mode=TwoWay}"/>
+                <TextBlock Text="Text options apply to messages rendered after saving (re-select the session to refresh)." Style="{StaticResource SettingHint}"/>
+
+                <!-- ============ SESSIONS ============ -->
+                <TextBlock Text="Sessions" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <TextBlock Text="Polling interval (seconds)"/>
+                <Slider Value="{x:Bind ViewModel.PollingIntervalSeconds, Mode=TwoWay}" Minimum="3" Maximum="60" StepFrequency="1" TickFrequency="5" TickPlacement="Outside"/>
+                <TextBlock Text="How often the open session checks for new activity." Style="{StaticResource SettingHint}"/>
+
+                <TextBlock Text="Max sessions shown (0 = all)" Margin="0,8,0,0"/>
+                <NumberBox Value="{x:Bind ViewModel.MaxSessionsShown, Mode=TwoWay}" Minimum="0" Maximum="500" SpinButtonPlacementMode="Compact"/>
+
+                <ToggleSwitch Header="New sessions require plan approval by default" IsOn="{x:Bind ViewModel.DefaultRequirePlanApproval, Mode=TwoWay}"/>
+                <ToggleSwitch Header="New sessions auto-create a PR by default" IsOn="{x:Bind ViewModel.DefaultAutoCreatePR, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Confirm before sending a message" IsOn="{x:Bind ViewModel.ConfirmBeforeSend, Mode=TwoWay}"/>
+
+                <!-- ============ DIFF VIEWER ============ -->
+                <TextBlock Text="Diff Viewer" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <TextBlock Text="Diff font size"/>
+                <Slider Value="{x:Bind ViewModel.DiffFontSize, Mode=TwoWay}" Minimum="9" Maximum="16" StepFrequency="0.5" TickFrequency="1" TickPlacement="Outside"/>
+
+                <ToggleSwitch Header="Wrap long lines instead of scrolling" IsOn="{x:Bind ViewModel.DiffWrapLines, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Auto-expand a single-file diff" IsOn="{x:Bind ViewModel.DiffAutoExpandSingleFile, Mode=TwoWay}"/>
+
+                <TextBlock Text="…only when under this many lines" Margin="0,8,0,0"/>
+                <NumberBox Value="{x:Bind ViewModel.DiffAutoExpandMaxLines, Mode=TwoWay}" Minimum="0" Maximum="5000" SpinButtonPlacementMode="Compact"/>
+
+                <!-- ============ CACHE ============ -->
+                <TextBlock Text="Cache" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <ToggleSwitch Header="Enable response caching" IsOn="{x:Bind ViewModel.CachingEnabled, Mode=TwoWay}"/>
+
+                <TextBlock Text="Cache size limit (MB)" Margin="0,8,0,0"/>
+                <Slider Value="{x:Bind ViewModel.CacheMaxSizeMB, Mode=TwoWay}" Minimum="50" Maximum="2000" StepFrequency="50" TickFrequency="250" TickPlacement="Outside"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                    <Button Content="Clear cache" Command="{x:Bind ViewModel.ClearCacheCommand}"/>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingHint}" Margin="0">
+                        <Run Text="Current size:"/>
+                        <Run Text="{x:Bind ViewModel.CacheSizeText, Mode=OneWay}"/>
+                    </TextBlock>
                 </StackPanel>
 
-                <Rectangle Height="1" Fill="{ThemeResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
+                <!-- ============ NETWORK ============ -->
+                <TextBlock Text="Network" Style="{StaticResource SettingsGroupHeader}"/>
 
-                <TextBlock Text="Testing" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                <TextBlock Text="Proxy mode"/>
+                <ComboBox x:Name="ProxyModeComboBox" SelectedIndex="{x:Bind ProxyModeToInt(ViewModel.ProxyMode), Mode=OneWay}" HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="None"/>
+                    <ComboBoxItem Content="Manual (SOCKS5)"/>
+                    <ComboBoxItem Content="System proxy"/>
+                </ComboBox>
 
-                <StackPanel Spacing="8">
-                    <ToggleSwitch Header="Demo Mode"
-                                  IsOn="{x:Bind ViewModel.IsDemoMode, Mode=TwoWay}"/>
-                    <TextBlock Text="Use local mock data instead of calling the real Jules API."
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
-                               Margin="0,-4,0,0"/>
-                </StackPanel>
-
-                <Rectangle Height="1" Fill="{ThemeResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
-
-                <TextBlock Text="Proxy Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
-
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Proxy Mode" Style="{StaticResource BodyTextBlockStyle}"/>
-                    <ComboBox x:Name="ProxyModeComboBox" SelectedIndex="{x:Bind ProxyModeToInt(ViewModel.ProxyMode), Mode=OneWay}" HorizontalAlignment="Stretch">
-                        <ComboBoxItem Content="None"/>
-                        <ComboBoxItem Content="Manual (SOCKS5)"/>
-                        <ComboBoxItem Content="System Proxy"/>
-                    </ComboBox>
-                </StackPanel>
-
-                <StackPanel Spacing="8" Visibility="{x:Bind IsManualProxy(ViewModel.ProxyMode), Mode=OneWay}">
+                <StackPanel Spacing="8" Margin="0,8,0,0" Visibility="{x:Bind IsManualProxy(ViewModel.ProxyMode), Mode=OneWay}">
                     <CheckBox Content="Bypass proxy for local addresses" IsChecked="{x:Bind ViewModel.ProxyBypassLocal, Mode=TwoWay}"/>
-
-                    <TextBlock Text="Proxy Host" Style="{StaticResource BodyTextBlockStyle}"/>
-                    <TextBox x:Name="ProxyHostTextBox" Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay}" PlaceholderText="e.g. 127.0.0.1"/>
-
-                    <TextBlock Text="Proxy Port" Style="{StaticResource BodyTextBlockStyle}"/>
-                    <NumberBox x:Name="ProxyPortNumberBox" Value="{x:Bind ViewModel.ProxyPort, Mode=TwoWay}" SpinButtonPlacementMode="Compact" Minimum="1" Maximum="65535"/>
-
-                    <TextBlock Text="Proxy Username (Optional)" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <TextBlock Text="Proxy host"/>
+                    <TextBox Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay}" PlaceholderText="e.g. 127.0.0.1"/>
+                    <TextBlock Text="Proxy port"/>
+                    <NumberBox Value="{x:Bind ViewModel.ProxyPort, Mode=TwoWay}" SpinButtonPlacementMode="Compact" Minimum="1" Maximum="65535"/>
+                    <TextBlock Text="Username (optional)"/>
                     <TextBox x:Name="ProxyUsernameTextBox" Text="{x:Bind ViewModel.ProxyUsername, Mode=TwoWay}"/>
-
-                    <TextBlock Text="Proxy Password (Optional)" Style="{StaticResource BodyTextBlockStyle}"/>
+                    <TextBlock Text="Password (optional)"/>
                     <PasswordBox x:Name="ProxyPasswordBox" PasswordRevealMode="Peek"/>
                 </StackPanel>
 
-                <Button Content="Save Settings"
-                        Click="OnSaveClick"
-                        Margin="0,20,0,0"
-                        Style="{StaticResource AccentButtonStyle}"/>
+                <!-- ============ ADVANCED ============ -->
+                <TextBlock Text="Advanced" Style="{StaticResource SettingsGroupHeader}"/>
+
+                <ToggleSwitch Header="Demo mode" IsOn="{x:Bind ViewModel.IsDemoMode, Mode=TwoWay}"/>
+                <TextBlock Text="Use local mock data instead of the real Jules API." Style="{StaticResource SettingHint}"/>
+                <ToggleSwitch Header="Verbose logging" IsOn="{x:Bind ViewModel.VerboseLogging, Mode=TwoWay}"/>
+
+                <Button Content="Save Settings" Click="OnSaveClick" Margin="0,24,0,40" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

@@ -26,25 +26,32 @@ public partial class SourcesViewModel : ObservableObject
     private string _newSessionBranch = string.Empty;
 
     [ObservableProperty]
-    private bool _requirePlanApproval = true;
+    private bool _requirePlanApproval = AppSettings.DefaultRequirePlanApproval;
 
     [ObservableProperty]
-    private bool _autoCreatePR = false;
+    private bool _autoCreatePR = AppSettings.DefaultAutoCreatePR;
 
     public ObservableCollection<Source> Sources { get; } = new();
+
+    private readonly ICacheService _cache;
 
     public SourcesViewModel()
     {
         _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
+        _cache = App.Current.Services.GetRequiredService<ICacheService>();
     }
 
-    [RelayCommand]
-    public async Task LoadSourcesAsync()
+    public async Task LoadSourcesAsync(bool force = false)
     {
         IsLoading = true;
         ErrorMessage = null;
         try
         {
+            if (force)
+            {
+                await _cache.RemoveAsync("sources:all");
+            }
+
             var response = await _api.ListSourcesAsync();
             Sources.Clear();
             if (response.Sources != null)

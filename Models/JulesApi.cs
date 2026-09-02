@@ -52,6 +52,42 @@ public record Session(
 
     [JsonIgnore]
     public string? RawInfo { get; set; }
+
+    // The starting branch for the session header. Jules often leaves
+    // sourceContext.githubRepoContext.startingBranch empty (it used the repo
+    // default); the PR's base ref is that same starting branch.
+    [JsonIgnore]
+    public string? DisplayBranch
+    {
+        get
+        {
+            var starting = SourceContext?.StartingBranch;
+            if (!string.IsNullOrWhiteSpace(starting)) return starting;
+
+            var baseRef = Outputs?
+                .Select(o => o.PullRequest?.BaseRef)
+                .FirstOrDefault(b => !string.IsNullOrWhiteSpace(b));
+            return string.IsNullOrWhiteSpace(baseRef) ? null : baseRef;
+        }
+    }
+
+    // The pull request Jules opened for this session (from session outputs).
+    [JsonIgnore]
+    public PullRequest? PrimaryPullRequest =>
+        Outputs?.Select(o => o.PullRequest).FirstOrDefault(pr => pr?.HasData == true);
+
+    // "PR #6" from the PR url, or a generic label.
+    [JsonIgnore]
+    public string? PullRequestLabel
+    {
+        get
+        {
+            var url = PrimaryPullRequest?.Url;
+            if (string.IsNullOrWhiteSpace(url)) return null;
+            var last = url.TrimEnd('/').Split('/').LastOrDefault();
+            return int.TryParse(last, out var n) ? $"PR #{n}" : "Pull request";
+        }
+    }
 }
 
 public record SourceContext(
@@ -398,6 +434,21 @@ public record Activity(
     [JsonIgnore]
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
+    private static readonly char[] _headingTrimChars =
+        { ' ', '\t', '\r', '\n', ':', '.', '!', '?', '-', '–', '—', '#', '_', '*' };
+
+    // True only when a string, on its own, reads as the review banner - "Code
+    // Review" or "Code reviewed" - after stripping surrounding punctuation. A
+    // sentence that merely contains the phrase (e.g. "let's request a code
+    // review") does not qualify.
+    private static bool IsCodeReviewHeading(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        var trimmed = value.Trim(_headingTrimChars);
+        return trimmed.Equals("Code Review", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("Code Reviewed", StringComparison.OrdinalIgnoreCase);
+    }
+
     [JsonIgnore]
     public bool IsReview
     {
@@ -408,37 +459,31 @@ public record Activity(
                 return _cachedIsReview.Value;
             }
 
-            // 1. If a structured review object exists, it is definitely a review
+            // A structured review object is definitive.
             if (Review != null)
             {
                 _cachedIsReview = true;
                 return true;
             }
 
-            // 2. Check root Title (safeguarded against nulls)
-            var title = Title ?? "";
-            bool titleIndicatesReview = !string.IsNullOrWhiteSpace(title) &&
-                (title.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                 title.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                 title.Contains("Review", StringComparison.OrdinalIgnoreCase) ||
-                 title.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+            // Otherwise a review is identified only by an activity/progress
+            // heading that literally reads "Code Review" / "Code reviewed".
+            // Scanning message bodies, or matching a bare "review"/"feedback",
+            // flagged ordinary messages that just talk about requesting a review.
+            bool headingSaysReview = IsCodeReviewHeading(ProgressUpdated?.Title) || IsCodeReviewHeading(Title);
 
-            // 3. Check DisplayText
-            var text = DisplayText ?? "";
-            bool textIndicatesReview = !string.IsNullOrWhiteSpace(text) &&
-                (text.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                 text.Contains("Code Review", StringComparison.OrdinalIgnoreCase) ||
-                 text.Contains("Feedback", StringComparison.OrdinalIgnoreCase));
+            // A plain agent/user chat turn with no review payload is discussing a
+            // review, not delivering one - real reviews arrive as a Review object
+            // or a ProgressUpdated event.
+            bool isPlainMessage = ProgressUpdated == null &&
+                (!string.IsNullOrWhiteSpace(AgentMessage?.Message) ||
+                 !string.IsNullOrWhiteSpace(AgentMessage?.Text) ||
+                 !string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage) ||
+                 !string.IsNullOrWhiteSpace(UserMessage?.Prompt) ||
+                 !string.IsNullOrWhiteSpace(UserMessage?.Text) ||
+                 !string.IsNullOrWhiteSpace(UserMessaged?.UserMessage));
 
-            // 4. Check ProgressUpdated Title strictly (NO Description scanning to prevent code diff false positives)
-            var progressTitle = ProgressUpdated?.Title ?? "";
-            bool progressTitleIndicatesReview = !string.IsNullOrWhiteSpace(progressTitle) &&
-                (progressTitle.Contains("Code Reviewed", StringComparison.OrdinalIgnoreCase) ||
-                 progressTitle.Contains("Code Review", StringComparison.OrdinalIgnoreCase));
-
-            var result = titleIndicatesReview ||
-                         textIndicatesReview ||
-                         progressTitleIndicatesReview;
+            var result = headingSaysReview && !isPlainMessage;
 
             _cachedIsReview = result;
             return result;
@@ -499,6 +544,37 @@ public record Activity(
 
     [JsonIgnore]
     public bool ShowPlan => PlanGenerated?.HasData == true;
+
+    // Short status label for lifecycle events that should render as a centred
+    // system line rather than a chat bubble.
+    [JsonIgnore]
+    public string? SystemEventText =>
+        PlanApproved != null ? "Plan approved" :
+        SessionCompleted != null ? "Session completed" :
+        null;
+
+    // True when the activity is *only* such an event - no agent message,
+    // progress, plan, review or artifacts riding along with it.
+    [JsonIgnore]
+    public bool IsSystemEvent =>
+        SystemEventText != null
+        && !IsReview
+        && ProgressUpdated?.HasData != true
+        && PlanGenerated?.HasData != true
+        && SessionFailed == null
+        && string.IsNullOrWhiteSpace(AgentMessage?.Message)
+        && string.IsNullOrWhiteSpace(AgentMessage?.Text)
+        && string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage)
+        && string.IsNullOrWhiteSpace(Text)
+        && string.IsNullOrWhiteSpace(Description)
+        && (Artifacts == null || Artifacts.Count == 0);
+
+    // User preferences (Settings) - the chat templates bind visibility to these.
+    [JsonIgnore]
+    public bool ShowTimestamp => JulesClient.Services.AppSettings.ShowTimestamps;
+
+    [JsonIgnore]
+    public bool ShowOriginatorLabel => JulesClient.Services.AppSettings.ShowOriginatorLabels;
 }
 
 public record UserMessage(

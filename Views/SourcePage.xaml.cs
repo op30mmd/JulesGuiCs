@@ -17,7 +17,7 @@ public sealed partial class SourcesPage : Page
 
     private void OnRefreshRequested(RefreshContainer sender, RefreshRequestedEventArgs args)
     {
-        _ = ViewModel.LoadSourcesAsync();
+        _ = ViewModel.LoadSourcesAsync(force: true);
     }
 
     private async void OnSourceClick(object sender, ItemClickEventArgs e)
@@ -29,7 +29,33 @@ public sealed partial class SourcesPage : Page
             ViewModel.NewSessionBranch = "";
 
             var titleBox = new TextBox { Header = "Session Title (Optional)", PlaceholderText = "e.g. Fix login bug", Text = ViewModel.NewSessionTitle };
-            var branchBox = new TextBox { Header = "Starting Branch (Optional)", PlaceholderText = "e.g. main or feature-branch", Text = ViewModel.NewSessionBranch };
+
+            var branches = source.GitHubRepo?.Branches?
+                .Select(b => b.DisplayName)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(n => n!.Trim())
+                .Distinct()
+                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            var branchBox = new AutoSuggestBox
+            {
+                Header = "Starting Branch (Optional)",
+                PlaceholderText = branches.Count > 0 ? "Pick a branch or type one" : "e.g. main or feature-branch",
+                Text = source.GitHubRepo?.DefaultBranch?.DisplayName ?? ViewModel.NewSessionBranch,
+                ItemsSource = branches
+            };
+            branchBox.TextChanged += (_, args) =>
+            {
+                if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
+                var q = branchBox.Text?.Trim() ?? string.Empty;
+                branchBox.ItemsSource = q.Length == 0
+                    ? branches
+                    : branches.Where(b => b.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+            };
+            branchBox.SuggestionChosen += (_, args) =>
+                branchBox.Text = args.SelectedItem as string ?? branchBox.Text;
+
             var promptBox = new TextBox { Header = "Goal / Prompt", PlaceholderText = "What should Jules do?", AcceptsReturn = true, Height = 100, Text = ViewModel.NewSessionPrompt };
             var approvalCheck = new CheckBox { Content = "Require Plan Approval", IsChecked = ViewModel.RequirePlanApproval };
             var prCheck = new CheckBox { Content = "Auto-Create Pull Request", IsChecked = ViewModel.AutoCreatePR };

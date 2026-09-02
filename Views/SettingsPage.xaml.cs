@@ -29,7 +29,15 @@ public sealed partial class SettingsPage : Page
         ViewModel.ProxyMode = (JulesClient.Services.ProxyMode)ProxyModeComboBox.SelectedIndex;
         ViewModel.Save();
 
-        // After saving, we might need to notify the user or restart the client if proxy changed.
-        // For now, it will take effect on next client initialization or if we re-configure it.
+        App.ApplyTheme();
+
+        var dialog = new ContentDialog
+        {
+            Title = "Settings saved",
+            Content = "Theme and behaviour changes apply now. Chat text options apply to messages rendered from here on – re-open the session to refresh existing ones. Proxy / API key changes take effect on the next launch.",
+            CloseButtonText = "OK",
+            XamlRoot = this.XamlRoot
+        };
+        _ = dialog.ShowAsync();
     }
 }

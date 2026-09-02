@@ -17,6 +17,7 @@ public partial class App : Application
     public App()
     {
         Services = ConfigureServices();
+        AppSettings.Apply(Services.GetRequiredService<ISettingsService>());
         this.InitializeComponent();
 
         this.UnhandledException += (s, e) =>
@@ -141,6 +142,29 @@ public partial class App : Application
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
+        ApplyTheme();
         MainWindow.Activate();
+    }
+
+    /// <summary>Applies the persisted theme choice to the app's root element.</summary>
+    public static void ApplyTheme()
+    {
+        try
+        {
+            var settings = Current.Services.GetRequiredService<ISettingsService>();
+            if (MainWindow?.Content is FrameworkElement root)
+            {
+                root.RequestedTheme = settings.AppTheme switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[THEME] Apply failed: {ex.Message}");
+        }
     }
 }

@@ -11,9 +11,40 @@
             <svc:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
             <svc:InvertedNullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter"/>
             <svc:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <svc:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
             <svc:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
             <svc:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"/>
             <svc:InvertedStringToVisibilityConverter x:Key="InvertedStringToVisibilityConverter"/>
+
+            <!-- Chat bubble looks, selected by OriginatorToBubbleStyleConverter -->
+            <Style x:Key="AgentBubbleStyle" TargetType="Border">
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="MaxWidth" Value="720"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+            </Style>
+
+            <Style x:Key="UserBubbleStyle" TargetType="Border">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="MaxWidth" Value="720"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}"/>
+            </Style>
+
+            <Style x:Key="ReviewBubbleStyle" TargetType="Border">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -32,7 +32,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
     private static readonly JsonSerializerOptions _debugJson = new(_json) { WriteIndented = true };
-    private const int MaxRetries = 3;
+    private readonly int _maxRetries;
     private const double RetryBackoffMs = 1000;
 
     private async Task<T> ExecuteWithRetryAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
@@ -44,7 +44,7 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             {
                 return await operation(ct);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException && attempt < MaxRetries)
+            catch (Exception ex) when (ex is not OperationCanceledException && attempt < _maxRetries)
             {
                 attempt++;
                 var delay = TimeSpan.FromMilliseconds(RetryBackoffMs * Math.Pow(2, attempt - 1));
@@ -64,7 +64,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
             EnableMultipleHttp2Connections = false,
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Brotli
         };
-        _http = new HttpClient(handler ?? socketsHandler) { BaseAddress = new Uri(Base), Timeout = TimeSpan.FromSeconds(30) };
+        _maxRetries = Math.Clamp(settings.MaxRetries, 0, 8);
+        var timeoutSeconds = Math.Clamp(settings.RequestTimeoutSeconds, 5, 120);
+        _http = new HttpClient(handler ?? socketsHandler) { BaseAddress = new Uri(Base), Timeout = TimeSpan.FromSeconds(timeoutSeconds) };
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _http.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
         _http.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
@@ -118,7 +120,9 @@ public class JulesApiClient : IJulesApiClient, IDisposable
         return await ExecuteWithRetryAsync(async (token) =>
         {
             ApplyKey();
-            var url = "sources" + (pageToken != null ? $"?pageToken={Uri.EscapeDataString(pageToken)}" : "");
+            var q = new List<string> { "pageSize=100" };
+            if (pageToken != null) q.Add($"pageToken={Uri.EscapeDataString(pageToken)}");
+            var url = "sources?" + string.Join("&", q);
             Debug.WriteLine($"[API] GET {url}");
             var r = await _http.GetAsync(url, token);
             await HandleErrorResponse(r, token);

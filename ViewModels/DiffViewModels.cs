@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using JulesClient.Services;
 
 namespace JulesClient.ViewModels;
@@ -16,21 +18,29 @@ public partial class DiffFileViewModel : ObservableObject
     public DiffFileViewModel(DiffFileNode node)
     {
         Node = node;
-        _isExpanded = false;
     }
 
     public string DisplayName => Node.DisplayName;
-    public string Stats => Node.Stats;
     public int TotalLines => Node.TotalLines;
+    public int AddedLines => Node.AddedLines;
+    public int RemovedLines => Node.RemovedLines;
+
+    public string AddedBadge => $"+{Node.AddedLines}";
+    public string RemovedBadge => $"−{Node.RemovedLines}"; // U+2212 MINUS SIGN
+    public string HunkCountLabel => Node.File.Hunks.Count == 1 ? "1 hunk" : $"{Node.File.Hunks.Count} hunks";
+
+    // Hunks are materialised on first expand to keep large diffs cheap to open.
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value) LoadHunks();
+    }
 
     public void LoadHunks()
     {
-        if (Hunks.Count == 0)
+        if (Hunks.Count > 0) return;
+        foreach (var hunk in Node.File.Hunks)
         {
-            foreach (var hunk in Node.File.Hunks)
-            {
-                Hunks.Add(new DiffHunkViewModel(hunk));
-            }
+            Hunks.Add(new DiffHunkViewModel(hunk));
         }
     }
 }
@@ -64,4 +74,18 @@ public partial class DiffLineViewModel : ObservableObject
         OldLineNumber = line.OldLineNumber;
         NewLineNumber = line.NewLineNumber;
     }
+
+    public string OldGutter => OldLineNumber?.ToString() ?? string.Empty;
+    public string NewGutter => NewLineNumber?.ToString() ?? string.Empty;
+
+    public double FontSize => AppSettings.DiffFontSize;
+    public TextWrapping Wrapping => AppSettings.DiffWrapLines ? TextWrapping.Wrap : TextWrapping.NoWrap;
+    public FontFamily CodeFontFamily => new(AppSettings.CodeFontFamily);
+
+    public string Sign => Type switch
+    {
+        DiffLineType.Added => "+",
+        DiffLineType.Removed => "−",
+        _ => string.Empty
+    };
 }
