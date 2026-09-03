@@ -40,8 +40,8 @@ Thumbs.db
 # Secrets and keys
 *.pfx
 
-# Assets
-jules.svg
+# Node (icon generator uses npx/npm; keep the lockfile out of the tree)
+package-lock.json
 
 # Coverage
 coverage/

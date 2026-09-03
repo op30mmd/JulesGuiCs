@@ -1,0 +1,38 @@
+name: Icons
+
+# Regenerates the app icon assets from jules.svg and fails if the committed
+# files in Assets/ are out of date. Only runs when an icon input changes.
+on:
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'jules.svg'
+      - 'tools/generate-icons.mjs'
+      - 'Assets/**'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Regenerate icon assets from jules.svg
+        run: |
+          npm install --no-save --no-package-lock sharp@0.33.5
+          node tools/generate-icons.mjs
+
+      - name: Fail if Assets/ is out of date
+        shell: bash
+        run: |
+          if ! git diff --quiet -- Assets/; then
+            echo "::error::Icon assets are stale. Run 'node tools/generate-icons.mjs' and commit the changes in Assets/."
+            git --no-pager diff --stat -- Assets/
+            exit 1
+          fi
+          echo "Icon assets are up to date."

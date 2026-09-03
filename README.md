@@ -132,6 +132,7 @@ JulesGuiCs/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                      # CI pipeline: build, test, format check
+│       ├── icons.yml                   # Regenerates Assets/ from jules.svg; fails if stale
 │       └── OC.yml                      # AI task runner workflow
 ├── Assets/                             # Application logos, splash screens, and icons
 ├── Models/
@@ -181,6 +182,7 @@ JulesGuiCs/
 │   └── PollingServiceTests.cs          # Unit tests for Rx.NET polling service
 ├── tools/
 │   └── generate-icons.mjs             # Regenerates the app icon assets from jules.svg (Node + sharp)
+├── jules.svg                           # App icon source (input to tools/generate-icons.mjs)
 ├── App.xaml + App.xaml.cs              # App entry point, DI container setup, Mica & proxy init
 ├── MainWindow.xaml + MainWindow.xaml.cs # Main application window with NavigationView
 ├── GlobalUsings.cs                     # Global using statements
@@ -194,11 +196,13 @@ JulesGuiCs/
 
 ### App Icon
 
-The window/taskbar icon (`Assets/jules.ico`) and the MSIX logo PNGs are generated from `jules.svg`:
+The window/taskbar icon (`Assets/jules.ico`) and the MSIX logo PNGs are generated from `jules.svg` and committed to the repo:
 
 ```bash
 npx --package sharp node tools/generate-icons.mjs
 ```
+
+The **Icons** GitHub Actions workflow regenerates them whenever `jules.svg` or the generator changes and fails the check if the committed `Assets/` files are stale.
 
 ### 1. Build MSIX Package
 
