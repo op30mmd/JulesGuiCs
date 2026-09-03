@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -31,3 +34,38 @@ jobs:
 
     - name: Check formatting
       run: dotnet format JulesClient.sln --verify-no-changes --no-restore
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: windows-2022
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore dependencies
+      run: msbuild JulesClient.sln /t:Restore /p:Configuration=Release
+
+    - name: Build
+      run: msbuild JulesClient.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: Compress Release build
+      shell: pwsh
+      run: |
+        Compress-Archive -Path bin\x64\Release\net8.0-windows10.0.19041.0\* -DestinationPath JulesClient-Release.zip
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: JulesClient-Release.zip
+        generate_release_notes: true
