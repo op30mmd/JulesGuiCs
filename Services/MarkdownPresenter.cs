@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace JulesClient.Services;
 
@@ -47,6 +48,7 @@ public sealed class MarkdownPresenter : StackPanel
 
     private const int CollapseThreshold = 500;
     private bool _expanded;
+    private Storyboard? _revealAnimation;
 
     public static readonly DependencyProperty BaseFontSizeProperty = DependencyProperty.Register(
         nameof(BaseFontSize), typeof(double), typeof(MarkdownPresenter),
@@ -76,6 +78,16 @@ public sealed class MarkdownPresenter : StackPanel
         {
             dq.TryEnqueue(Rebuild);
             return;
+        }
+
+        // Any in-flight "Show more/less" resize is now stale (new content, or a
+        // recycled container) - stop it and hand height/opacity back to layout.
+        if (_revealAnimation is { } running)
+        {
+            _revealAnimation = null;
+            running.Stop();
+            ClearValue(HeightProperty);
+            Opacity = 1;
         }
 
         Children.Clear();
@@ -156,10 +168,85 @@ public sealed class MarkdownPresenter : StackPanel
         };
         btn.Click += (_, _) =>
         {
-            _expanded = expand;
-            Rebuild();
+            double fromHeight = ActualHeight;
+            // Keep the reader's place (follow to the bottom, or hold the content
+            // above the fold) while the block resizes.
+            ScrollAnchor.PreserveDuring(this, () =>
+            {
+                _expanded = expand;
+                Rebuild();
+            });
+            AnimateReveal(expand, fromHeight);
         };
         return btn;
+    }
+
+    // Grows / shrinks the block's own height so the bubble eases open and shut
+    // instead of snapping, with a gentle fade over the same window.
+    private void AnimateReveal(bool expanding, double fromHeight)
+    {
+        if (fromHeight <= 0)
+        {
+            return;
+        }
+
+        // Get the true target height by laying the rebuilt content out at its
+        // real width. Measuring against the current width badly over-estimates
+        // wrapped text when the block is still at its collapsed (narrow) size -
+        // that was leaving the bubble stuck at roughly double its needed height.
+        // Opacity 0 keeps this pass from flashing.
+        Opacity = 0;
+        ClearValue(HeightProperty);
+        UpdateLayout();
+        double toHeight = ActualHeight;
+
+        if (!double.IsFinite(toHeight) || toHeight <= 0 || Math.Abs(toHeight - fromHeight) < 1)
+        {
+            Opacity = 1;
+            return;
+        }
+
+        int ms = expanding ? 200 : 160;
+        var storyboard = new Storyboard();
+
+        var resize = new DoubleAnimation
+        {
+            From = fromHeight,
+            To = toHeight,
+            Duration = new Duration(TimeSpan.FromMilliseconds(ms)),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+            EnableDependentAnimation = true
+        };
+        Storyboard.SetTarget(resize, this);
+        Storyboard.SetTargetProperty(resize, "Height");
+        storyboard.Children.Add(resize);
+
+        var fade = new DoubleAnimation
+        {
+            From = 0.55,
+            To = 1.0,
+            Duration = new Duration(TimeSpan.FromMilliseconds(ms)),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(fade, this);
+        Storyboard.SetTargetProperty(fade, "Opacity");
+        storyboard.Children.Add(fade);
+
+        storyboard.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(_revealAnimation, storyboard))
+            {
+                return; // superseded by Rebuild()
+            }
+            _revealAnimation = null;
+            storyboard.Stop();          // release the held Height so layout owns it
+            ClearValue(HeightProperty);
+            Opacity = 1;
+        };
+
+        _revealAnimation = storyboard;
+        Opacity = 0.55;
+        storyboard.Begin();
     }
 
     private TextBlock PlainTextBlock(string text) => new()
@@ -216,7 +303,7 @@ public sealed class MarkdownPresenter : StackPanel
         body.Children.Add(BuildPane("SEARCH", conflict.Search, conflict.Language, removed: true));
         body.Children.Add(BuildPane("REPLACE", conflict.Replace, conflict.Language, removed: false));
 
-        return new Expander
+        var expander = new Expander
         {
             Header = new TextBlock { Text = caption, FontWeight = FontWeights.SemiBold, FontSize = 13 },
             Content = body,
@@ -227,6 +314,8 @@ public sealed class MarkdownPresenter : StackPanel
             MaxWidth = ConflictWidth,
             Margin = new Thickness(0, 2, 0, 2)
         };
+        ScrollAnchor.SetPreserveOnResize(expander, true);
+        return expander;
     }
 
     private static int CountLines(string s) => string.IsNullOrEmpty(s) ? 0 : s.Split('\n').Length;
@@ -275,7 +364,7 @@ public sealed class MarkdownPresenter : StackPanel
 
         bool startCollapsed = AppSettings.CollapseLongCodeBlocks && lineCount > CodeCollapseLines;
 
-        return new Expander
+        var expander = new Expander
         {
             Header = new TextBlock
             {
@@ -293,6 +382,8 @@ public sealed class MarkdownPresenter : StackPanel
             MaxWidth = ConflictWidth,
             Margin = new Thickness(0, 2, 0, 2)
         };
+        ScrollAnchor.SetPreserveOnResize(expander, true);
+        return expander;
     }
 
     private static Border BuildPane(string label, string code, string? language, bool removed)

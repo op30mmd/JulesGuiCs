@@ -11,6 +11,16 @@ public partial class SessionsViewModel : ObservableObject
     private readonly ICachedJulesApiClient _api;
     private readonly IPollingService _polling;
     private IDisposable? _pollingSubscription;
+    // Polls session.State for the open session. The activity feed never carries
+    // the session state and does not reliably emit a "session completed" event,
+    // so without this refresh the header can sit on "Working…" indefinitely
+    // after Jules has actually stopped. The freshest state is kept in
+    // _liveSessionState rather than written back onto SelectedSession / the
+    // Sessions collection: replacing the selected item churns the ListView's
+    // two-way SelectedItem binding, which transiently deselects the session,
+    // tears down its bindings and blanks the chat.
+    private CancellationTokenSource? _sessionStateCts;
+    private string? _liveSessionState;
     private readonly DispatcherQueue _dispatcher;
     private readonly HashSet<string> _loadedActivityIds = new();
     private readonly HashSet<string> _seenArtifactIds = new();
@@ -183,6 +193,10 @@ public partial class SessionsViewModel : ObservableObject
     private void BindSession(Session? value)
     {
         _pollingSubscription?.Dispose();
+        _sessionStateCts?.Cancel();
+        _sessionStateCts?.Dispose();
+        _sessionStateCts = null;
+        _liveSessionState = value?.State;
         _loadedActivityIds.Clear();
         _seenArtifactIds.Clear();
         _seenSystemEvents.Clear();
@@ -205,6 +219,10 @@ public partial class SessionsViewModel : ObservableObject
         {
             Debug.WriteLine($"[VM] Session selected: {value.Name}");
             _ = LoadActivitiesAsync(value.Name);
+
+            _sessionStateCts = new CancellationTokenSource();
+            _ = PollSessionStateAsync(value.Name, _sessionStateCts.Token);
+
             _pollingSubscription = _polling.StartPolling(value.Name, resp =>
             {
                 _dispatcher.TryEnqueue(() =>
@@ -234,6 +252,48 @@ public partial class SessionsViewModel : ObservableObject
                     RecomputeStatus();
                 });
             });
+        }
+    }
+
+    // Re-fetches the open session (once immediately, then on the polling
+    // interval) so the header reflects server-side state transitions - most
+    // importantly Jules finishing. Uses the uncached client: the cached one
+    // holds sessions for minutes, which is exactly the staleness this defeats.
+    // Only _liveSessionState is updated; SelectedSession and the Sessions
+    // collection are left untouched (see the field comment).
+    private async Task PollSessionStateAsync(string sessionId, CancellationToken ct)
+    {
+        var raw = App.Current.Services.GetRequiredService<IJulesApiClient>();
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                var fresh = await raw.GetSessionAsync(sessionId, ct);
+                _dispatcher.TryEnqueue(() =>
+                {
+                    if (SelectedSession?.Name != sessionId)
+                    {
+                        return; // selection moved on while the request was in flight
+                    }
+                    if (!string.Equals(_liveSessionState, fresh.State, StringComparison.Ordinal))
+                    {
+                        _liveSessionState = fresh.State;
+                        RecomputeStatus();
+                    }
+                });
+            }
+            catch (OperationCanceledException) { break; }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[VM] Session state poll failed: {ex.Message}");
+            }
+
+            try
+            {
+                var interval = TimeSpan.FromSeconds(Math.Clamp(AppSettings.PollingIntervalSeconds, 3, 120));
+                await Task.Delay(interval, ct);
+            }
+            catch (OperationCanceledException) { break; }
         }
     }
 
@@ -279,8 +339,8 @@ public partial class SessionsViewModel : ObservableObject
         }
     }
 
-    // Derives the header status indicator from the session's State string and
-    // the newest terminal activity (which wins, since State can lag).
+    // Derives the header status indicator from the activity feed and, only as a
+    // fallback, the session's State string.
     private void RecomputeStatus()
     {
         var s = SelectedSession;
@@ -292,29 +352,80 @@ public partial class SessionsViewModel : ObservableObject
             return;
         }
 
-        // Walk back from the newest activity: a terminal event or the speaker of
-        // the last turn decides the status. If the user spoke more recently than
-        // Jules (e.g. a follow-up message just sent), Jules is about to work.
-        for (int i = Activities.Count - 1; i >= 0; i--)
+        // One pass over the feed to locate the newest terminal event and the
+        // newest turn by each side. The indices let us tell a session that has
+        // really finished from one that finished and was then resumed by a
+        // follow-up message: session.State is only refreshed by an explicit
+        // reload, so it can keep reading COMPLETED long after the conversation
+        // has moved on, and the previous "walk back and trust State" logic then
+        // showed "Completed" while Jules was already working on the follow-up.
+        int lastFailedIdx = -1, lastCompletedIdx = -1, lastUserIdx = -1, lastAgentIdx = -1;
+        for (int i = 0; i < Activities.Count; i++)
         {
             var act = Activities[i];
-            if (act.SessionFailed != null) { SetStatus("Failed", "failed"); return; }
-            if (act.SessionCompleted != null) { SetStatus("Completed", "done"); return; }
+            if (act.SessionFailed != null) lastFailedIdx = i;
+            if (act.SessionCompleted != null) lastCompletedIdx = i;
 
             var who = act.EffectiveOriginator;
             if (string.Equals(who, "user", StringComparison.OrdinalIgnoreCase))
             {
-                SetStatus("Working…", "working", busy: true);
-                return;
+                lastUserIdx = i;
             }
-            if (string.Equals(who, "agent", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(who, "review", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(who, "agent", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(who, "review", StringComparison.OrdinalIgnoreCase))
             {
-                break; // Jules had the last word - fall through to session State
+                lastAgentIdx = i;
             }
         }
 
-        var state = (s.State ?? string.Empty).Trim().ToUpperInvariant().Replace('-', '_').Replace(' ', '_');
+        // A terminal lifecycle event in the feed is authoritative, but only
+        // while it is still the last word. A user message after it means the
+        // session has been resumed and Jules is (about to be) working again.
+        // Trailing agent messages (a wrap-up summary) do not cancel completion.
+        if (lastFailedIdx >= 0 && lastFailedIdx >= lastCompletedIdx && lastFailedIdx > lastUserIdx)
+        {
+            SetStatus("Failed", "failed");
+            return;
+        }
+        if (lastCompletedIdx >= 0 && lastCompletedIdx > lastUserIdx)
+        {
+            SetStatus("Completed", "done");
+            return;
+        }
+
+        // The user has spoken more recently than Jules: Jules is up next.
+        if (lastUserIdx >= 0 && lastUserIdx > lastAgentIdx)
+        {
+            SetStatus("Working…", "working", busy: true);
+            return;
+        }
+
+        // Detect a resume that session.State has not caught up with: a user turn
+        // that lands after every terminal event in the feed *and* after the
+        // session row's own UpdateTime. In that case State still describes the
+        // world before the follow-up, so its "finished" meanings are stale and
+        // Jules is really working. Without a usable UpdateTime we cannot tell,
+        // so we trust State (this only needs to hold until the next reload).
+        bool sessionResumed =
+            lastUserIdx >= 0
+            && lastUserIdx > lastCompletedIdx
+            && lastUserIdx > lastFailedIdx
+            && s.UpdateTime is { } rowTime
+            && Activities[lastUserIdx].CreateTime is { } msgTime
+            && msgTime > rowTime;
+
+        if (sessionResumed)
+        {
+            SetStatus("Working…", "working", busy: true);
+            return;
+        }
+
+        // _liveSessionState is the value from the background session poll (see
+        // PollSessionStateAsync); it is fresher than SelectedSession.State, which
+        // is only refreshed by a full session-list reload.
+        var rawState = _liveSessionState ?? s.State;
+        var state = (rawState ?? string.Empty).Trim().ToUpperInvariant().Replace('-', '_').Replace(' ', '_');
+
         switch (state)
         {
             case "COMPLETED":
@@ -699,6 +810,9 @@ public partial class SessionsViewModel : ObservableObject
     public void Cleanup()
     {
         _pollingSubscription?.Dispose();
+        _sessionStateCts?.Cancel();
+        _sessionStateCts?.Dispose();
+        _sessionStateCts = null;
         AppSettings.Changed -= OnAppSettingsChanged;
     }
 }

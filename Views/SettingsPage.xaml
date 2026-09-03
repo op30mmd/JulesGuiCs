@@ -85,6 +85,8 @@
                 <ToggleSwitch Header="Collapse long code blocks" IsOn="{x:Bind ViewModel.CollapseLongCodeBlocks, Mode=TwoWay}"/>
                 <TextBlock Text="Fenced code blocks always get a collapsible header; long ones (over 14 lines) start collapsed when this is on." Style="{StaticResource SettingHint}"/>
                 <ToggleSwitch Header="Auto-scroll to newest message" IsOn="{x:Bind ViewModel.AutoScrollChat, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Press Enter to send" IsOn="{x:Bind ViewModel.SendOnEnter, Mode=TwoWay}"/>
+                <TextBlock Text="When on, Enter sends the message and Shift+Enter inserts a newline. When off, Enter inserts a newline and Ctrl+Enter sends." Style="{StaticResource SettingHint}"/>
                 <TextBlock Text="Text options apply to messages rendered after saving (re-select the session to refresh)." Style="{StaticResource SettingHint}"/>
 
                 <!-- ============ SESSIONS ============ -->

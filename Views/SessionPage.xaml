@@ -98,6 +98,7 @@
         <!-- Per-message raw JSON, shown only when Verbose logging is on (Settings > Diagnostics) -->
         <DataTemplate x:Key="RawJsonTemplate" x:DataType="models:Activity">
             <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="False" Margin="0,4,0,0"
+                      svc:ScrollAnchor.PreserveOnResize="True"
                       Background="{ThemeResource SubtleFillColorSecondaryBrush}">
                 <Expander.Header>
                     <TextBlock Text="Raw JSON" FontSize="10" FontWeight="Bold" Opacity="0.6" CharacterSpacing="30"/>
@@ -156,48 +157,66 @@
             </Grid>
         </DataTemplate>
 
+        <!-- Body of a code review, shown inside a modal ContentDialog (see
+             OnOpenReviewDialog) rather than an inline dropdown, so a long review
+             never reflows the chat. -->
+        <DataTemplate x:Key="ReviewDialogTemplate" x:DataType="models:Activity">
+            <ScrollViewer MinWidth="460" MaxHeight="560" Padding="0,0,14,0"
+                          HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="10">
+                    <svc:MarkdownPresenter Markdown="{x:Bind ReviewDisplayText, Mode=OneWay}" BaseFontSize="13"
+                               Visibility="{x:Bind ReviewDisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+
+                    <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ReviewComment">
+                                <StackPanel Margin="0,3" Padding="10" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="6">
+                                    <TextBlock FontWeight="SemiBold" FontSize="11" Opacity="0.75" TextWrapping="Wrap" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
+                                        <Run Text="{x:Bind FilePath}"/>
+                                        <Run Text=" : "/>
+                                        <Run Text="{x:Bind LineNumber}"/>
+                                    </TextBlock>
+                                    <svc:MarkdownPresenter Markdown="{x:Bind Comment}" BaseFontSize="12" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="{x:Bind CreateTime, Mode=OneWay, Converter={StaticResource DateTimeToTimeConverter}}" FontSize="11" HorizontalAlignment="Right" Opacity="0.4"
+                               Visibility="{x:Bind ShowTimestamp, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <ContentControl ContentTemplate="{StaticResource RawJsonTemplate}" Content="{x:Bind}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    Visibility="{x:Bind ShowRawJson, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Chat entry for a code review: a compact card that opens the review in
+             a modal. -->
         <DataTemplate x:Key="CodeReviewTemplate" x:DataType="models:Activity">
             <Grid Margin="16,4" Visibility="{x:Bind HasContent, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
-                <Expander HorizontalAlignment="Stretch" MaxWidth="760" HorizontalContentAlignment="Stretch" IsExpanded="False"
-                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                          BorderBrush="{ThemeResource AccentFillColorDefaultBrush}">
-                    <Expander.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="10" Padding="0,2" HorizontalAlignment="Center">
-                            <Border Background="{ThemeResource AccentFillColorDefaultBrush}" Padding="7,2" CornerRadius="4" VerticalAlignment="Center">
-                                <TextBlock Text="CODE REVIEW" FontSize="10" FontWeight="Bold" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"/>
-                            </Border>
-                            <TextBlock Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="SemiBold" FontSize="14"
-                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                    </Expander.Header>
-
-                    <StackPanel Spacing="8" Margin="0,4,0,0">
-                        <svc:MarkdownPresenter Markdown="{x:Bind ReviewDisplayText, Mode=OneWay}" BaseFontSize="13"
-                                   Visibility="{x:Bind ReviewDisplayText, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
-
-                        <ItemsControl ItemsSource="{x:Bind Review.Comments, Mode=OneWay}" Visibility="{x:Bind Review.Comments, Converter={StaticResource CollectionToVisibilityConverter}}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="models:ReviewComment">
-                                    <StackPanel Margin="0,3" Padding="10" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="6">
-                                        <TextBlock FontWeight="SemiBold" FontSize="11" Opacity="0.75" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
-                                            <Run Text="{x:Bind FilePath}"/>
-                                            <Run Text=" : "/>
-                                            <Run Text="{x:Bind LineNumber}"/>
-                                        </TextBlock>
-                                        <svc:MarkdownPresenter Markdown="{x:Bind Comment}" BaseFontSize="12" Margin="0,3,0,0"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <TextBlock Text="{x:Bind CreateTime, Mode=OneWay, Converter={StaticResource DateTimeToTimeConverter}}" FontSize="11" HorizontalAlignment="Right" Opacity="0.4"
-                                   Visibility="{x:Bind ShowTimestamp, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-                        <ContentControl ContentTemplate="{StaticResource RawJsonTemplate}" Content="{x:Bind}"
-                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                        Visibility="{x:Bind ShowRawJson, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                    </StackPanel>
-                </Expander>
+                <Button Click="OnOpenReviewDialog" Tag="{x:Bind}"
+                        HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                        MaxWidth="560" MinHeight="52" Padding="14,11" CornerRadius="12"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource AccentFillColorDefaultBrush}" BorderThickness="1"
+                        ToolTipService.ToolTip="Open code review">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{ThemeResource AccentFillColorDefaultBrush}" Padding="8,3" CornerRadius="4" VerticalAlignment="Center">
+                            <TextBlock Text="CODE REVIEW" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{x:Bind ReviewDisplayTitle, Mode=OneWay}" FontWeight="SemiBold" FontSize="15"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <FontIcon Grid.Column="2" Glyph="&#xE8A0;" FontSize="14" Opacity="0.6" VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
             </Grid>
         </DataTemplate>
 
@@ -278,6 +297,7 @@
         <DataTemplate x:Key="DiffFileTemplate" x:DataType="vm:DiffFileViewModel">
             <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                       Margin="0,0,0,8" Padding="0"
+                      svc:ScrollAnchor.PreserveOnResize="True"
                       IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}">
                 <Expander.Header>
                     <Grid ColumnSpacing="12" Padding="0,2">
@@ -469,7 +489,7 @@
                                   Loaded="OnChatListLoaded"
                                   ItemsSource="{x:Bind ViewModel.Activities}"
                                   SelectionMode="None"
-                                  Padding="0,10"
+                                  Padding="0,10,0,20"
                                   ItemTemplateSelector="{StaticResource ChatActivityTemplateSelector}">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
@@ -487,15 +507,20 @@
                             </ScrollViewer>
                         </Grid>
 
-                        <!-- Floating "jump to latest" affordance, shown when the chat is scrolled up -->
+                        <!-- Floating "jump to latest" affordance, shown when the chat is scrolled up.
+                             Kept visible but at Opacity 0 / non-hit-testable when hidden so the
+                             OpacityTransition can fade it in and out instead of it popping. -->
                         <Button x:Name="JumpToBottomButton" Click="OnJumpToBottomClick"
-                                Visibility="Collapsed"
+                                Opacity="0" IsHitTestVisible="False"
                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                 Margin="0,0,20,16" Width="36" Height="36" Padding="0"
                                 CornerRadius="18"
                                 Background="{ThemeResource AccentFillColorDefaultBrush}"
                                 BorderBrush="{ThemeResource AccentFillColorTertiaryBrush}"
                                 ToolTipService.ToolTip="Jump to latest">
+                            <Button.OpacityTransition>
+                                <ScalarTransition Duration="0:0:0.16"/>
+                            </Button.OpacityTransition>
                             <FontIcon Glyph="&#xE70D;" FontSize="14" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"/>
                         </Button>
                     </Grid>
@@ -509,10 +534,11 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" PlaceholderText="Message Jules..."
-                         Text="{x:Bind ViewModel.ChatInput, Mode=TwoWay}"
+                <TextBox Grid.Column="0" x:Name="ChatInputBox" PlaceholderText="Message Jules..."
+                         Text="{x:Bind ViewModel.ChatInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True" MaxHeight="120"
-                         CornerRadius="8"/>
+                         CornerRadius="8"
+                         PreviewKeyDown="OnChatInputPreviewKeyDown"/>
                 <Button Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Bottom"
                         Command="{x:Bind ViewModel.SendMessageCommand}"
                         Style="{StaticResource AccentButtonStyle}"

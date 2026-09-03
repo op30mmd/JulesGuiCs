@@ -26,6 +26,9 @@ public static class AppSettings
     public static bool CollapseUserMessages { get; private set; } = true;
     public static bool CollapseLongCodeBlocks { get; private set; } = true;
     public static bool AutoScrollChat { get; private set; } = true;
+    // Enter sends the message; Shift+Enter inserts a newline. When off, Enter
+    // inserts a newline and the Send button (or Ctrl+Enter) sends.
+    public static bool SendOnEnter { get; private set; } = true;
 
     // Sessions / behaviour
     public static int PollingIntervalSeconds { get; private set; } = 10;
@@ -66,6 +69,7 @@ public static class AppSettings
         CollapseUserMessages = s.CollapseUserMessages;
         CollapseLongCodeBlocks = s.CollapseLongCodeBlocks;
         AutoScrollChat = s.AutoScrollChat;
+        SendOnEnter = s.SendOnEnter;
 
         PollingIntervalSeconds = (int)Clamp(s.PollingIntervalSeconds, 3, 120, 10);
         MaxSessionsShown = Math.Max(0, s.MaxSessionsShown);

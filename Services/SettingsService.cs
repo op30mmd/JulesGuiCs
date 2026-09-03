@@ -36,6 +36,7 @@ public interface ISettingsService
     bool CollapseUserMessages { get; set; }
     bool CollapseLongCodeBlocks { get; set; }
     bool AutoScrollChat { get; set; }
+    bool SendOnEnter { get; set; }
 
     // Sessions / behaviour
     int PollingIntervalSeconds { get; set; }
@@ -136,6 +137,7 @@ public class SettingsService : ISettingsService
     public bool CollapseUserMessages { get => Get("CollapseUserMessages", true); set => Set("CollapseUserMessages", value); }
     public bool CollapseLongCodeBlocks { get => Get("CollapseLongCodeBlocks", true); set => Set("CollapseLongCodeBlocks", value); }
     public bool AutoScrollChat { get => Get("AutoScrollChat", true); set => Set("AutoScrollChat", value); }
+    public bool SendOnEnter { get => Get("SendOnEnter", true); set => Set("SendOnEnter", value); }
 
     // Sessions / behaviour
     public int PollingIntervalSeconds { get => Get("PollingIntervalSeconds", 10); set => Set("PollingIntervalSeconds", value); }

@@ -34,6 +34,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _collapseUserMessages;
     [ObservableProperty] private bool _collapseLongCodeBlocks;
     [ObservableProperty] private bool _autoScrollChat;
+    [ObservableProperty] private bool _sendOnEnter;
 
     // Sessions / behaviour
     [ObservableProperty] private double _pollingIntervalSeconds;
@@ -91,6 +92,7 @@ public partial class SettingsViewModel : ObservableObject
         _collapseUserMessages = _settings.CollapseUserMessages;
         _collapseLongCodeBlocks = _settings.CollapseLongCodeBlocks;
         _autoScrollChat = _settings.AutoScrollChat;
+        _sendOnEnter = _settings.SendOnEnter;
 
         _pollingIntervalSeconds = _settings.PollingIntervalSeconds;
         _maxSessionsShown = _settings.MaxSessionsShown;
@@ -142,6 +144,7 @@ public partial class SettingsViewModel : ObservableObject
         _settings.CollapseUserMessages = CollapseUserMessages;
         _settings.CollapseLongCodeBlocks = CollapseLongCodeBlocks;
         _settings.AutoScrollChat = AutoScrollChat;
+        _settings.SendOnEnter = SendOnEnter;
 
         _settings.PollingIntervalSeconds = (int)PollingIntervalSeconds;
         _settings.MaxSessionsShown = (int)MaxSessionsShown;
