@@ -75,7 +75,12 @@ jobs:
       run: msbuild JulesClient.sln /t:Restore /p:Configuration=Release
 
     - name: Build and sign MSIX package
-      run: msbuild JulesClient.csproj /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages\\" /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxPackageSigningEnabled=true /p:PackageCertificateKeyFile="JulesClient_ReleaseKey.pfx" /p:PackageCertificatePassword="ReleasePassword123"
+      run: msbuild JulesClient.csproj /p:Configuration=Release /p:Platform=x64 /p:GenerateAppxPackageOnBuild=true /p:AppxPackageDir="AppPackages/" /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxPackageSigningEnabled=true /p:PackageCertificateKeyFile="JulesClient_ReleaseKey.pfx" /p:PackageCertificatePassword="ReleasePassword123"
+
+    - name: Verify MSIX package output
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path AppPackages -Recurse
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
