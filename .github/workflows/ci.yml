@@ -37,13 +37,24 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: windows-2022
     permissions:
       contents: write
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Generate Release Tag
+      id: tag_gen
+      shell: pwsh
+      run: |
+        if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+          $tagName = "${{ github.ref_name }}"
+        } else {
+          $tagName = "v1.0.${{ github.run_number }}"
+        }
+        Write-Output "tag_name=$tagName" >> $env:GITHUB_OUTPUT
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -67,5 +78,6 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ steps.tag_gen.outputs.tag_name }}
         files: JulesClient-Release.zip
         generate_release_notes: true
