@@ -67,17 +67,12 @@ jobs:
     - name: Restore dependencies
       run: msbuild JulesClient.sln /t:Restore /p:Configuration=Release
 
-    - name: Build
-      run: msbuild JulesClient.sln /p:Configuration=Release /p:Platform=x64
-
-    - name: Compress Release build
-      shell: pwsh
-      run: |
-        Compress-Archive -Path bin\x64\Release\net8.0-windows10.0.19041.0\* -DestinationPath JulesClient-Release.zip
+    - name: Build MSIX package
+      run: msbuild JulesClient.csproj /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages\\" /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxPackageSigningEnabled=false
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.tag_gen.outputs.tag_name }}
-        files: JulesClient-Release.zip
+        files: AppPackages/**/*.msix
         generate_release_notes: true
