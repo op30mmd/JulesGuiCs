@@ -97,4 +97,62 @@ public class CodeHighlighterTests
         Assert.Empty(CodeHighlighter.Highlight(null, "cpp"));
         Assert.Empty(CodeHighlighter.Highlight("", "cpp"));
     }
+
+    [Fact]
+    public void Python_UsesPythonKeywords_DefNameIsFunction_NoneIsConstant()
+    {
+        var toks = CodeHighlighter.Highlight("def parse(x):\n    return None", "python");
+
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Keyword && t.Text == "def");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Keyword && t.Text == "return");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Function && t.Text == "parse");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Constant && t.Text == "None");
+    }
+
+    [Fact]
+    public void PerLanguage_Set_Wins_Over_CommonUnion()
+    {
+        // "var" is a value type in the common fallback but a keyword in C#.
+        var cs = CodeHighlighter.Highlight("var count = 3;", "csharp");
+        Assert.Contains(cs, t => t.Kind == CodeTokenKind.Keyword && t.Text == "var");
+
+        // "range" is a Go keyword; it should not light up as one in C.
+        var c = CodeHighlighter.Highlight("int range = 1;", "c");
+        Assert.DoesNotContain(c, t => t.Kind == CodeTokenKind.Keyword && t.Text == "range");
+    }
+
+    [Fact]
+    public void FunctionCallNames_AreHighlighted()
+    {
+        var toks = CodeHighlighter.Highlight("foo(bar(), 2);", "js");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Function && t.Text == "foo");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Function && t.Text == "bar");
+        Assert.Equal("foo(bar(), 2);", string.Concat(toks.Select(t => t.Text)));
+    }
+
+    [Fact]
+    public void BooleanLiterals_AreConstants()
+    {
+        var toks = CodeHighlighter.Highlight("bool ok = true;", "cpp");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Type && t.Text == "bool");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Constant && t.Text == "true");
+    }
+
+    [Fact]
+    public void BinaryOctalAndLeadingDotLiterals_AreNumbers()
+    {
+        Assert.True(Has(CodeHighlighter.Highlight("a = 0b1010;", "rust"), CodeTokenKind.Number, "0b1010"));
+        Assert.True(Has(CodeHighlighter.Highlight("a = 0o17;", "rust"), CodeTokenKind.Number, "0o17"));
+        Assert.True(Has(CodeHighlighter.Highlight("x = .5;", "js"), CodeTokenKind.Number, ".5"));
+    }
+
+    [Fact]
+    public void Sql_Keywords_AreCaseInsensitive()
+    {
+        var toks = CodeHighlighter.Highlight("Select id From t Where id = 1", "sql");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Keyword && t.Text == "Select");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Keyword && t.Text == "From");
+        Assert.Contains(toks, t => t.Kind == CodeTokenKind.Keyword && t.Text == "Where");
+        Assert.Equal("Select id From t Where id = 1", string.Concat(toks.Select(t => t.Text)));
+    }
 }

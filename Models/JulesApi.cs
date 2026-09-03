@@ -50,7 +50,9 @@ public record Session(
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
 
-    [JsonIgnore]
+    // Raw JSON of this session as received from the API. Deliberately NOT
+    // [JsonIgnore]: it has to survive a round-trip through the disk cache so the
+    // "Copy session JSON" button works on a cache hit, not just a fresh fetch.
     public string? RawInfo { get; set; }
 
     // The starting branch for the session header. Jules often leaves
@@ -193,7 +195,9 @@ public record Activity(
     [JsonIgnore]
     private bool? _cachedIsReview;
 
-    [JsonIgnore]
+    // Raw JSON of this activity as received from the API. Deliberately NOT
+    // [JsonIgnore]: it must survive the disk cache so the per-message "Raw JSON"
+    // panel (Verbose logging) works on a cache hit, not just a fresh fetch.
     public string? RawInfo
     {
         get => _rawInfo;
@@ -434,6 +438,34 @@ public record Activity(
     [JsonIgnore]
     public bool HasDebugInfo => !string.IsNullOrWhiteSpace(RawInfo);
 
+    // The chat's DisplayText for this activity is one of Jules' own chat
+    // messages (not a plan, review or progress block). When "Collapse long
+    // agent messages" is on, the presenter folds it if it is long enough.
+    [JsonIgnore]
+    public bool CollapseAgentMessage =>
+        JulesClient.Services.AppSettings.CollapseAgentMessages
+        && string.Equals(EffectiveOriginator, "agent", StringComparison.OrdinalIgnoreCase)
+        && !IsReview
+        && ProgressUpdated?.HasData != true
+        && PlanGenerated?.HasData != true;
+
+    // The same for the user's own messages (e.g. a pasted log), gated on the
+    // "Collapse long user messages" setting.
+    [JsonIgnore]
+    public bool CollapseUserMessage =>
+        JulesClient.Services.AppSettings.CollapseUserMessages
+        && string.Equals(EffectiveOriginator, "user", StringComparison.OrdinalIgnoreCase);
+
+    // Whether the chat presenter should offer a "Show more" fold for this
+    // message's body. The length check itself lives in the presenter.
+    [JsonIgnore]
+    public bool CollapseMessage => CollapseAgentMessage || CollapseUserMessage;
+
+    // Chat shows a per-message "Raw JSON" expander only when Verbose logging
+    // (Settings > Diagnostics) is on and the raw payload was captured.
+    [JsonIgnore]
+    public bool ShowRawJson => JulesClient.Services.AppSettings.VerboseLogging && HasDebugInfo;
+
     private static readonly char[] _headingTrimChars =
         { ' ', '\t', '\r', '\n', ':', '.', '!', '?', '-', '–', '—', '#', '_', '*' };
 
@@ -545,6 +577,11 @@ public record Activity(
     [JsonIgnore]
     public bool ShowPlan => PlanGenerated?.HasData == true;
 
+    // Markdown one-liner ("**Updated** `a` and `b`") for a changeset activity,
+    // filled in by the view model from the diff (the full diff is the Diff tab).
+    [JsonIgnore]
+    public string? ChangeSummary { get; set; }
+
     // Short status label for lifecycle events that should render as a centred
     // system line rather than a chat bubble.
     [JsonIgnore]
@@ -567,6 +604,18 @@ public record Activity(
         && string.IsNullOrWhiteSpace(AgentMessaged?.AgentMessage)
         && string.IsNullOrWhiteSpace(Text)
         && string.IsNullOrWhiteSpace(Description)
+        && (Artifacts == null || Artifacts.Count == 0);
+
+    // A stand-alone "Updated `file` ..." note - the activity carried only a
+    // changeset, so it renders as its own left-aligned line.
+    [JsonIgnore]
+    public bool IsChangeNote =>
+        !string.IsNullOrEmpty(ChangeSummary)
+        && !IsSystemEvent
+        && !IsReview
+        && string.IsNullOrWhiteSpace(DisplayText)
+        && ProgressUpdated?.HasData != true
+        && PlanGenerated?.HasData != true
         && (Artifacts == null || Artifacts.Count == 0);
 
     // User preferences (Settings) - the chat templates bind visibility to these.

@@ -31,6 +31,10 @@ public interface ISettingsService
     bool ShowTimestamps { get; set; }
     bool ShowOriginatorLabels { get; set; }
     bool ShowCodeLanguageLabel { get; set; }
+    bool ShowProgressUpdates { get; set; }
+    bool CollapseAgentMessages { get; set; }
+    bool CollapseUserMessages { get; set; }
+    bool CollapseLongCodeBlocks { get; set; }
     bool AutoScrollChat { get; set; }
 
     // Sessions / behaviour
@@ -127,6 +131,10 @@ public class SettingsService : ISettingsService
     public bool ShowTimestamps { get => Get("ShowTimestamps", true); set => Set("ShowTimestamps", value); }
     public bool ShowOriginatorLabels { get => Get("ShowOriginatorLabels", true); set => Set("ShowOriginatorLabels", value); }
     public bool ShowCodeLanguageLabel { get => Get("ShowCodeLanguageLabel", true); set => Set("ShowCodeLanguageLabel", value); }
+    public bool ShowProgressUpdates { get => Get("ShowProgressUpdates", true); set => Set("ShowProgressUpdates", value); }
+    public bool CollapseAgentMessages { get => Get("CollapseAgentMessages", true); set => Set("CollapseAgentMessages", value); }
+    public bool CollapseUserMessages { get => Get("CollapseUserMessages", true); set => Set("CollapseUserMessages", value); }
+    public bool CollapseLongCodeBlocks { get => Get("CollapseLongCodeBlocks", true); set => Set("CollapseLongCodeBlocks", value); }
     public bool AutoScrollChat { get => Get("AutoScrollChat", true); set => Set("AutoScrollChat", value); }
 
     // Sessions / behaviour

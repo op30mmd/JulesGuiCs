@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text;
 
 namespace JulesClient.Services;
 
@@ -134,6 +135,134 @@ public partial class DiffParser
             result.Files.Add(filesMap[path]);
         }
         return result;
+    }
+
+    // The distinct file paths touched by a unified diff, in first-seen order.
+    public static IReadOnlyList<string> ChangedFilePaths(string? patch)
+    {
+        var paths = new List<string>();
+        foreach (var (p, _) in FilePatchBodies(patch))
+        {
+            if (!paths.Contains(p)) paths.Add(p);
+        }
+        return paths;
+    }
+
+    // Splits a unified diff into per-file sections: (path, that file's portion of
+    // the diff). Handles git ("diff --git a/x b/x"), plain ("--- a/x" / "+++ b/x"
+    // / "@@") and mixed headers. Used to tell which files actually changed between
+    // two snapshots of an evolving changeset.
+    public static List<(string Path, string Body)> FilePatchBodies(string? patch)
+    {
+        var result = new List<(string, string)>();
+        if (string.IsNullOrWhiteSpace(patch)) return result;
+
+        var lines = patch.Replace("\r\n", "\n").Split('\n');
+        string? curPath = null;
+        var body = new StringBuilder();
+
+        void Flush()
+        {
+            if (curPath != null) result.Add((curPath, body.ToString()));
+            body.Clear();
+        }
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+
+            if (line.StartsWith("diff --git ", StringComparison.Ordinal))
+            {
+                Flush();
+                var rest = line["diff --git ".Length..];
+                int b = rest.LastIndexOf(" b/", StringComparison.Ordinal);
+                curPath = NormalizePathToken(b > 0 ? rest[(b + 3)..] : rest);
+                continue;
+            }
+
+            // Plain header triplet: "--- X" / "+++ Y" / "@@ ..." naming the same
+            // file (or one side /dev/null). The same-path check keeps content
+            // lines like "--- foo" / "+++ bar" from being read as a header.
+            if (line.StartsWith("--- ", StringComparison.Ordinal)
+                && i + 2 < lines.Length
+                && lines[i + 1].StartsWith("+++ ", StringComparison.Ordinal)
+                && lines[i + 2].StartsWith("@@ ", StringComparison.Ordinal))
+            {
+                var minus = NormalizePathToken(line[4..]);
+                var plus = NormalizePathToken(lines[i + 1][4..]);
+                if (minus == plus || minus == "/dev/null" || plus == "/dev/null")
+                {
+                    var p = !string.IsNullOrEmpty(plus) && plus != "/dev/null" ? plus : minus;
+                    if (p != curPath)
+                    {
+                        Flush();
+                        curPath = p;
+                    }
+                    body.Append(lines[i + 2]).Append('\n');
+                    i += 2;
+                    continue;
+                }
+            }
+
+            if (curPath != null) body.Append(line).Append('\n');
+        }
+
+        Flush();
+        return result;
+    }
+
+    // Turns a "--- "/"+++ " token into a bare path: drops a trailing tab-separated
+    // timestamp, surrounding quotes, and a leading "a/" or "b/".
+    private static string? NormalizePathToken(string? token)
+    {
+        if (token is null) return null;
+
+        var s = token.Trim();
+        int tab = s.IndexOf('\t');
+        if (tab >= 0) s = s[..tab].TrimEnd();
+        if (s.Length >= 2 && s[0] == '"' && s[^1] == '"') s = s[1..^1];
+        if (s == "/dev/null") return s;
+        if (s.StartsWith("a/", StringComparison.Ordinal) || s.StartsWith("b/", StringComparison.Ordinal))
+        {
+            s = s[2..];
+        }
+        return s;
+    }
+
+    // True when a per-file body from FilePatchBodies contains at least one hunk,
+    // i.e. real line changes rather than a binary or mode-only change.
+    public static bool BodyHasHunks(string? body)
+    {
+        if (string.IsNullOrEmpty(body)) return false;
+        foreach (var line in body.Split('\n'))
+        {
+            if (line.StartsWith("@@ ", StringComparison.Ordinal)) return true;
+        }
+        return false;
+    }
+
+    // A Markdown one-liner summarising a diff - "**Updated** `a` and `b`" with
+    // the repo-relative paths as inline code - or null if it touches no files.
+    public static string? SummarizeChange(string? patch) => SummarizeFiles(ChangedFilePaths(patch));
+
+    // As above, for an already-resolved (e.g. pre-filtered) list of paths. At
+    // most three are listed; the rest collapse to "and N more file(s)".
+    public static string? SummarizeFiles(IReadOnlyList<string> paths)
+    {
+        if (paths == null || paths.Count == 0) return null;
+
+        static string Chip(string p) => "`" + p + "`";
+        int extra = paths.Count - 3;
+
+        var list = paths.Count switch
+        {
+            1 => Chip(paths[0]),
+            2 => $"{Chip(paths[0])} and {Chip(paths[1])}",
+            3 => $"{Chip(paths[0])}, {Chip(paths[1])} and {Chip(paths[2])}",
+            _ => $"{Chip(paths[0])}, {Chip(paths[1])}, {Chip(paths[2])} and " +
+                 (extra == 1 ? "1 more file" : $"{extra} more files"),
+        };
+        return "**Updated** " + list;
     }
 
     public static List<DiffFileNode> BuildFileTree(ParsedPatch patch)

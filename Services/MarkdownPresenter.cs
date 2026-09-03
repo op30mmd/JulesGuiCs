@@ -19,13 +19,34 @@ public sealed class MarkdownPresenter : StackPanel
 {
     public static readonly DependencyProperty MarkdownProperty = DependencyProperty.Register(
         nameof(Markdown), typeof(string), typeof(MarkdownPresenter),
-        new PropertyMetadata(null, (d, _) => ((MarkdownPresenter)d).Rebuild()));
+        new PropertyMetadata(null, (d, _) =>
+        {
+            var p = (MarkdownPresenter)d;
+            p._expanded = false; // a recycled container just got new content
+            p.Rebuild();
+        }));
 
     public string? Markdown
     {
         get => (string?)GetValue(MarkdownProperty);
         set => SetValue(MarkdownProperty, value);
     }
+
+    // When true, content longer than <see cref="CollapseThreshold"/> characters
+    // renders folded to its first line with a "Show more" toggle. Used for the
+    // agent's long "thinking out loud" chat messages.
+    public static readonly DependencyProperty CollapsibleProperty = DependencyProperty.Register(
+        nameof(Collapsible), typeof(bool), typeof(MarkdownPresenter),
+        new PropertyMetadata(false, (d, _) => ((MarkdownPresenter)d).Rebuild()));
+
+    public bool Collapsible
+    {
+        get => (bool)GetValue(CollapsibleProperty);
+        set => SetValue(CollapsibleProperty, value);
+    }
+
+    private const int CollapseThreshold = 500;
+    private bool _expanded;
 
     public static readonly DependencyProperty BaseFontSizeProperty = DependencyProperty.Register(
         nameof(BaseFontSize), typeof(double), typeof(MarkdownPresenter),
@@ -61,28 +82,84 @@ public sealed class MarkdownPresenter : StackPanel
         var text = Markdown;
         if (string.IsNullOrEmpty(text)) return;
 
+        // Collapsed: show only the first line plus a toggle.
+        if (Collapsible && !_expanded && text.Length > CollapseThreshold)
+        {
+            Children.Add(PlainTextBlock(FirstLine(text)));
+            Children.Add(BuildToggle("Show more", expand: true));
+            return;
+        }
+
         // Plain-text mode: skip the markdown parser entirely.
         if (!AppSettings.MarkdownEnabled)
         {
             Children.Add(PlainTextBlock(text));
-            return;
         }
-
-        try
+        else
         {
-            foreach (var segment in MarkdownConflictParser.Split(text))
+            try
             {
-                Children.Add(segment.Conflict is { } conflict
-                    ? BuildConflict(conflict)
-                    : BuildMarkdown(segment.Text));
+                foreach (var segment in MarkdownConflictParser.Split(text))
+                {
+                    if (segment.Conflict is { } conflict)
+                    {
+                        Children.Add(BuildConflict(conflict));
+                        continue;
+                    }
+
+                    // Lift fenced code blocks into their own collapsible cards;
+                    // the prose between them still renders as a TextBlock.
+                    foreach (var piece in FencedCode.Split(segment.Text))
+                    {
+                        Children.Add(piece.Code is { } code
+                            ? BuildCodeBlock(code)
+                            : BuildMarkdown(piece.Text));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[MARKDOWN] Presenter rebuild failed: {ex.Message}");
+                Children.Clear();
+                Children.Add(PlainTextBlock(text));
             }
         }
-        catch (Exception ex)
+
+        if (Collapsible && _expanded && text.Length > CollapseThreshold)
         {
-            Debug.WriteLine($"[MARKDOWN] Presenter rebuild failed: {ex.Message}");
-            Children.Clear();
-            Children.Add(PlainTextBlock(text));
+            Children.Add(BuildToggle("Show less", expand: false));
         }
+    }
+
+    // The first non-blank line of the source, stripped of leading markdown
+    // markers and trimmed, used as the collapsed preview.
+    private static string FirstLine(string text)
+    {
+        foreach (var raw in text.Split('\n'))
+        {
+            var line = raw.Trim().TrimStart('#', '-', '*', '>', ' ', '\t').Trim();
+            if (line.Length == 0) continue;
+            return line.Length > 160 ? line[..160].TrimEnd() + " …" : line + " …";
+        }
+        return "…";
+    }
+
+    private FrameworkElement BuildToggle(string label, bool expand)
+    {
+        var btn = new HyperlinkButton
+        {
+            Content = label,
+            Padding = new Thickness(0),
+            MinWidth = 0,
+            FontSize = 12,
+            Margin = new Thickness(0, 2, 0, 0)
+        };
+        btn.Click += (_, _) =>
+        {
+            _expanded = expand;
+            Rebuild();
+        };
+        return btn;
     }
 
     private TextBlock PlainTextBlock(string text) => new()
@@ -124,6 +201,10 @@ public sealed class MarkdownPresenter : StackPanel
     private const double ConflictWidth = 600;
     private const double ConflictPaneMaxWidth = 540;
 
+    // A fenced code block longer than this starts collapsed (when the setting
+    // is on); shorter ones start expanded but stay collapsible.
+    private const int CodeCollapseLines = 14;
+
     private static FrameworkElement BuildConflict(ConflictBlock conflict)
     {
         int lineCount = CountLines(conflict.Search) + CountLines(conflict.Replace);
@@ -149,6 +230,70 @@ public sealed class MarkdownPresenter : StackPanel
     }
 
     private static int CountLines(string s) => string.IsNullOrEmpty(s) ? 0 : s.Split('\n').Length;
+
+    // A fenced code block, rendered as a collapsible card with the language and
+    // line count in the header and the highlighted, side-scrolling code inside.
+    private static FrameworkElement BuildCodeBlock(FencedCodeBlock block)
+    {
+        var code = block.Code ?? string.Empty;
+        int lineCount = CountLines(code);
+        var unit = lineCount == 1 ? "line" : "lines";
+        var caption = string.IsNullOrEmpty(block.Language)
+            ? $"Code  ·  {lineCount} {unit}"
+            : $"{block.Language}  ·  {lineCount} {unit}";
+
+        var codeText = new TextBlock
+        {
+            FontFamily = MarkdownParser.CodeFont,
+            FontSize = MarkdownParser.CodeFontSize,
+            TextWrapping = TextWrapping.NoWrap,
+            IsTextSelectionEnabled = true
+        };
+        foreach (var token in CodeHighlighter.Highlight(code, block.Language))
+        {
+            var run = new Run { Text = token.Text };
+            var brush = MarkdownParser.CodeTokenBrush(token.Kind);
+            if (brush != null) run.Foreground = brush;
+
+            if (token.Kind == CodeTokenKind.Comment)
+                codeText.Inlines.Add(new Italic { Inlines = { run } });
+            else
+                codeText.Inlines.Add(run);
+        }
+
+        var body = new ScrollViewer
+        {
+            Content = codeText,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            HorizontalScrollMode = ScrollMode.Enabled,
+            VerticalScrollMode = ScrollMode.Disabled,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            MaxWidth = ConflictPaneMaxWidth,
+            Margin = new Thickness(0, 4, 0, 0)
+        };
+
+        bool startCollapsed = AppSettings.CollapseLongCodeBlocks && lineCount > CodeCollapseLines;
+
+        return new Expander
+        {
+            Header = new TextBlock
+            {
+                Text = caption,
+                FontFamily = MarkdownParser.CodeFont,
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Opacity = 0.75
+            },
+            Content = body,
+            IsExpanded = !startCollapsed,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            MinWidth = ConflictWidth,
+            MaxWidth = ConflictWidth,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+    }
 
     private static Border BuildPane(string label, string code, string? language, bool removed)
     {

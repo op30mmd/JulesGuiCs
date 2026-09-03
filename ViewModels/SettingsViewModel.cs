@@ -29,6 +29,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _showTimestamps;
     [ObservableProperty] private bool _showOriginatorLabels;
     [ObservableProperty] private bool _showCodeLanguageLabel;
+    [ObservableProperty] private bool _showProgressUpdates;
+    [ObservableProperty] private bool _collapseAgentMessages;
+    [ObservableProperty] private bool _collapseUserMessages;
+    [ObservableProperty] private bool _collapseLongCodeBlocks;
     [ObservableProperty] private bool _autoScrollChat;
 
     // Sessions / behaviour
@@ -82,6 +86,10 @@ public partial class SettingsViewModel : ObservableObject
         _showTimestamps = _settings.ShowTimestamps;
         _showOriginatorLabels = _settings.ShowOriginatorLabels;
         _showCodeLanguageLabel = _settings.ShowCodeLanguageLabel;
+        _showProgressUpdates = _settings.ShowProgressUpdates;
+        _collapseAgentMessages = _settings.CollapseAgentMessages;
+        _collapseUserMessages = _settings.CollapseUserMessages;
+        _collapseLongCodeBlocks = _settings.CollapseLongCodeBlocks;
         _autoScrollChat = _settings.AutoScrollChat;
 
         _pollingIntervalSeconds = _settings.PollingIntervalSeconds;
@@ -129,6 +137,10 @@ public partial class SettingsViewModel : ObservableObject
         _settings.ShowTimestamps = ShowTimestamps;
         _settings.ShowOriginatorLabels = ShowOriginatorLabels;
         _settings.ShowCodeLanguageLabel = ShowCodeLanguageLabel;
+        _settings.ShowProgressUpdates = ShowProgressUpdates;
+        _settings.CollapseAgentMessages = CollapseAgentMessages;
+        _settings.CollapseUserMessages = CollapseUserMessages;
+        _settings.CollapseLongCodeBlocks = CollapseLongCodeBlocks;
         _settings.AutoScrollChat = AutoScrollChat;
 
         _settings.PollingIntervalSeconds = (int)PollingIntervalSeconds;

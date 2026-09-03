@@ -12,13 +12,17 @@ A modern Windows desktop GUI application for interacting with the **Jules API** 
 
 - **Session Management & Active PR Banner**
   - Two-pane navigation layout displaying active and historical sessions.
-  - Header actions to toggle real-time activity polling, copy raw session JSON diagnostics to the clipboard, and open active Pull Requests directly.
+  - **Live status indicator** in the session header — *Working…* (with spinner), *Completed*, *Failed*, *Waiting for plan approval*, *Waiting for your reply*, *Paused* — derived from the session state and the newest terminal activity.
+  - Header actions to toggle real-time activity polling, copy the raw session JSON to the clipboard, open the active Pull Request, and open the session on `jules.google.com` (for actions the API doesn't expose, such as pausing).
 
 - **Rich Chat & Activity Stream**
   - Interactive activity feed displaying user messages, agent updates, progress steps, bash command execution outputs, media attachments, and code review cards.
-  - **Custom Markdown & Syntax Highlighting Engine**: Custom parser handling Markdown formatting (bold, italic, inline code, code blocks), syntax highlighting, and Git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`).
+  - **Custom Markdown & Syntax Highlighting Engine**: Custom parser handling Markdown formatting (bold, italic, inline code, fenced code blocks with `` ``` `` and `~~~`), and Git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`). The highlighter (`CodeHighlighter`) uses per-language keyword/type sets for ~15 languages (C/C++, C#, JS/TS, Python, Java, Kotlin, Swift, Go, Rust, Ruby, PHP, shell, SQL) plus function-name and boolean/`null` constant recognition, hex/binary/octal number literals, and case-insensitive SQL.
+  - **Collapsible content**: long "thinking out loud" agent messages, long user messages (e.g. a pasted log), and long fenced code blocks fold to a summary with a **Show more** toggle; every code block gets a collapsible header showing its language and line count.
+  - **File-change notes**: an *"Updated `file` and `file`"* line for each changeset, computed as a per-step delta (only the files whose diff changed since the previous snapshot) with binary / mode-only files filtered out.
   - **Specialized Code Review Templates**: Prominent, styled cards (light blue theme with accent border and badge) dedicated to AI code reviews.
-  - **Smart Artifact Deduplication**: Filters out duplicate patch signatures and previously seen PR links to keep chat streams clean.
+  - **Clutter reduction**: filters out duplicate patch signatures, previously seen PR links, repeated lifecycle lines ("Plan approved", "Session completed") and the echoed copy of a just-sent message; an optional **Show progress updates** toggle hides Jules' step-by-step narration.
+  - **Jump to latest** button appears while the feed is scrolled up; with *Verbose logging* on, each message gains a **Raw JSON** panel showing the exact activity payload.
 
 - **Hierarchical Unified Diff Viewer**
   - Per-file expandable unified diff view aggregating code changes across all session activities.
@@ -45,6 +49,7 @@ A modern Windows desktop GUI application for interacting with the **Jules API** 
 
 - **Modern Windows 11 Design**
   - Native Windows 11 aesthetics with Mica backdrop, dark/light theme awareness, custom title bar, and fluent UI controls.
+  - App icon (`Assets/jules.ico` and the MSIX logo PNGs) generated from `jules.svg` by `tools/generate-icons.mjs`.
 
 ## Tech Stack
 
@@ -55,7 +60,7 @@ A modern Windows desktop GUI application for interacting with the **Jules API** 
 | **MVVM Framework** | CommunityToolkit.Mvvm 8.2.2 |
 | **Reactive Programming** | System.Reactive 6.0.0 |
 | **Dependency Injection** | Microsoft.Extensions.DependencyInjection 8.0.0 |
-| **Testing** | xUnit 2.9.2, Moq 4.20.72 (79 unit tests) |
+| **Testing** | xUnit 2.9.2, Moq 4.20.72 (110 unit tests) |
 | **Packaging** | MSIX (Windows App Package) |
 | **Target Platform** | Windows 10/11 (x64), minimum build 17763, target 19041 |
 
@@ -80,7 +85,7 @@ dotnet run --project JulesClient.csproj
 
 ### Run Tests
 
-The test suite includes 79 unit tests validating API communication, caching logic, polling behavior, unified diff parsing, Markdown parsing, and code highlighting:
+The test suite includes 110 unit tests validating API communication, caching logic, polling behavior, unified diff parsing (including per-file change detection), fenced-code splitting, Markdown parsing, and code highlighting:
 
 ```bash
 # Run unit tests (with Windows targeting enabled for cross-platform test execution)
@@ -112,6 +117,14 @@ Choose between three proxy modes on the Settings page:
 - **Bandwidth-Saving Mode**: Choose **Auto** (dynamic adjustment based on network latency) or **Manual**.
 - **Cache Management**: View current disk cache size and clear cached responses on demand.
 
+### Chat Display
+Toggles on the Settings page control the activity feed:
+- **Show progress updates** — show or hide Jules' step-by-step narration.
+- **Collapse long agent messages** / **Collapse long user messages** — fold long messages to their first line with a *Show more* toggle.
+- **Collapse long code blocks** — long fenced blocks start collapsed (all blocks keep a collapsible header).
+- **Render Markdown**, **Syntax highlight code blocks**, **Show code block language label**, **Show speaker labels**, **Show timestamps**, **Auto-scroll to newest message**, and chat/code font family and size.
+- **Verbose logging** (Advanced) — adds a per-message **Raw JSON** panel.
+
 ## Project Structure
 
 ```
@@ -127,20 +140,21 @@ JulesGuiCs/
 │   ├── AppSettings.cs                 # App configuration constants & settings keys
 │   ├── CacheService.cs                 # Disk-backed cache manager with size cap (500MB)
 │   ├── CachedJulesApiClient.cs         # Decorator client providing response caching (24h TTL)
-│   ├── ChatActivityTemplateSelector.cs # XAML DataTemplate selector for chat vs code review activities
+│   ├── ChatActivityTemplateSelector.cs # DataTemplate selector: message / code review / system event / change note
 │   ├── ChatConverters.cs               # Value converters for chat UI & timestamps
-│   ├── CodeHighlighter.cs              # Code block syntax highlighter
-│   ├── Converters.cs                   # General UI converters (alignment, visibility, icons)
+│   ├── CodeHighlighter.cs              # Per-language code syntax highlighter (~15 languages)
+│   ├── Converters.cs                   # General UI converters (visibility, icons, status-kind → brush)
 │   ├── DemoJulesApiClient.cs           # Mock Jules API client for standalone Demo Mode
 │   ├── DemoService.cs                  # Demo mode state service implementation
 │   ├── IDemoService.cs                 # Interface for demo service management
 │   ├── DiffConverters.cs               # Value converters for git unified diff visualization
-│   ├── DiffParser.cs                   # Git unified diff parser & patch merger
+│   ├── DiffParser.cs                   # Unified diff parser, patch merger, per-file change detection & summaries
+│   ├── FencedCode.cs                   # Splits Markdown into prose and fenced ``` / ~~~ code blocks
 │   ├── JulesApiClient.cs               # Core HTTP client for Jules API with latency adaptation
 │   ├── MarkdownConflict.cs             # Markdown conflict marker parser (<<<<<<< / ======= / >>>>>>>)
-│   ├── MarkdownHelper.cs               # Markdown parser utilities & helper functions
+│   ├── MarkdownHelper.cs               # Markdown block parser & WinUI inline builder
 │   ├── MarkdownInline.cs               # Markdown inline text styling (bold, italic, code)
-│   ├── MarkdownPresenter.cs            # Formatted Markdown to WinUI Inline/Span presenter
+│   ├── MarkdownPresenter.cs            # Markdown host control with collapsible long-text / code support
 │   ├── MarkdownText.cs                 # Markdown block parser
 │   ├── PollingService.cs               # Reactive Rx.NET polling manager for activity updates
 │   ├── SettingsService.cs              # Local storage settings manager
@@ -158,12 +172,15 @@ JulesGuiCs/
 │   ├── ActivityReviewTests.cs          # Unit tests for code review detection
 │   ├── CachedJulesApiClientTests.cs    # Unit tests for API client caching
 │   ├── CodeHighlighterTests.cs         # Unit tests for code syntax highlighting
-│   ├── DiffParserTests.cs              # Unit tests for diff parsing and patch merging
+│   ├── DiffParserTests.cs              # Unit tests for diff parsing, per-file change detection & summaries
+│   ├── FencedCodeTests.cs              # Unit tests for fenced code block splitting
 │   ├── JulesApiClientTests.cs          # Unit tests for Jules HTTP API client
 │   ├── MarkdownConflictParserTests.cs  # Unit tests for Git conflict marker parsing
 │   ├── MarkdownInlineTests.cs          # Unit tests for Markdown inline formatting
 │   ├── MarkdownTextTests.cs            # Unit tests for Markdown block parsing
 │   └── PollingServiceTests.cs          # Unit tests for Rx.NET polling service
+├── tools/
+│   └── generate-icons.mjs             # Regenerates the app icon assets from jules.svg (Node + sharp)
 ├── App.xaml + App.xaml.cs              # App entry point, DI container setup, Mica & proxy init
 ├── MainWindow.xaml + MainWindow.xaml.cs # Main application window with NavigationView
 ├── GlobalUsings.cs                     # Global using statements
@@ -174,6 +191,14 @@ JulesGuiCs/
 ```
 
 ## Packaging and Signing
+
+### App Icon
+
+The window/taskbar icon (`Assets/jules.ico`) and the MSIX logo PNGs are generated from `jules.svg`:
+
+```bash
+npx --package sharp node tools/generate-icons.mjs
+```
 
 ### 1. Build MSIX Package
 
@@ -211,7 +236,7 @@ signtool sign /fd SHA256 /a /f JulesClient_TemporaryKey.pfx /p Password123 AppPa
 
 Continuous Integration is powered by GitHub Actions:
 
-- **CI Workflow** (`.github/workflows/ci.yml`): Runs on Pull Requests targeting `main` or `master`. Automatically restores dependencies, builds the solution, executes all 79 unit tests, and verifies C# code formatting.
+- **CI Workflow** (`.github/workflows/ci.yml`): Runs on Pull Requests targeting `main` or `master`. Automatically restores dependencies, builds the solution, executes all 110 unit tests, and verifies C# code formatting.
 - **OpenCode Workflow** (`.github/workflows/OC.yml`): Automated AI workflow runner.
 
 ## Contributing

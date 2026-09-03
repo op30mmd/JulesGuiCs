@@ -28,6 +28,7 @@
     <Compile Include="../Services/MarkdownInline.cs" Link="Services/MarkdownInline.cs" />
     <Compile Include="../Services/CodeHighlighter.cs" Link="Services/CodeHighlighter.cs" />
     <Compile Include="../Services/MarkdownConflict.cs" Link="Services/MarkdownConflict.cs" />
+    <Compile Include="../Services/FencedCode.cs" Link="Services/FencedCode.cs" />
     <Compile Include="../Services/MarkdownText.cs" Link="Services/MarkdownText.cs" />
     <Compile Include="../Services/CachedJulesApiClient.cs" Link="Services/CachedJulesApiClient.cs" />
     <Compile Include="../Services/DiffParser.cs" Link="Services/DiffParser.cs" />

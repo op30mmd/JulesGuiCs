@@ -76,6 +76,14 @@
                 <ToggleSwitch Header="Show code block language label" IsOn="{x:Bind ViewModel.ShowCodeLanguageLabel, Mode=TwoWay}"/>
                 <ToggleSwitch Header="Show speaker labels" IsOn="{x:Bind ViewModel.ShowOriginatorLabels, Mode=TwoWay}"/>
                 <ToggleSwitch Header="Show timestamps" IsOn="{x:Bind ViewModel.ShowTimestamps, Mode=TwoWay}"/>
+                <ToggleSwitch Header="Show progress updates" IsOn="{x:Bind ViewModel.ShowProgressUpdates, Mode=TwoWay}"/>
+                <TextBlock Text="Progress updates are Jules' running step-by-step narration. Turning this off keeps chat, plans, reviews and diffs." Style="{StaticResource SettingHint}"/>
+                <ToggleSwitch Header="Collapse long agent messages" IsOn="{x:Bind ViewModel.CollapseAgentMessages, Mode=TwoWay}"/>
+                <TextBlock Text="Folds Jules' long &quot;thinking out loud&quot; chat messages to their first line with a Show more toggle." Style="{StaticResource SettingHint}"/>
+                <ToggleSwitch Header="Collapse long user messages" IsOn="{x:Bind ViewModel.CollapseUserMessages, Mode=TwoWay}"/>
+                <TextBlock Text="Does the same for your own long messages (e.g. a pasted log or stack trace)." Style="{StaticResource SettingHint}"/>
+                <ToggleSwitch Header="Collapse long code blocks" IsOn="{x:Bind ViewModel.CollapseLongCodeBlocks, Mode=TwoWay}"/>
+                <TextBlock Text="Fenced code blocks always get a collapsible header; long ones (over 14 lines) start collapsed when this is on." Style="{StaticResource SettingHint}"/>
                 <ToggleSwitch Header="Auto-scroll to newest message" IsOn="{x:Bind ViewModel.AutoScrollChat, Mode=TwoWay}"/>
                 <TextBlock Text="Text options apply to messages rendered after saving (re-select the session to refresh)." Style="{StaticResource SettingHint}"/>
 
@@ -149,6 +157,7 @@
                 <ToggleSwitch Header="Demo mode" IsOn="{x:Bind ViewModel.IsDemoMode, Mode=TwoWay}"/>
                 <TextBlock Text="Use local mock data instead of the real Jules API." Style="{StaticResource SettingHint}"/>
                 <ToggleSwitch Header="Verbose logging" IsOn="{x:Bind ViewModel.VerboseLogging, Mode=TwoWay}"/>
+                <TextBlock Text="Also adds a collapsible &quot;Raw JSON&quot; panel to each chat message showing the exact activity payload from the Jules API." Style="{StaticResource SettingHint}"/>
 
                 <Button Content="Save Settings" Click="OnSaveClick" Margin="0,24,0,40" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch"/>
             </StackPanel>

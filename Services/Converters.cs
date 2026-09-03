@@ -86,3 +86,27 @@ public class DateTimeToTimeConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }
+
+// Maps a SessionsViewModel.StatusKind ("working" | "done" | "failed" |
+// "attention" | "idle") to the colour of the session status dot / label.
+public class StatusKindToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        var hex = (value as string) switch
+        {
+            "working" => "#3B82F6",
+            "done" => "#16A34A",
+            "failed" => "#DC2626",
+            "attention" => "#D97706",
+            _ => "#9AA0A6",
+        };
+        return new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(
+            0xFF,
+            System.Convert.ToByte(hex.Substring(1, 2), 16),
+            System.Convert.ToByte(hex.Substring(3, 2), 16),
+            System.Convert.ToByte(hex.Substring(5, 2), 16)));
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+}

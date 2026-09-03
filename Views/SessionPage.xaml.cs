@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using JulesClient.ViewModels;
 using System.Collections.Specialized;
@@ -11,11 +12,23 @@ public sealed partial class SessionsPage : Page
 {
     public SessionsViewModel ViewModel { get; } = new();
 
+    // The chat ListView's inner ScrollViewer, resolved once it is templated.
+    private ScrollViewer? _chatScroller;
+    private int _hookAttempts;
+
+    // How far (px) from the bottom still counts as "at the bottom".
+    private const double JumpThreshold = 160;
+
     public SessionsPage()
     {
         this.InitializeComponent();
         ViewModel.Activities.CollectionChanged += OnActivitiesChanged;
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        ChatListView.Loaded += (_, _) => HookChatScroller();
+        ChatListView.SizeChanged += (_, _) => UpdateJumpToBottom();
+        Loaded += (_, _) => HookChatScroller();
+
         SyncChatDiffPanels();
     }
 
@@ -28,6 +41,12 @@ public sealed partial class SessionsPage : Page
                 ChatListView.ScrollIntoView(ChatListView.Items[^1]);
             });
         }
+
+        _ = DispatcherQueue.TryEnqueue(() =>
+        {
+            HookChatScroller();
+            UpdateJumpToBottom();
+        });
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -59,11 +78,87 @@ public sealed partial class SessionsPage : Page
 
         ChatListView.Visibility = diffSelected ? Visibility.Collapsed : Visibility.Visible;
         DiffPanel.Visibility = diffSelected ? Visibility.Visible : Visibility.Collapsed;
+        UpdateJumpToBottom();
+    }
+
+    private void OnChatListLoaded(object sender, RoutedEventArgs e) => HookChatScroller();
+
+    // Finds (once) the ListView's built-in ScrollViewer and subscribes to its
+    // scroll changes. The ScrollViewer part is often not in the visual tree yet
+    // when Loaded fires, so this re-queues itself until the template is realized.
+    private void HookChatScroller()
+    {
+        if (_chatScroller != null)
+        {
+            return;
+        }
+
+        _chatScroller = FindDescendant<ScrollViewer>(ChatListView);
+        if (_chatScroller == null)
+        {
+            if (_hookAttempts++ < 20)
+            {
+                _ = DispatcherQueue.TryEnqueue(HookChatScroller);
+            }
+            return;
+        }
+
+        _chatScroller.ViewChanged += (_, _) => UpdateJumpToBottom();
+        UpdateJumpToBottom();
+    }
+
+    // The button is visible only on the Chat tab while the list is scrolled
+    // more than JumpThreshold px above its bottom.
+    private void UpdateJumpToBottom()
+    {
+        if (_chatScroller == null)
+        {
+            HookChatScroller();
+        }
+
+        bool show = ChatListView.Visibility == Visibility.Visible
+                    && _chatScroller != null
+                    && _chatScroller.ScrollableHeight - _chatScroller.VerticalOffset > JumpThreshold;
+
+        JumpToBottomButton.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnJumpToBottomClick(object sender, RoutedEventArgs e)
+    {
+        if (_chatScroller != null)
+        {
+            _chatScroller.ChangeView(null, _chatScroller.ScrollableHeight, null);
+        }
+        else if (ChatListView.Items.Count > 0)
+        {
+            ChatListView.ScrollIntoView(ChatListView.Items[^1]);
+        }
+    }
+
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        int count = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+            {
+                return match;
+            }
+
+            var deeper = FindDescendant<T>(child);
+            if (deeper != null)
+            {
+                return deeper;
+            }
+        }
+        return null;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        HookChatScroller();
         if (ViewModel.Sessions.Count == 0)
         {
             ViewModel.LoadSessionsCommand.Execute(null);

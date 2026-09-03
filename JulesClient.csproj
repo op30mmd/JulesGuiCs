@@ -12,6 +12,7 @@
 
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<ApplicationIcon>Assets\jules.ico</ApplicationIcon>
 
 		<!--
 		  To sign the MSIX package, you can uncomment these properties and provide the path to your .pfx file.
@@ -32,6 +33,13 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
 		<PackageReference Include="System.Reactive" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Window / taskbar icon (the manifest-referenced PNGs are packaged automatically). -->
+		<Content Include="Assets\jules.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>

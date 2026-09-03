@@ -85,27 +85,21 @@ public static class MarkdownParser
     {
         try
         {
-            var line = lines[index];
-            var trimmed = line.TrimStart();
-            if (!trimmed.StartsWith("```")) return false;
+            if (!FencedCode.TryOpenFence(lines[index], out var fence, out var fenceLen, out var lang, out var indent))
+                return false;
 
-            var fenceLen = trimmed.TakeWhile(c => c == '`').Count();
-            if (fenceLen < 3) return false;
-
-            var lang = trimmed.Substring(fenceLen).Trim();
             var sb = new StringBuilder();
             index++;
 
             while (index < lines.Length)
             {
-                var current = lines[index].TrimEnd();
-                if (current.TrimStart().StartsWith("```") && current.TrimStart().TakeWhile(c => c == '`').Count() >= fenceLen)
+                if (FencedCode.IsCloseFence(lines[index], fence, fenceLen))
                 {
                     index++;
                     break;
                 }
                 if (sb.Length > 0) sb.Append('\n');
-                sb.Append(lines[index]);
+                sb.Append(FencedCode.StripIndent(lines[index], indent));
                 index++;
             }
 
@@ -651,6 +645,8 @@ public static class MarkdownParser
             CodeTokenKind.Comment => SolidHex(dark ? "#6A9955" : "#008000"),
             CodeTokenKind.Number => SolidHex(dark ? "#B5CEA8" : "#098658"),
             CodeTokenKind.Preprocessor => SolidHex(dark ? "#9B9B9B" : "#808080"),
+            CodeTokenKind.Function => SolidHex(dark ? "#DCDCAA" : "#795E26"),
+            CodeTokenKind.Constant => SolidHex(dark ? "#4FC1FF" : "#0070C1"),
             _ => null
         };
     }

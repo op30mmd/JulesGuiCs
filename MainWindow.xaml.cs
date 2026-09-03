@@ -15,6 +15,8 @@ public sealed partial class MainWindow : Window
         SetTitleBar(AppTitleBar);
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
 
+        AppWindow.SetIcon("Assets/jules.ico");
+
         // Wire up navigation - THIS IS CRITICAL
         Nav.ItemInvoked += (s, e) =>
         {

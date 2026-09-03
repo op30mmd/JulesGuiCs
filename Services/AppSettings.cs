@@ -21,6 +21,10 @@ public static class AppSettings
     public static bool ShowTimestamps { get; private set; } = true;
     public static bool ShowOriginatorLabels { get; private set; } = true;
     public static bool ShowCodeLanguageLabel { get; private set; } = true;
+    public static bool ShowProgressUpdates { get; private set; } = true;
+    public static bool CollapseAgentMessages { get; private set; } = true;
+    public static bool CollapseUserMessages { get; private set; } = true;
+    public static bool CollapseLongCodeBlocks { get; private set; } = true;
     public static bool AutoScrollChat { get; private set; } = true;
 
     // Sessions / behaviour
@@ -40,6 +44,9 @@ public static class AppSettings
     public static bool CachingEnabled { get; private set; } = true;
     public static long CacheMaxSizeBytes { get; private set; } = 500L * 1024 * 1024;
 
+    // Diagnostics
+    public static bool VerboseLogging { get; private set; }
+
     public static event Action? Changed;
 
     public static void Apply(ISettingsService s)
@@ -54,6 +61,10 @@ public static class AppSettings
         ShowTimestamps = s.ShowTimestamps;
         ShowOriginatorLabels = s.ShowOriginatorLabels;
         ShowCodeLanguageLabel = s.ShowCodeLanguageLabel;
+        ShowProgressUpdates = s.ShowProgressUpdates;
+        CollapseAgentMessages = s.CollapseAgentMessages;
+        CollapseUserMessages = s.CollapseUserMessages;
+        CollapseLongCodeBlocks = s.CollapseLongCodeBlocks;
         AutoScrollChat = s.AutoScrollChat;
 
         PollingIntervalSeconds = (int)Clamp(s.PollingIntervalSeconds, 3, 120, 10);
@@ -69,6 +80,8 @@ public static class AppSettings
 
         CachingEnabled = s.CachingEnabled;
         CacheMaxSizeBytes = Math.Max(16, s.CacheMaxSizeMB) * 1024L * 1024L;
+
+        VerboseLogging = s.VerboseLogging;
 
         try { Changed?.Invoke(); } catch { }
     }
