@@ -13,6 +13,11 @@ public partial class SourcesViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    // Session creation is tracked separately from the source list load so the
+    // page can name what it is waiting on.
+    [ObservableProperty]
+    private bool _isCreatingSession;
+
     [ObservableProperty]
     private string? _errorMessage;
 
@@ -76,7 +81,7 @@ public partial class SourcesViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(NewSessionPrompt)) return false;
 
-        IsLoading = true;
+        IsCreatingSession = true;
         try
         {
             var req = new CreateSessionRequest(
@@ -106,7 +111,7 @@ public partial class SourcesViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            IsCreatingSession = false;
         }
     }
 }

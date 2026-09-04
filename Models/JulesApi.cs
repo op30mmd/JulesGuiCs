@@ -50,6 +50,48 @@ public record Session(
 {
     public string ShortId => Name?.Replace("sessions/", "") ?? string.Empty;
 
+    // What the session list rows show. Binding the raw Title/Prompt is what made
+    // that list so expensive to lay out: the rows trim with
+    // TextTrimming="CharacterEllipsis" and don't wrap, so the text engine has to
+    // measure the whole string to work out where the ellipsis goes - and a Jules
+    // prompt routinely runs to thousands of characters, of which a row shows a
+    // few dozen. Cutting to one line first makes a row's measure cost the length
+    // of that line instead of the length of the prompt, which is what a resize of
+    // the pane was paying for on every visible row.
+    //
+    // Computed rather than cached on purpose: a cache field would join the
+    // record's generated equality, and SyncSessions compares rows with Equals to
+    // decide whether to swap them.
+    [JsonIgnore]
+    public string ListTitle => FirstLine(Title);
+
+    [JsonIgnore]
+    public string ListSubtitle => FirstLine(Prompt);
+
+    // Generously longer than a row can ever display, so the TextBlock still gets
+    // to place the ellipsis itself.
+    private const int ListLineMaxChars = 160;
+
+    private static string FirstLine(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var line = text.AsSpan().TrimStart();
+        int lineBreak = line.IndexOfAny('\r', '\n');
+        if (lineBreak >= 0)
+        {
+            line = line[..lineBreak];
+        }
+
+        line = line.TrimEnd();
+        return line.Length <= ListLineMaxChars
+            ? line.ToString()
+            : line[..ListLineMaxChars].ToString();
+    }
+
     // Raw JSON of this session as received from the API. Deliberately NOT
     // [JsonIgnore]: it has to survive a round-trip through the disk cache so the
     // "Copy session JSON" button works on a cache hit, not just a fresh fetch.

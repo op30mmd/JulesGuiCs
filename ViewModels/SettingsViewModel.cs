@@ -53,6 +53,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _cachingEnabled;
     [ObservableProperty] private double _cacheMaxSizeMB;
     [ObservableProperty] private string _cacheSizeText = "…";
+    [ObservableProperty] private bool _isCacheBusy;
 
     // Proxy
     [ObservableProperty] private ProxyMode _proxyMode;
@@ -176,13 +177,19 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ClearCacheAsync()
     {
-        await _cache.ClearAsync();
-        await RefreshCacheSizeAsync();
+        IsCacheBusy = true;
+        try
+        {
+            await _cache.ClearAsync();
+            await RefreshCacheSizeAsync();
+        }
+        finally { IsCacheBusy = false; }
     }
 
     [RelayCommand]
     private async Task RefreshCacheSizeAsync()
     {
+        IsCacheBusy = true;
         try
         {
             var bytes = await _cache.GetCacheSizeAsync();
@@ -193,5 +200,6 @@ public partial class SettingsViewModel : ObservableObject
                     : $"{bytes / (1024.0 * 1024.0):0.0} MB";
         }
         catch { CacheSizeText = "unknown"; }
+        finally { IsCacheBusy = false; }
     }
 }

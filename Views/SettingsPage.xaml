@@ -125,6 +125,9 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
                     <Button Content="Clear cache" Command="{x:Bind ViewModel.ClearCacheCommand}"/>
+                    <ProgressRing Width="16" Height="16" VerticalAlignment="Center"
+                                  IsActive="{x:Bind ViewModel.IsCacheBusy, Mode=OneWay}"
+                                  Visibility="{x:Bind ViewModel.IsCacheBusy, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingHint}" Margin="0">
                         <Run Text="Current size:"/>
                         <Run Text="{x:Bind ViewModel.CacheSizeText, Mode=OneWay}"/>

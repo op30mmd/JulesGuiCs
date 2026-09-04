@@ -38,6 +38,11 @@ public partial class SessionsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    // True while the open session's history is being paged in, so the chat can
+    // show a spinner instead of an empty pane.
+    [ObservableProperty]
+    private bool _isLoadingActivities;
+
     [ObservableProperty]
     private Session? _selectedSession;
 
@@ -72,11 +77,19 @@ public partial class SessionsViewModel : ObservableObject
     public ObservableCollection<JulesClient.Models.Activity> Activities { get; } = new();
     public ObservableCollection<DiffFileViewModel> DiffFiles { get; } = new();
 
+    // The centred spinner in the session list is only for the first load: once
+    // rows are on screen a refresh is signalled by the header button's ring
+    // instead of covering the list the user is already reading.
+    public bool ShowSessionsLoading => IsLoading && Sessions.Count == 0;
+
+    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(ShowSessionsLoading));
+
     public SessionsViewModel()
     {
         _api = App.Current.Services.GetRequiredService<ICachedJulesApiClient>();
         _polling = App.Current.Services.GetRequiredService<IPollingService>();
         _dispatcher = DispatcherQueue.GetForCurrentThread();
+        Sessions.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ShowSessionsLoading));
         AppSettings.Changed += OnAppSettingsChanged;
     }
 
@@ -205,6 +218,7 @@ public partial class SessionsViewModel : ObservableObject
         _allSessionPatches.Clear();
         _dispatcher.TryEnqueue(() =>
         {
+            IsLoadingActivities = value != null;
             Activities.Clear();
             DiffFiles.Clear();
             AggregatePatch = null;
@@ -336,6 +350,19 @@ public partial class SessionsViewModel : ObservableObject
         catch (Exception ex)
         {
             Debug.WriteLine($"[VM] Failed to load activities: {ex.Message}");
+        }
+        finally
+        {
+            // Queued behind the enqueue above, so the spinner only clears once the
+            // loaded activities are actually in the list. If the selection moved on
+            // while this request was in flight, the newer load owns the spinner.
+            _dispatcher.TryEnqueue(() =>
+            {
+                if (SelectedSession?.Name == sessionId)
+                {
+                    IsLoadingActivities = false;
+                }
+            });
         }
     }
 

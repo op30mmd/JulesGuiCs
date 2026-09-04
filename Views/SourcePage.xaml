@@ -39,8 +39,24 @@
                 </GridView>
             </RefreshContainer>
 
-            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <StackPanel Spacing="10" IsHitTestVisible="False"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ProgressRing Width="32" Height="32" HorizontalAlignment="Center"
+                              IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
+                <TextBlock Text="Loading repositories…" FontSize="12" Opacity="0.6" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Creating a session takes a round-trip and then navigates away, so
+                 the grid is covered rather than left clickable in the meantime. -->
+            <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" Opacity="0.85"
+                  Visibility="{x:Bind ViewModel.IsCreatingSession, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressRing Width="32" Height="32" HorizontalAlignment="Center"
+                                  IsActive="{x:Bind ViewModel.IsCreatingSession, Mode=OneWay}"/>
+                    <TextBlock Text="Creating session…" FontSize="12" Opacity="0.7" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

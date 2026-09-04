@@ -327,55 +327,129 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <!-- Width is driven from code-behind (splitter drag / collapse), so the
+                 value here is only the starting width. -->
+            <ColumnDefinition x:Name="SessionListColumn" Width="300"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Sessions List -->
-        <Grid Grid.Column="0" BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
+        <Grid x:Name="SessionPane" Grid.Column="0" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
+            <!-- Kept in step with the pane's size from code-behind, so the heading
+                 and the list cannot spill over the chat while the pane narrows. -->
+            <Grid.Clip>
+                <RectangleGeometry x:Name="SessionPaneClip"/>
+            </Grid.Clip>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Padding="16,16,16,12">
+            <Grid Grid.Row="0" Padding="8,16,8,12" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Sessions" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Command="{x:Bind ViewModel.RefreshAllDataCommand, Mode=OneWay}" ToolTipService.ToolTip="Refresh All (Clear Cache)" Background="Transparent" BorderThickness="0">
-                    <SymbolIcon Symbol="Refresh"/>
+
+                <!-- Collapses the pane down to a rail. The button keeps its place in
+                     that rail, so it is also the way back. -->
+                <Button x:Name="SessionPaneToggle" Click="OnToggleSessionPane"
+                        Width="32" Height="32" Padding="0"
+                        Background="Transparent" BorderThickness="0"
+                        ToolTipService.ToolTip="Hide session list">
+                    <FontIcon x:Name="SessionPaneToggleIcon" Glyph="&#xE76B;" FontSize="14"/>
+                </Button>
+
+                <!-- Stays measured while the pane is collapsed so the header row's
+                     height - and with it the toggle button's position - never
+                     changes. NoWrap/MaxLines pin it to a single line: its column
+                     is squeezed to zero width in the rail, and TitleTextBlockStyle
+                     would otherwise wrap it to one character per line and make the
+                     row far taller. -->
+                <TextBlock x:Name="SessionsHeading" Grid.Column="1" Text="Sessions" Style="{StaticResource SubtitleTextBlockStyle}"
+                           VerticalAlignment="Center" TextWrapping="NoWrap" MaxLines="1"/>
+                <!-- Sized and glyphed to match the pane toggle: a bare SymbolIcon is
+                     fixed at 20px and the default Button padding around it makes
+                     this noticeably larger than everything beside it. -->
+                <Button x:Name="SessionsRefreshButton" Grid.Column="2" Command="{x:Bind ViewModel.RefreshAllDataCommand, Mode=OneWay}" ToolTipService.ToolTip="Refresh All (Clear Cache)"
+                        Width="32" Height="32" Padding="0"
+                        Background="Transparent" BorderThickness="0">
+                    <!-- The glyph is swapped for a ring while the refresh runs, so a
+                         reload of an already-populated list still reads as busy. -->
+                    <Grid>
+                        <FontIcon Glyph="&#xE72C;" FontSize="14"
+                                  Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
+                        <ProgressRing Width="16" Height="16"
+                                      IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                                      Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </Grid>
                 </Button>
             </Grid>
 
-            <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Sessions}"
-                      SelectedItem="{x:Bind ViewModel.SelectedSession, Mode=TwoWay}">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="2,2,2,2"/>
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Session">
-                        <Grid Padding="14,10" RowSpacing="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" FontSize="14"/>
-                            <TextBlock Grid.Row="1" Text="{x:Bind Prompt, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" Opacity="0.6" FontSize="12"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <Grid Grid.Row="1" x:Name="SessionListArea">
+                <ListView x:Name="SessionsListView" ItemsSource="{x:Bind ViewModel.Sessions}"
+                          SelectedItem="{x:Bind ViewModel.SelectedSession, Mode=TwoWay}">
+                        <!-- The default cache (a viewport either side) realises ~77
+                             rows for 16 visible, and all of them re-measure whenever
+                             the pane's width changes. These rows are two TextBlocks
+                             and cheap to realise on demand, so the cache is cut. -->
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsStackPanel CacheLength="0.5"/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="2,2,2,2"/>
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Session">
+                            <Grid Padding="14,10" RowSpacing="2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="{x:Bind ListTitle}" Style="{StaticResource BodyStrongTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" FontSize="14"/>
+                                <TextBlock Grid.Row="1" Text="{x:Bind ListSubtitle}" Style="{StaticResource CaptionTextBlockStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" Opacity="0.6" FontSize="12"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <StackPanel Spacing="10" IsHitTestVisible="False"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Visibility="{x:Bind ViewModel.ShowSessionsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ProgressRing Width="28" Height="28" HorizontalAlignment="Center"
+                                  IsActive="{x:Bind ViewModel.ShowSessionsLoading, Mode=OneWay}"/>
+                    <TextBlock Text="Loading sessions…" FontSize="12" Opacity="0.6" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Grid>
 
+        <!-- Drag strip between the two panes. It carries the sidebar's own colour
+             rather than being transparent: left see-through it shows the page
+             background, which reads as a gap between the panes instead of a
+             gutter. The divider line lives on the chat pane's left edge, so it
+             stays right at the boundary in both the expanded and collapsed
+             states (the splitter's column is Auto and vanishes when hidden). -->
+        <svc:PaneSplitter x:Name="SessionPaneSplitter" Grid.Column="1" Width="6"
+                          Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
+                          ToolTipService.ToolTip="Drag to resize, double-click to reset"
+                          PointerPressed="OnSessionSplitterPointerPressed"
+                          PointerMoved="OnSessionSplitterPointerMoved"
+                          PointerReleased="OnSessionSplitterPointerReleased"
+                          PointerCaptureLost="OnSessionSplitterPointerCaptureLost"
+                          DoubleTapped="OnSessionSplitterDoubleTapped"/>
+
         <!-- Session Detail / Chat -->
-        <Grid Grid.Column="1">
+        <Grid x:Name="SessionDetailPane" Grid.Column="2"
+              BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="1,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
@@ -434,10 +508,17 @@
                             </StackPanel>
                         </HyperlinkButton>
 
-                        <Button Content="Approve Plan"
-                                Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
+                        <Button Visibility="{x:Bind ViewModel.SelectedSession.PendingPlan, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}"
                                 Command="{x:Bind ViewModel.ApprovePlanCommand}"
-                                Style="{StaticResource AccentButtonStyle}"/>
+                                Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ProgressRing Width="14" Height="14" VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                              IsActive="{x:Bind ViewModel.ApprovePlanCommand.IsRunning, Mode=OneWay}"
+                                              Visibility="{x:Bind ViewModel.ApprovePlanCommand.IsRunning, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <TextBlock Text="Approve Plan"/>
+                            </StackPanel>
+                        </Button>
                         <HyperlinkButton NavigateUri="{x:Bind ViewModel.SelectedSession.Url, Mode=OneWay}"
                                          ToolTipService.ToolTip="Open this session on jules.google.com (to pause, cancel, etc.)"
                                          Padding="8,4"
@@ -484,7 +565,7 @@
                         </StackPanel>
                     </Grid>
 
-                    <Grid Grid.Row="1">
+                    <Grid x:Name="ChatArea" Grid.Row="1">
                         <ListView x:Name="ChatListView"
                                   Loaded="OnChatListLoaded"
                                   ItemsSource="{x:Bind ViewModel.Activities}"
@@ -523,6 +604,27 @@
                             </Button.OpacityTransition>
                             <FontIcon Glyph="&#xE70D;" FontSize="14" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"/>
                         </Button>
+
+                        <!-- What a pane resize actually costs. Shown only with
+                             Verbose logging on (Settings > Diagnostics). -->
+                        <Border x:Name="ResizeDiagnostics" Visibility="Collapsed"
+                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                Margin="12" Padding="8,5" CornerRadius="4"
+                                Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
+                            <TextBlock x:Name="ResizeDiagnosticsText" FontFamily="Consolas" FontSize="11"
+                                       IsTextSelectionEnabled="True"/>
+                        </Border>
+
+                        <!-- Opening a session pages its whole history in before the first
+                             message appears; without this the pane just sits blank. -->
+                        <StackPanel Spacing="10" IsHitTestVisible="False"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{x:Bind ViewModel.IsLoadingActivities, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ProgressRing Width="32" Height="32" HorizontalAlignment="Center"
+                                          IsActive="{x:Bind ViewModel.IsLoadingActivities, Mode=OneWay}"/>
+                            <TextBlock Text="Loading conversation…" FontSize="12" Opacity="0.6" HorizontalAlignment="Center"/>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Grid>
@@ -544,11 +646,19 @@
                         Style="{StaticResource AccentButtonStyle}"
                         CornerRadius="8">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <SymbolIcon Symbol="Send"/>
+                        <Grid VerticalAlignment="Center">
+                            <SymbolIcon Symbol="Send"
+                                        Visibility="{x:Bind ViewModel.SendMessageCommand.IsRunning, Mode=OneWay, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
+                            <ProgressRing Width="16" Height="16"
+                                          Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                          IsActive="{x:Bind ViewModel.SendMessageCommand.IsRunning, Mode=OneWay}"
+                                          Visibility="{x:Bind ViewModel.SendMessageCommand.IsRunning, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </Grid>
                         <TextBlock Text="Send"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </Grid>
+
     </Grid>
 </Page>

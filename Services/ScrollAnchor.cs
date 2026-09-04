@@ -28,6 +28,18 @@ public static class ScrollAnchor
     public static void SetPreserveOnResize(DependencyObject o, bool value) => o.SetValue(PreserveOnResizeProperty, value);
     public static bool GetPreserveOnResize(DependencyObject o) => (bool)o.GetValue(PreserveOnResizeProperty);
 
+    /// <summary>
+    /// Turns the height compensation below off while a layout change that is not
+    /// an expand/collapse is under way - resizing the session list pane, say.
+    /// Such a change re-wraps every realised item at once, so each watched
+    /// expander reports a height delta, and compensating for all of them scrolls
+    /// the chat to a meaningless place. Worse, every <c>ChangeView</c> re-scrolls
+    /// the list and realises different items, which report their own deltas: on a
+    /// pane drag that cascade runs on every frame and is what makes dragging feel
+    /// laggy. Set by <c>SessionsPage</c> around the drag and the collapse.
+    /// </summary>
+    public static bool IsSuspended { get; set; }
+
     private static void OnPreserveOnResizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not FrameworkElement fe)
@@ -44,6 +56,11 @@ public static class ScrollAnchor
 
     private static void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        if (IsSuspended)
+        {
+            return;
+        }
+
         // Ignore first layout and teardown - only genuine in-place resizes.
         if (e.PreviousSize.Height <= 0 || e.NewSize.Height <= 0)
         {
