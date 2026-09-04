@@ -32,6 +32,10 @@
     <Compile Include="../Services/MarkdownText.cs" Link="Services/MarkdownText.cs" />
     <Compile Include="../Services/CachedJulesApiClient.cs" Link="Services/CachedJulesApiClient.cs" />
     <Compile Include="../Services/DiffParser.cs" Link="Services/DiffParser.cs" />
+    <Compile Include="../Services/IDemoService.cs" Link="Services/IDemoService.cs" />
+    <Compile Include="../Services/DemoService.cs" Link="Services/DemoService.cs" />
+    <Compile Include="../Services/DemoJulesApiClient.cs" Link="Services/DemoJulesApiClient.cs" />
+    <Compile Include="../Services/Socks5Handshaker.cs" Link="Services/Socks5Handshaker.cs" />
   </ItemGroup>
 
   <ItemGroup>
